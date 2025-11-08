@@ -20,13 +20,33 @@ var ftpCmd = &cobra.Command{
   
   # 指定端口和线程数
   GYscan.exe ftp 192.168.1.1:2121 -u user.txt -p pass.txt -t 10`,
-	Args: cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		// 检查是否请求帮助
+		if len(args) > 0 && args[0] == "help" {
+			return nil
+		}
+		// 正常参数验证
+		return cobra.ExactArgs(1)(cmd, args)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		// 检查是否请求帮助
+		if len(args) > 0 && args[0] == "help" {
+			cmd.Help()
+			return
+		}
+		
 		target := args[0]
 		
 		// 获取用户名参数
 		usernameStr, _ := cmd.Flags().GetString("username")
 		usernameFile, _ := cmd.Flags().GetString("username-file")
+		
+		// 验证必需参数
+		if usernameStr == "" && usernameFile == "" {
+			fmt.Println("错误: 必须指定用户名(-u)或用户名字典文件(--username-file)")
+			cmd.Help()
+			return
+		}
 		
 		// 获取密码参数
 		passwordStr, _ := cmd.Flags().GetString("password")
@@ -161,7 +181,5 @@ func init() {
 	ftpCmd.Flags().IntP("threads", "t", 5, "并发线程数")
 	ftpCmd.Flags().Int("timeout", 10, "连接超时时间（秒）")
 	
-	// 设置必需参数
-	ftpCmd.MarkFlagRequired("username")
-	// 密码参数可以通过-p或--password-file指定，不强制要求-p
+	// 不设置MarkFlagRequired，改为在Run函数内部验证必需参数
 }

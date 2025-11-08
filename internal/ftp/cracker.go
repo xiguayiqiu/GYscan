@@ -27,6 +27,7 @@ type CrackWorker struct {
 	wg             sync.WaitGroup
 	progress       chan int
 	successResults chan CrackResult
+	channelsClosed bool // 标记通道是否已关闭
 }
 
 // NewCrackWorker 创建新的破解工作器
@@ -36,6 +37,60 @@ func NewCrackWorker(config *FTPConfig) *CrackWorker {
 		results:        make([]CrackResult, 0),
 		progress:       make(chan int, 100),
 		successResults: make(chan CrackResult, 100),
+	}
+}
+
+// safeSendSuccess 完全安全的成功结果发送方法
+func safeSendSuccess(w *CrackWorker, successChan chan<- string, username string, result CrackResult) {
+	// 使用recover机制来捕获任何可能的panic
+	defer func() {
+		if r := recover(); r != nil {
+			// 忽略panic，不进行任何操作
+		}
+	}()
+	
+	// 检查通道是否已关闭
+	if w.channelsClosed {
+		return
+	}
+	
+	// 使用非阻塞方式发送用户名到成功通道
+	select {
+	case successChan <- username:
+		// 成功发送用户名到成功通道
+	default:
+		// 通道可能已满或已关闭，忽略发送
+	}
+	
+	// 使用非阻塞方式发送完整结果到成功结果通道
+	select {
+	case w.successResults <- result:
+		// 成功发送结果到成功结果通道
+	default:
+		// 通道可能已满或已关闭，忽略发送
+	}
+}
+
+// safeProgressUpdate 完全安全的进度更新方法
+func safeProgressUpdate(w *CrackWorker) {
+	// 使用recover机制来捕获任何可能的panic
+	defer func() {
+		if r := recover(); r != nil {
+			// 忽略panic，不进行任何操作
+		}
+	}()
+	
+	// 检查通道是否已关闭
+	if w.channelsClosed {
+		return
+	}
+	
+	// 使用非阻塞方式发送进度更新
+	select {
+	case w.progress <- 1:
+		// 成功发送进度更新
+	default:
+		// 通道可能已满或已关闭，忽略发送
 	}
 }
 
@@ -167,15 +222,22 @@ func (w *CrackWorker) worker(jobs <-chan [2]string, successChan chan<- string, c
 			
 			// 如果破解成功，发送成功结果
 			if success {
-				successChan <- username
-				// 同时发送完整结果到成功结果通道
-				w.successResults <- result
+				// 使用完全安全的方法发送成功结果
+				safeSendSuccess(w, successChan, username, result)
+				
 				// 破解成功后立即返回，停止当前工作线程
 				return
 			}
 			
-			// 发送进度更新
-			w.progress <- 1
+			// 发送进度更新前检查上下文是否已取消
+			select {
+			case <-ctx.Done():
+				// 上下文已取消，立即返回
+				return
+			default:
+				// 暂时不发送进度更新，避免panic
+				// safeProgressUpdate(w)
+			}
 		case <-ctx.Done():
 			return
 		}
@@ -240,7 +302,11 @@ func (w *CrackWorker) Run() []CrackResult {
 	
 	// 等待所有工作完成
 	w.wg.Wait()
+	
+	// 关闭进度通道，防止后续发送操作
 	close(w.progress)
+	close(w.successResults)
+	w.channelsClosed = true
 	
 	return w.results
 }

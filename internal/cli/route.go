@@ -32,6 +32,11 @@ var routeCmd = &cobra.Command{
   GYscan route example.com --timeout 5    # 设置5秒超时
 `,
 	Args: func(cmd *cobra.Command, args []string) error {
+		// 检查是否请求帮助
+		if len(args) > 0 && args[0] == "help" {
+			return nil
+		}
+		
 		if len(args) < 1 {
 			return fmt.Errorf("需要指定目标IP或域名")
 		}
@@ -68,6 +73,11 @@ type RouteHop struct {
 
 // 运行路由检测
 func runRouteDetection(cmd *cobra.Command, args []string) error {
+	// 检查是否请求帮助
+	if len(args) > 0 && args[0] == "help" {
+		return cmd.Help()
+	}
+	
 	target := args[0]
 	
 	utils.InfoPrint("[+] 开始路由检测到目标: %s", target)

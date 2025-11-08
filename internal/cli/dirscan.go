@@ -218,6 +218,5 @@ func init() {
 	dirscanCmd.Flags().Bool("show-all", false, "显示所有响应 (包括错误)")
 	dirscanCmd.Flags().String("status-codes", "", "过滤状态码 (逗号分隔，如: 200,301,403)")
 	
-	// 标记必需参数
-	dirscanCmd.MarkFlagRequired("url")
+	// 不设置MarkFlagRequired，改为在Run函数内部验证必需参数
 }

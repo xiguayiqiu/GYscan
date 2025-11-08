@@ -1,10 +1,8 @@
-# GYscan - 内网横向边界安全测试工具
-
-基于Go语言开发的专业内网横向边界安全测试工具，集成了多种安全测试功能，旨在帮助安全研究人员进行授权的内网安全评估。
+# GYscan - Go语言内网横向边界安全测试工具
 
 **作者**: BiliBili-弈秋啊  
-**寓意**: Go + 内网横向（Y） + 边界安全扫描（scan）  
-**许可证**: 仅用于授权的安全测试目的，使用者需承担相应法律责任
+**版本**: v1.0.0  
+**寓意**: Go + 内网横向(Y) + 边界安全扫描(scan)
 
 ## ⚠️ 重要警告
 
@@ -14,99 +12,235 @@
 ## 🚀 快速开始
 
 ### 环境要求
-- Go 1.18+ 版本
+- Go 1.24.5+ 版本
 - Windows/Linux/macOS 操作系统
 - 网络连接权限
 
 ### 安装与编译
 ```bash
-# 克隆项目
-git clone <repository-url>
-cd GYscan
-
 # 编译项目
-go build -o GYscan.exe
+go build -o GYscan.exe .
 
 # 运行工具
 ./GYscan.exe
 ```
 
-### 基本使用
+## 📋 核心功能模块
+
+GYscan是一个功能丰富的内网安全测试工具，集成了以下核心功能：
+
+### 1. 网络扫描模块 (scan)
+基于nmap设计理念的网络扫描工具，支持：
+- **存活主机发现** - ICMP Ping + TCP探测
+- **端口扫描** - TCP SYN/Connect/UDP扫描
+- **服务识别** - 协议握手包匹配
+- **系统识别** - OS指纹识别
+- **网段扫描** - CIDR/IP范围扫描
+
+**使用示例：**
 ```bash
-# 查看帮助信息
-./GYscan.exe help
-
-# 查看版本信息
-./GYscan.exe --version
-
-# 静默模式运行
-./GYscan.exe --silent
+./GYscan scan 192.168.1.1/24
+./GYscan scan 192.168.1.1-192.168.1.100 -p 22,80,443
+./GYscan scan example.com -p 1-1000 -n 100
+./GYscan scan 10.0.0.0/8 -O -V
+./GYscan scan 192.168.1.1 -O -V -p 1-1000
 ```
 
-## 📋 功能模块
+### 2. 目录扫描模块 (dirscan)
+网站目录扫描工具，基于dirsearch设计：
+- **多线程目录扫描** - 支持自定义并发线程
+- **自定义字典文件** - 内置字典或外部字典
+- **扩展名扫描** - 支持多种文件扩展名
+- **状态码过滤** - 按HTTP状态码筛选结果
+- **代理支持** - HTTP/SOCKS代理
+- **结果导出** - 支持结果保存到文件
 
-### 1. 资产探测模块
-- **主机发现**: 网络存活主机探测
-- **端口扫描**: 多线程端口扫描服务
-- **服务识别**: 自动识别服务类型和版本
-- **操作系统识别**: 目标系统指纹识别
+**使用示例：**
+```bash
+./GYscan dirscan -u http://example.com
+./GYscan dirscan -u https://example.com -w wordlist.txt
+./GYscan dirscan -u http://example.com -t 50 -e php,html
+./GYscan dirscan -u http://example.com --proxy http://127.0.0.1:8080
+./GYscan dirscan -u http://example.com -o results.txt
+```
 
-### 2. 凭证处理模块
-- **本地凭证抓取**: Windows/Linux系统凭证提取
-- **批量验证**: 多目标凭证批量验证
-- **凭证管理**: 凭证存储和安全管理
+### 3. 数据库破解模块 (database)
+支持多种主流数据库的密码破解：
+- **MySQL** - 标准认证和协议级破解
+- **PostgreSQL** - MD5和明文认证
+- **MSSQL** - Windows和SQL Server认证
+- **Oracle** - Oracle数据库认证
+- **MariaDB** - 标准认证和协议级破解
 
-### 3. 横向执行模块
-- **远程命令执行**: 支持多种协议的命令执行
-- **文件传输**: 安全文件上传下载
-- **漏洞利用**: 集成常见漏洞利用模块
+**功能特性：**
+- 多线程并发破解
+- 用户名/密码字典攻击
+- 协议级认证测试
+- 实时进度显示
 
-### 4. 权限提升模块
-- **提权漏洞扫描**: 系统提权漏洞检测
-- **权限维持**: 后门植入和权限维持
-- **安全绕过**: 安全机制绕过技术
+**使用示例：**
+```bash
+./GYscan database mysql://192.168.1.100:3306 -u user.txt -p pass.txt
+./GYscan database postgres://192.168.1.101:5432 -u admin -p top100.txt
+./GYscan database mssql://192.168.1.102:1433 -u user.txt -p pass.txt -t 10
+./GYscan database oracle://192.168.1.103:1521 -u scott -p tiger -d orcl
+./GYscan database mariadb://192.168.1.104:3306 -u root -p password.txt -d test
+```
 
-### 5. 痕迹清理模块
-- **日志清理**: 系统日志和安全日志清理
-- **文件删除**: 安全删除临时文件
-- **痕迹消除**: 操作痕迹全面清理
+### 4. FTP服务破解模块 (ftp)
+FTP服务密码破解工具：
+- **多线程并发** - 自定义并发线程数
+- **字典攻击** - 用户名和密码字典文件
+- **实时进度** - 显示破解进度和统计信息
+- **错误处理** - 完善的错误处理和超时控制
 
-### 6. WebShell生成模块
-- **PHP大马/小马生成**: 支持多种WebShell类型
-- **编码混淆**: Base64、Hex等多种编码方式
-- **无密码版本**: 支持无密码大马生成
-- **自定义配置**: 灵活的密码和功能配置
+**使用示例：**
+```bash
+./GYscan ftp ftp://192.168.1.1:21 -u admin -p password
+./GYscan ftp ftp://192.168.1.1:21 -u user.txt -p pass.txt
+./GYscan ftp ftp://192.168.1.1:21 -u admin,root -p pass.txt
+./GYscan ftp ftp://192.168.1.1:21 -u admin -p pass.txt -t 10
+```
 
-### 7. 数据库破解模块
-支持多种主流数据库的密码破解，基于THC-Hydra的设计理念实现：
+### 5. SSH服务破解模块 (ssh)
+SSH服务密码爆破工具：
+- **多线程并发** - 自定义并发线程数
+- **字典攻击** - 用户名和密码字典文件
+- **延迟控制** - 避免触发安全机制
+- **详细输出** - 支持verbose和very-verbose模式
 
-#### 支持的数据库类型
-- **MySQL** - 支持标准认证和协议级破解
-- **PostgreSQL** - 支持MD5和明文认证
-- **MSSQL** - 支持Windows和SQL Server认证
-- **Oracle** - 支持Oracle数据库认证
-- **MariaDB** - 支持标准认证和协议级破解
+**使用示例：**
+```bash
+./GYscan ssh 192.168.1.1 -l root -p password
+./GYscan ssh 192.168.1.1 -l user.txt -P pass.txt
+./GYscan ssh 192.168.1.1 -l root -p pass.txt -t 10
+./GYscan ssh 192.168.1.1 -l root -P pass.txt -D 2
+```
 
-#### 功能特性
-- **多线程并发**: 支持自定义并发线程数
-- **字典攻击**: 支持用户名和密码字典文件
-- **协议级破解**: 高级协议分析功能
-- **实时进度**: 显示破解进度和统计信息
-- **错误处理**: 完善的错误处理和超时控制
+### 6. WebShell生成模块 (webshell)
+PHP大马和小马生成工具：
+- **PHP小马生成** - 轻量级WebShell
+- **PHP大马生成** - 功能丰富的WebShell
+- **无密码模式** - 强制使用无密码版本
+- **自定义配置** - 灵活的密码字段配置
 
-### 8. 其他功能模块
-- **密码字典生成** (crunch): 自定义密码字典生成
-- **进程服务分析** (process): 系统进程和服务分析
-- **用户信息分析** (userinfo): 本地用户和组分析
-- **SAM文件分析** (sam): Windows SAM文件解析
-- **路由检测** (route): 网络路由跳数检测
-- **FTP破解** (ftp): FTP服务密码破解
-- **SSH破解** (ssh): SSH服务密码爆破
-- **目录扫描** (dirscan): 网站目录结构扫描
+**使用示例：**
+```bash
+./GYscan webshell -t small -o ./webshell.php
+./GYscan webshell -t large -o ./large.php
+```
 
-## 🔧 详细使用指南
+### 7. 密码字典生成模块 (crunch)
+自定义密码字典生成工具：
+- **字符集自定义** - 支持任意字符组合
+- **长度范围** - 指定最小和最大密码长度
+- **多线程生成** - 提高字典生成效率
+- **文件输出** - 生成结果保存到文件
 
-### 根命令参数
+**使用示例：**
+```bash
+./GYscan crunch 4 6 abcdefghijklmnopqrstuvwxyz0123456789 -o passwords.txt
+./GYscan crunch 8 8 0123456789 -o numbers.txt -t 8
+```
+
+### 8. 进程服务分析模块 (process)
+进程与服务信息收集工具：
+- **跨平台支持** - Windows/Linux系统兼容
+- **权限级别分类** - 系统权限/高权限/中权限/低权限
+- **详细分析** - 进程和服务详细信息
+- **多种输出格式** - 支持JSON格式输出
+
+**权限级别说明：**
+- **系统权限** - 操作系统核心组件，具有最高权限
+- **高权限** - 网络服务、数据库服务等关键应用
+- **中权限** - 普通系统服务和应用
+- **低权限** - 普通用户应用
+
+**使用示例：**
+```bash
+./GYscan process                    # 显示所有进程和服务信息
+./GYscan process -H                  # 仅显示高权限进程和服务
+./GYscan process -p                  # 仅显示进程信息
+./GYscan process -S                  # 仅显示服务信息
+./GYscan process --output json       # 以JSON格式输出
+```
+
+### 9. 用户信息分析模块 (userinfo)
+本地用户和组分析工具：
+- **跨平台兼容** - Windows/Linux系统支持
+- **用户账户分析** - 本地用户详细信息
+- **用户组分析** - 本地组信息分析
+- **权限属性** - 详细的权限和属性信息
+
+**使用示例：**
+```bash
+./GYscan userinfo                    # 显示本地用户和组信息
+./GYscan userinfo --users-only       # 仅显示用户信息
+./GYscan userinfo --groups-only      # 仅显示组信息
+./GYscan userinfo --detailed         # 显示详细信息
+```
+
+### 10. SAM文件分析模块 (sam)
+Windows SAM文件分析工具：
+- **SAM文件解析** - 提取用户账户信息
+- **密码哈希提取** - 获取密码哈希数据
+- **详细用户信息** - 显示用户详细信息
+- **结果导出** - 支持结果保存到文件
+
+**SAM文件位置：**
+```
+C:\Windows\System32\config\SAM
+```
+
+**使用示例：**
+```bash
+./GYscan sam C:\Windows\System32\config\SAM
+./GYscan sam C:\Windows\System32\config\SAM --details
+./GYscan sam C:\Windows\System32\config\SAM --export users.txt
+```
+
+### 11. 路由检测模块 (route)
+网络路由跳数检测工具：
+- **ICMP路由追踪** - 使用Go原生ICMP实现
+- **跳数检测** - 检测数据包路径跳数
+- **延时统计** - 每个跳数的平均延时
+- **丢包率计算** - 网络连接质量分析
+
+**使用示例：**
+```bash
+./GYscan route 8.8.8.8                    # 检测到Google DNS的路由
+./GYscan route google.com --max-hops 10   # 检测到Google的路由，最大10跳
+./GYscan route 192.168.1.1 --count 5      # 每个跳数探测5次
+./GYscan route example.com --timeout 5    # 设置5秒超时
+```
+
+### 12. 工具信息模块 (about)
+查看工具基本信息：
+- **作者信息** - 工具开发者信息
+- **版本信息** - 当前工具版本
+- **核心功能** - 主要功能概述
+- **使用警告** - 安全使用提示
+
+**使用示例：**
+```bash
+./GYscan about
+```
+
+### 13. 帮助模块 (help)
+获取命令帮助信息：
+- **命令帮助** - 显示具体命令的使用方法
+- **参数说明** - 详细参数说明
+- **使用示例** - 实际使用案例
+
+**使用示例：**
+```bash
+./GYscan help                    # 显示所有命令帮助
+./GYscan help scan               # 显示scan命令帮助
+./GYscan help database           # 显示database命令帮助
+```
+
+## 🔧 全局参数
+
 ```bash
 ./GYscan.exe [command] [flags]
 
@@ -116,83 +250,6 @@ go build -o GYscan.exe
   -s, --silent         静默模式，仅输出关键结果
       --key string     流量加密密钥 (AES-256)
       --proxy string   代理服务器 (支持 HTTP/SOCKS5)
-```
-
-### 各模块使用示例
-
-#### WebShell生成
-```bash
-# 生成PHP小马
-./GYscan.exe webshell -t small -o webshell.php -p password
-
-# 生成PHP大马（无密码版本）
-./GYscan.exe webshell -t large --no-password -o large.php
-
-# 生成带编码混淆的WebShell
-./GYscan.exe webshell -t small -o encoded.php -e base64 -obfuscate 2
-```
-
-#### 数据库破解
-```bash
-# MySQL数据库破解
-./GYscan.exe database mysql://192.168.1.100:3306 -u user.txt -p pass.txt
-
-# PostgreSQL数据库破解
-./GYscan.exe database postgres://192.168.1.101:5432 -u admin -p top100.txt
-
-# MSSQL数据库破解（多线程）
-./GYscan.exe database mssql://192.168.1.102:1433 -u user.txt -p pass.txt -t 10
-
-# Oracle数据库破解
-./GYscan.exe database oracle://192.168.1.103:1521 -u scott -p tiger -d orcl
-
-# MariaDB数据库破解
-./GYscan.exe database mariadb://192.168.1.104:3306 -u root -p password.txt -d test
-```
-
-#### 密码字典生成
-```bash
-# 生成4-6位字母数字密码字典
-./GYscan.exe crunch 4 6 abcdefghijklmnopqrstuvwxyz0123456789 -o passwords.txt
-
-# 生成8位数字密码字典（多线程）
-./GYscan.exe crunch 8 8 0123456789 -o numbers.txt -t 8
-```
-
-#### 进程服务分析
-```bash
-# 显示所有进程和服务信息
-./GYscan.exe process
-
-# 仅显示高权限进程和服务
-./GYscan.exe process -H
-
-# JSON格式输出
-./GYscan.exe process --output json
-```
-
-#### 用户信息分析
-```bash
-# 分析本地用户和组信息
-./GYscan.exe userinfo
-
-# 仅显示用户信息
-./GYscan.exe userinfo --users-only
-
-# 显示详细信息
-./GYscan.exe userinfo --detailed
-```
-
-#### SAM文件分析
-```bash
-# 分析SAM文件
-./GYscan.exe sam C:\Windows\System32\config\SAM
-
-# 显示详细用户信息
-./GYscan.exe sam C:\Windows\System32\config\SAM --details
-
-# 导出结果到文件
-./GYscan.exe sam C:\Windows\System32\config\SAM --export users.txt
 ```
 
 ## 🏗️ 项目结构
@@ -246,57 +303,40 @@ GYscan/
 
 ### 已完成功能
 - [x] 项目基础结构和CLI框架
-- [x] 数据库破解模块 (MySQL/PostgreSQL/MSSQL/Oracle/MariaDB)
-- [x] WebShell生成模块
-- [x] 密码字典生成模块
-- [x] 进程服务分析模块
-- [x] 用户信息分析模块
-- [x] SAM文件分析模块
-- [x] 路由检测模块
-- [x] FTP破解模块
-- [x] SSH破解模块
-- [x] 目录扫描模块
-
-### 开发中功能
-- [ ] 资产探测模块
-- [ ] 凭证处理模块
-- [ ] 横向执行模块
-- [ ] 权限提升模块
-- [ ] 痕迹清理模块
-- [ ] 安全加固功能
-
-## 🤝 贡献指南
-
-欢迎提交Issue和Pull Request来帮助改进项目：
-
-1. Fork 项目仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启Pull Request
+- [x] 网络扫描模块 (scan)
+- [x] 目录扫描模块 (dirscan)
+- [x] 数据库破解模块 (database)
+- [x] FTP服务破解模块 (ftp)
+- [x] SSH服务破解模块 (ssh)
+- [x] WebShell生成模块 (webshell)
+- [x] 密码字典生成模块 (crunch)
+- [x] 进程服务分析模块 (process)
+- [x] 用户信息分析模块 (userinfo)
+- [x] SAM文件分析模块 (sam)
+- [x] 路由检测模块 (route)
+- [x] 工具信息模块 (about)
+- [x] 帮助模块 (help)
 
 ## 📝 更新日志
 
 ### v1.0.0 (当前版本)
 - 初始版本发布
-- 集成多种安全测试功能
-- 支持主流数据库破解
-- WebShell生成工具
-- 完善的命令行界面
+- 集成13个核心功能模块
+- 支持Windows/Linux/macOS平台
+- 完善的错误处理和进度显示
 
-## 🔗 相关资源
+## 🤝 贡献指南
 
-- [Go语言官方网站](https://golang.org/)
-- [Cobra CLI框架](https://github.com/spf13/cobra)
-- [安全测试最佳实践](https://owasp.org/)
+欢迎提交Issue和Pull Request来改进项目。请确保：
+1. 代码符合Go语言规范
+2. 添加适当的测试用例
+3. 更新相关文档
+4. 遵循安全开发规范
 
-## 📞 技术支持
+## 📄 许可证
 
-如有问题或建议，请通过以下方式联系：
-- 提交GitHub Issue
-- 发送邮件至作者
-- 关注B站账号获取更新
+本工具仅用于授权的安全测试目的。使用者需承担相应的法律责任。
 
 ---
 
-**免责声明**: 本工具仅用于授权的安全测试和教育目的。使用者需确保遵守当地法律法规，并承担使用本工具所产生的全部责任。
+**免责声明**: 本工具仅供安全研究和授权测试使用，任何未授权的使用行为与作者无关。

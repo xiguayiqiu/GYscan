@@ -64,7 +64,7 @@ var crunchCmd = &cobra.Command{
 func init() {
 	// 添加crunch命令的参数
 	crunchCmd.Flags().StringVarP(&crunchOutputPath, "output", "o", "", "输出文件路径（必须指定）")
-	crunchCmd.MarkFlagRequired("output")
+	// 不设置MarkFlagRequired，改为在Run函数内部验证必需参数
 	crunchCmd.Flags().IntVarP(&threadCount, "threads", "t", 4, "使用的线程数量（默认4线程）")
 }
 
@@ -112,6 +112,13 @@ func runCrunch(cmd *cobra.Command, args []string) error {
 	// 检查是否请求帮助
 	if len(args) > 0 && args[0] == "help" {
 		return cmd.Help()
+	}
+	
+	// 验证必需参数
+	if crunchOutputPath == "" {
+		fmt.Println("错误: 必须指定输出文件路径 (-o, --output)")
+		fmt.Println("用法: GYscan crunch min max chars -o 输出文件路径 [选项]")
+		return nil
 	}
 	
 	// 解析参数
