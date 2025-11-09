@@ -1,9 +1,8 @@
 # GYscan - 专业的Go语言内网横向渗透测试工具
 
-[![Go Version](https://img.shields.io/badge/Go-1.18%2B-blue?logo=go)](https://golang.org)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2FLinux%2FmacOS-lightgrey)](https://github.com/your-repo/GYscan)
-[![GitHub Stars](https://img.shields.io/github/stars/your-repo/GYscan?style=social)](https://github.com/your-repo/GYscan)
+[![Go Version](https://img.shields.io/badge/Go-1.24.5%2B-blue?logo=go)](https://golang.org)
+[![License](https://img.shields.io/badge/License-Apache2.0-green)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2FLinux-lightgrey)](https://github.com/your-repo/GYscan)
 
 ## **一款专为内网渗透测试设计的全能安全工具**
 
