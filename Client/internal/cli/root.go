@@ -9,6 +9,10 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
+//版本号
+const (
+	Version = "v2.0.0"
+)
 
 // rootCmd 表示基础命令
 var rootCmd = &cobra.Command{
@@ -36,7 +40,7 @@ func printBanner() {
 	utils.InfoPrint("==============================================")
 	utils.InfoPrint("GYscan - Go语言内网横向边界安全测试工具")
 	utils.InfoPrint("作者: BiliBili-弈秋啊")
-	utils.InfoPrint("工具版本: v1.0.0")
+	utils.InfoPrint("工具版本: " + Version)
 	utils.InfoPrint("描述: 专注内网资产探测、横向移动、安全验证")
 	utils.InfoPrint("")
 
@@ -79,4 +83,8 @@ func init() {
 	rootCmd.AddCommand(userinfoCmd)
 	// 添加dirscan命令
 	rootCmd.AddCommand(dirscanCmd)
+	// 添加process命令
+	rootCmd.AddCommand(processCmd)
+	// 添加route命令
+	rootCmd.AddCommand(routeCmd)
 }

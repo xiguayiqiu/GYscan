@@ -1,243 +1,214 @@
-# GYscan - Go语言内网横向边界安全测试工具
+# GYscan - 专业的Go语言内网横向渗透测试工具
 
-**作者**: BiliBili-弈秋啊  
-**版本**: v1.0.0  
-**寓意**: Go + 内网横向(Y) + 边界安全扫描(scan)
+[![Go Version](https://img.shields.io/badge/Go-1.18%2B-blue?logo=go)](https://golang.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2FLinux%2FmacOS-lightgrey)](https://github.com/your-repo/GYscan)
+[![GitHub Stars](https://img.shields.io/github/stars/your-repo/GYscan?style=social)](https://github.com/your-repo/GYscan)
+
+## **一款专为内网渗透测试设计的全能安全工具**
+
+## 🚀 项目简介
+
+GYscan是一款基于Go语言开发的现代化内网横向渗透测试工具，专为安全研究人员、渗透测试工程师和红队成员设计。项目采用模块化架构，包含C2服务器端和客户端组件，支持Windows和Linux平台，提供系统安全分析和漏洞扫描功能。
+
+### 🌟 核心优势
+
+| 特性 | 描述 | 价值 |
+|------|------|------|
+| **🔧 模块化设计** | 13个独立功能模块，按需使用 | 灵活应对不同测试场景 |
+| **⚡ 高性能并发** | Go原生goroutine并发模型 | 大幅提升测试效率 |
+| **🔄 跨平台兼容** | Windows/Linux全支持 | 适应各种测试环境 |
+| **📚 功能全面** | 网络扫描、服务破解、信息收集一体化 | 减少工具切换成本 |
+| **🔒 安全可靠** | 完善的错误处理和资源管理 | 保障测试过程稳定 |
+
+### 🎯 适用场景
+
+- **🔍 内网安全评估** - 企业内部网络安全性测试
+- **🛡️ 红队演练** - 模拟攻击者进行内网横向移动
+- **📊 安全审计** - 系统和服务安全配置检查
+- **🎓 安全学习** - 了解内网渗透测试技术和方法
+
+### 📋 基本信息
+
+| 项目信息 | 详情 |
+|---------|------|
+| **作者** | BiliBili-弈秋啊 |
+| **版本** | v2.0.0 |
+| **语言** | Go 1.24.5+ |
+| **平台** | Windows/Linux |
+| **许可证** | 仅限授权安全测试使用 |
 
 ## ⚠️ 重要警告
 
-**本工具仅用于已授权的内网安全测试，严禁未授权使用！**  
-使用者需确保在合法合规的前提下使用本工具，并承担相应的法律责任。
+**🚨 法律声明：本工具仅用于已授权的内网安全测试，严禁未授权使用！**  
 
-## 🚀 快速开始
+使用者必须确保：
+- ✅ 获得目标系统的明确授权
+- ✅ 遵守当地法律法规
+- ✅ 承担使用本工具所产生的全部法律责任
+- ✅ 仅用于安全研究和教育目的
 
-### 环境要求
-- Go 1.24.5+ 版本
-- Windows/Linux/macOS 操作系统
-- 网络连接权限
+## 🚀 快速上手
 
-### 安装与编译
+### 环境准备
+
+确保您的系统满足以下要求：
+- **操作系统**: Windows/Linux
+- **Go版本**: 1.24.5+ (仅编译需要)
+- **内存**: 至少512MB可用内存
+- **网络**: 稳定的网络连接（网络扫描功能需要）
+
+### 编译安装
+
+#### 方法一：源码编译（推荐）
 ```bash
-# 编译项目
-go build -o GYscan.exe .
+# 克隆项目
+git clone https://gitee.com/bzhanyiqiua/GYscan.git
+git clone https://github.com/xiguayiqiu/GYscan.git
 
-# 运行工具
-./GYscan.exe
+# 编译Windows C2服务器端
+cd C2\Windows
+go build -o GYscan-Win-C2.exe .
+
+# 编译Linux C2服务器端
+cd C2\Linux
+go build -o GYscan-linux-C2.exe .
+
+# 编译客户端
+cd Client
+go build -o GYscan-Client.exe .
+
+# 验证安装
+.\GYscan-Win-C2.exe --version
 ```
 
-## 📋 核心功能模块
+#### 方法二：直接下载
+从 [GitHub Releases页面](https://github.com/xiguayiqiu/GYscan/releases) 下载预编译的二进制文件。
+从 [Gitee Releases页面](https://gitee.com/bzhanyiqiua/GYscan/releases) 下载预编译的二进制文件
 
-GYscan是一个功能丰富的内网安全测试工具，集成了以下核心功能：
+### 基础使用
 
-### 1. 网络扫描模块 (scan)
-基于nmap设计理念的网络扫描工具，支持：
-- **存活主机发现** - ICMP Ping + TCP探测
-- **端口扫描** - TCP SYN/Connect/UDP扫描
-- **服务识别** - 协议握手包匹配
-- **系统识别** - OS指纹识别
-- **网段扫描** - CIDR/IP范围扫描
-
-**使用示例：**
+#### 1. C2服务器端使用
 ```bash
-./GYscan scan 192.168.1.1/24
-./GYscan scan 192.168.1.1-192.168.1.100 -p 22,80,443
-./GYscan scan example.com -p 1-1000 -n 100
-./GYscan scan 10.0.0.0/8 -O -V
-./GYscan scan 192.168.1.1 -O -V -p 1-1000
+# Windows C2服务器 - 漏洞扫描
+.\GYscan-Win-C2.exe cve
+
+# Windows C2服务器 - 用户信息分析
+.\GYscan-Win-C2.exe userinfo
+
+# Linux C2服务器 - 漏洞扫描
+.\GYscan-linux-C2.exe cve
+
+# Linux C2服务器 - 用户信息分析
+.\GYscan-linux-C2.exe userinfo
 ```
 
-### 2. 目录扫描模块 (dirscan)
-网站目录扫描工具，基于dirsearch设计：
-- **多线程目录扫描** - 支持自定义并发线程
-- **自定义字典文件** - 内置字典或外部字典
-- **扩展名扫描** - 支持多种文件扩展名
-- **状态码过滤** - 按HTTP状态码筛选结果
-- **代理支持** - HTTP/SOCKS代理
-- **结果导出** - 支持结果保存到文件
-
-**使用示例：**
+#### 2. 查看工具信息
 ```bash
-./GYscan dirscan -u http://example.com
-./GYscan dirscan -u https://example.com -w wordlist.txt
-./GYscan dirscan -u http://example.com -t 50 -e php,html
-./GYscan dirscan -u http://example.com --proxy http://127.0.0.1:8080
-./GYscan dirscan -u http://example.com -o results.txt
+.\GYscan-Win-C2.exe --version
 ```
 
-### 3. 数据库破解模块 (database)
-支持多种主流数据库的密码破解：
-- **MySQL** - 标准认证和协议级破解
-- **PostgreSQL** - MD5和明文认证
-- **MSSQL** - Windows和SQL Server认证
-- **Oracle** - Oracle数据库认证
-- **MariaDB** - 标准认证和协议级破解
+### 🎯 实战示例
 
-**功能特性：**
-- 多线程并发破解
-- 用户名/密码字典攻击
-- 协议级认证测试
-- 实时进度显示
-
-**使用示例：**
+#### 示例1：Windows系统漏洞扫描
 ```bash
-./GYscan database mysql://192.168.1.100:3306 -u user.txt -p pass.txt
-./GYscan database postgres://192.168.1.101:5432 -u admin -p top100.txt
-./GYscan database mssql://192.168.1.102:1433 -u user.txt -p pass.txt -t 10
-./GYscan database oracle://192.168.1.103:1521 -u scott -p tiger -d orcl
-./GYscan database mariadb://192.168.1.104:3306 -u root -p password.txt -d test
+# 扫描Windows系统漏洞并生成HTML报告
+.\GYscan-Win-C2.exe cve
 ```
 
-### 4. FTP服务破解模块 (ftp)
-FTP服务密码破解工具：
-- **多线程并发** - 自定义并发线程数
-- **字典攻击** - 用户名和密码字典文件
-- **实时进度** - 显示破解进度和统计信息
-- **错误处理** - 完善的错误处理和超时控制
-
-**使用示例：**
+#### 示例2：Linux系统漏洞扫描
 ```bash
-./GYscan ftp ftp://192.168.1.1:21 -u admin -p password
-./GYscan ftp ftp://192.168.1.1:21 -u user.txt -p pass.txt
-./GYscan ftp ftp://192.168.1.1:21 -u admin,root -p pass.txt
-./GYscan ftp ftp://192.168.1.1:21 -u admin -p pass.txt -t 10
+# 扫描Linux系统漏洞并生成HTML报告
+.\GYscan-linux-C2.exe cve
 ```
 
-### 5. SSH服务破解模块 (ssh)
-SSH服务密码爆破工具：
-- **多线程并发** - 自定义并发线程数
-- **字典攻击** - 用户名和密码字典文件
-- **延迟控制** - 避免触发安全机制
-- **详细输出** - 支持verbose和very-verbose模式
-
-**使用示例：**
+#### 示例3：Windows用户信息分析
 ```bash
-./GYscan ssh 192.168.1.1 -l root -p password
-./GYscan ssh 192.168.1.1 -l user.txt -P pass.txt
-./GYscan ssh 192.168.1.1 -l root -p pass.txt -t 10
-./GYscan ssh 192.168.1.1 -l root -P pass.txt -D 2
+# 分析Windows系统用户信息
+.\GYscan-Win-C2.exe userinfo
 ```
 
-### 6. WebShell生成模块 (webshell)
-PHP大马和小马生成工具：
-- **PHP小马生成** - 轻量级WebShell
-- **PHP大马生成** - 功能丰富的WebShell
-- **无密码模式** - 强制使用无密码版本
-- **自定义配置** - 灵活的密码字段配置
-
-**使用示例：**
+#### 示例4：Linux用户信息分析
 ```bash
-./GYscan webshell -t small -o ./webshell.php
-./GYscan webshell -t large -o ./large.php
+# 分析Linux系统用户信息
+.\GYscan-linux-C2.exe userinfo
 ```
 
-### 7. 密码字典生成模块 (crunch)
-自定义密码字典生成工具：
-- **字符集自定义** - 支持任意字符组合
-- **长度范围** - 指定最小和最大密码长度
-- **多线程生成** - 提高字典生成效率
-- **文件输出** - 生成结果保存到文件
+### ⚙️ 高级配置
 
-**使用示例：**
+#### 性能调优
 ```bash
-./GYscan crunch 4 6 abcdefghijklmnopqrstuvwxyz0123456789 -o passwords.txt
-./GYscan crunch 8 8 0123456789 -o numbers.txt -t 8
+# 设置并发线程数
+.\GYscan.exe dirscan http://target.com -t 100
+
+# 设置超时时间
+.\GYscan.exe scan 192.168.1.0/24 --timeout 10s
 ```
 
-### 8. 进程服务分析模块 (process)
-进程与服务信息收集工具：
-- **跨平台支持** - Windows/Linux系统兼容
-- **权限级别分类** - 系统权限/高权限/中权限/低权限
-- **详细分析** - 进程和服务详细信息
-- **多种输出格式** - 支持JSON格式输出
-
-**权限级别说明：**
-- **系统权限** - 操作系统核心组件，具有最高权限
-- **高权限** - 网络服务、数据库服务等关键应用
-- **中权限** - 普通系统服务和应用
-- **低权限** - 普通用户应用
-
-**使用示例：**
+#### 输出控制
 ```bash
-./GYscan process                    # 显示所有进程和服务信息
-./GYscan process -H                  # 仅显示高权限进程和服务
-./GYscan process -p                  # 仅显示进程信息
-./GYscan process -S                  # 仅显示服务信息
-./GYscan process --output json       # 以JSON格式输出
+# 静默模式（仅输出结果）
+.\GYscan.exe --silent scan 192.168.1.1
+
+# 输出到文件
+.\GYscan.exe scan 192.168.1.0/24 -o results.json
 ```
 
-### 9. 用户信息分析模块 (userinfo)
-本地用户和组分析工具：
-- **跨平台兼容** - Windows/Linux系统支持
-- **用户账户分析** - 本地用户详细信息
-- **用户组分析** - 本地组信息分析
-- **权限属性** - 详细的权限和属性信息
+## 🛠️ 核心功能模块
 
-**使用示例：**
-```bash
-./GYscan userinfo                    # 显示本地用户和组信息
-./GYscan userinfo --users-only       # 仅显示用户信息
-./GYscan userinfo --groups-only      # 仅显示组信息
-./GYscan userinfo --detailed         # 显示详细信息
-```
+GYscan采用模块化架构，包含C2服务器端和客户端组件，支持Windows和Linux平台的系统安全分析和漏洞扫描功能。
 
-### 10. SAM文件分析模块 (sam)
-Windows SAM文件分析工具：
-- **SAM文件解析** - 提取用户账户信息
-- **密码哈希提取** - 获取密码哈希数据
-- **详细用户信息** - 显示用户详细信息
-- **结果导出** - 支持结果保存到文件
+### 📊 功能模块概览
 
-**SAM文件位置：**
-```
-C:\Windows\System32\config\SAM
-```
+| 组件类型 | 平台 | 主要功能 | 技术特点 |
+|---------|------|---------|---------|
+| **C2服务器端** | Windows | 系统漏洞扫描、用户信息分析 | 基于系统API，支持HTML报告生成 |
+| **C2服务器端** | Linux | 系统漏洞扫描、用户信息分析 | 基于系统命令，支持文本报告生成 |
+| **客户端** | 跨平台 | 网络扫描、服务破解、Web安全 | 多线程并发，模块化设计 |
 
-**使用示例：**
-```bash
-./GYscan sam C:\Windows\System32\config\SAM
-./GYscan sam C:\Windows\System32\config\SAM --details
-./GYscan sam C:\Windows\System32\config\SAM --export users.txt
-```
+### 1. C2服务器端 - Windows平台
+Windows C2服务器端提供系统安全分析和漏洞扫描功能：
 
-### 11. 路由检测模块 (route)
-网络路由跳数检测工具：
-- **ICMP路由追踪** - 使用Go原生ICMP实现
-- **跳数检测** - 检测数据包路径跳数
-- **延时统计** - 每个跳数的平均延时
-- **丢包率计算** - 网络连接质量分析
+**主要功能：**
+- **系统漏洞扫描** - 扫描Windows系统服务和程序漏洞
+- **用户信息分析** - 分析本地用户和组信息
+- **HTML报告生成** - 生成美观的HTML格式漏洞报告
+- **文本报告生成** - 生成简洁的文本格式用户信息报告
 
-**使用示例：**
-```bash
-./GYscan route 8.8.8.8                    # 检测到Google DNS的路由
-./GYscan route google.com --max-hops 10   # 检测到Google的路由，最大10跳
-./GYscan route 192.168.1.1 --count 5      # 每个跳数探测5次
-./GYscan route example.com --timeout 5    # 设置5秒超时
-```
+**技术特点：**
+- 基于Windows系统API实现
+- 支持子命令模式（cve/userinfo）
+- 自动识别输出文件路径
+- 详细的扫描摘要和统计信息
 
-### 12. 工具信息模块 (about)
-查看工具基本信息：
-- **作者信息** - 工具开发者信息
-- **版本信息** - 当前工具版本
-- **核心功能** - 主要功能概述
-- **使用警告** - 安全使用提示
+### 2. C2服务器端 - Linux平台
+Linux C2服务器端提供系统安全分析和漏洞扫描功能：
 
-**使用示例：**
-```bash
-./GYscan about
-```
+**主要功能：**
+- **系统漏洞扫描** - 扫描Linux系统服务和程序漏洞
+- **用户信息分析** - 分析本地用户和组信息
+- **文本报告生成** - 生成文本格式的报告
 
-### 13. 帮助模块 (help)
-获取命令帮助信息：
-- **命令帮助** - 显示具体命令的使用方法
-- **参数说明** - 详细参数说明
-- **使用示例** - 实际使用案例
+**技术特点：**
+- 基于Linux系统命令实现
+- 支持子命令模式（cve/userinfo）
+- 跨发行版兼容性
+- 详细的执行时间统计
 
-**使用示例：**
-```bash
-./GYscan help                    # 显示所有命令帮助
-./GYscan help scan               # 显示scan命令帮助
-./GYscan help database           # 显示database命令帮助
-```
+### 3. 客户端组件
+客户端组件提供网络扫描、服务破解和Web安全测试功能：
+
+**主要功能：**
+- **网络扫描** - 主机发现和端口扫描
+- **服务破解** - FTP/SSH等服务密码破解
+- **Web安全** - 目录扫描和WebShell生成
+- **数据库安全** - 多种数据库密码破解
+
+**技术特点：**
+- 多线程并发处理
+- 模块化架构设计
+- 支持多种输出格式
+- 完善的错误处理机制
 
 ## 🔧 全局参数
 
@@ -252,78 +223,87 @@ C:\Windows\System32\config\SAM
       --proxy string   代理服务器 (支持 HTTP/SOCKS5)
 ```
 
-## 🏗️ 项目结构
+## 🏗️ 技术架构
+
+### 项目结构
+GYscan采用模块化架构设计，包含C2服务器端和客户端组件：
 
 ```
 GYscan/
-├── cmd/                 # 命令行入口
-│   └── root.go         # 根命令定义
-├── internal/           # 内部模块
-│   ├── cli/           # 命令行接口
-│   ├── database/      # 数据库破解模块
-│   ├── dirscan/       # 目录扫描模块
-│   ├── ftp/          # FTP破解模块
-│   ├── network/      # 网络功能模块
-│   ├── nmap/         # 网络扫描模块
-│   ├── process/       # 进程服务模块
-│   ├── sam/          # SAM分析模块
-│   ├── samcrack/     # SAM破解模块
-│   ├── security/     # 安全功能模块
-│   ├── ssh/          # SSH破解模块
-│   ├── userinfo/     # 用户信息模块
-│   ├── utils/        # 工具函数
-│   └── webshell/     # WebShell生成模块
-├── main.go           # 程序入口
-└── README.md         # 项目文档
+├── C2/                     # C2服务器端组件
+│   ├── Windows/           # Windows C2服务器端
+│   │   ├── internal/      # 内部模块
+│   │   │   ├── userinfo/  # 用户信息分析模块
+│   │   │   └── vulnscan/  # 漏洞扫描模块
+│   │   ├── main.go        # 主程序入口
+│   │   ├── scanner.go     # 扫描器核心
+│   │   ├── report.go      # 报告生成模块
+│   │   └── middleware.go  # 中间件模块
+│   └── Linux/             # Linux C2服务器端
+│       ├── internal/      # 内部模块
+│       ├── main.go        # 主程序入口
+│       ├── scanner.go     # 扫描器核心
+│       └── report.go      # 报告生成模块
+├── Client/                 # 客户端组件
+│   ├── internal/          # 内部功能模块
+│   │   ├── cli/           # 命令行接口
+│   │   ├── database/      # 数据库破解
+│   │   ├── dirscan/       # 目录扫描
+│   │   ├── ftp/           # FTP服务破解
+│   │   ├── nmap/          # 网络扫描
+│   │   ├── process/       # 进程分析
+│   │   ├── sam/           # SAM文件分析
+│   │   ├── ssh/           # SSH服务破解
+│   │   ├── userinfo/      # 用户信息分析
+│   │   └── webshell/      # WebShell生成
+│   └── main.go            # 主程序入口
+└── README.md              # 项目文档
 ```
 
-## 🔒 安全特性
+### 🔧 技术特性
 
-### 流量加密
-- 支持AES-256流量加密
-- 可自定义加密密钥
-- 防止网络监听和数据泄露
+#### 🚀 高性能并发
+- **Go原生并发** - 基于goroutine的轻量级并发模型
+- **连接池管理** - 智能连接复用，减少资源开销
+- **超时控制** - 可配置的超时机制，避免无限等待
 
-### 代理支持
-- 支持HTTP/SOCKS5代理
-- 匿名化网络请求
-- 绕过网络限制
+#### 🔒 安全机制
+- **流量加密** - AES-256加密传输，防止数据泄露
+- **代理支持** - HTTP/SOCKS5代理，增强匿名性
+- **错误隔离** - 模块化错误处理，避免单点故障
 
-### 错误处理
-- 完善的异常处理机制
-- 优雅的错误恢复
-- 详细的错误日志记录
+#### 📊 用户体验
+- **实时进度** - 详细的进度条和统计信息
+- **多种输出** - 支持控制台、文件、JSON多种输出格式
+- **智能提示** - 友好的错误提示和使用建议
 
-### 权限控制
-- 严格的权限验证
-- 安全的文件操作
-- 防止权限滥用
+#### 🔄 扩展性设计
+- **插件架构** - 模块化设计，易于功能扩展
+- **配置驱动** - 灵活的配置系统，支持多种场景
+- **标准接口** - 统一的接口规范，便于二次开发
 
 ## 📊 开发状态
 
 ### 已完成功能
-- [x] 项目基础结构和CLI框架
-- [x] 网络扫描模块 (scan)
-- [x] 目录扫描模块 (dirscan)
-- [x] 数据库破解模块 (database)
-- [x] FTP服务破解模块 (ftp)
-- [x] SSH服务破解模块 (ssh)
-- [x] WebShell生成模块 (webshell)
-- [x] 密码字典生成模块 (crunch)
-- [x] 进程服务分析模块 (process)
-- [x] 用户信息分析模块 (userinfo)
-- [x] SAM文件分析模块 (sam)
-- [x] 路由检测模块 (route)
-- [x] 工具信息模块 (about)
-- [x] 帮助模块 (help)
+- [x] 项目基础结构和模块化架构
+- [x] Windows C2服务器端 - 漏洞扫描功能 (cve子命令)
+- [x] Windows C2服务器端 - 用户信息分析功能 (userinfo子命令)
+- [x] Linux C2服务器端 - 漏洞扫描功能 (cve子命令)
+- [x] Linux C2服务器端 - 用户信息分析功能 (userinfo子命令)
+- [x] HTML报告生成功能 (Windows平台)
+- [x] 文本报告生成功能 (Linux平台)
+- [x] 子命令参数解析和路径识别
+- [x] 详细的执行时间统计和扫描摘要
 
 ## 📝 更新日志
 
 ### v1.0.0 (当前版本)
 - 初始版本发布
-- 集成13个核心功能模块
-- 支持Windows/Linux/macOS平台
-- 完善的错误处理和进度显示
+- 集成C2服务器端和客户端组件
+- 支持Windows和Linux平台的系统安全分析
+- 实现漏洞扫描和用户信息分析功能
+- 支持HTML和文本报告生成
+- 完善的子命令参数解析和错误处理
 
 ## 🤝 贡献指南
 
