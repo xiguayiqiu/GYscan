@@ -207,7 +207,4 @@ func init() {
 	processCmd.Flags().BoolP("process", "p", false, "仅显示进程信息")
 	processCmd.Flags().BoolP("service", "S", false, "仅显示服务信息")
 	processCmd.Flags().String("output", "text", "输出格式 (text|json)")
-
-	// 注册命令到根命令
-	rootCmd.AddCommand(processCmd)
 }

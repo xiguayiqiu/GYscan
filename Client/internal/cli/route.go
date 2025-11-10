@@ -57,9 +57,6 @@ func init() {
 	routeCmd.Flags().IntVarP(&routeMaxHops, "max-hops", "m", 30, "最大跳数")
 	routeCmd.Flags().IntVarP(&routeTimeout, "timeout", "t", 3, "超时时间（秒）")
 	routeCmd.Flags().IntVarP(&routeCount, "count", "c", 3, "每个跳数的探测次数")
-	
-	// 注册route命令到根命令
-	rootCmd.AddCommand(routeCmd)
 }
 
 // 路由检测结果结构

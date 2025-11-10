@@ -25,7 +25,7 @@ func printAboutInfo() {
 GYscan - Go语言内网横向边界安全测试工具
 
 作者: BiliBili-弈秋啊
-版本: 2.0.0
+版本: 2.0.1
 寓意: Go + 内网横向(Y) + 边界安全扫描(scan)
 
 核心功能：

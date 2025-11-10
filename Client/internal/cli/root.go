@@ -11,7 +11,7 @@ import (
 )
 //版本号
 const (
-	Version = "v2.0.0"
+	Version = "v2.0.1"
 )
 
 // rootCmd 表示基础命令
@@ -49,7 +49,7 @@ func printBanner() {
 	red.Println("警告: 仅用于授权测试，严禁未授权使用！")
 
 	utils.InfoPrint("==============================================")
-	utils.InfoPrint("Use \"./GYscan -h\" for help")
+	utils.InfoPrint("使用 \"./GYscan -h\" 获取帮助信息")
 }
 
 // Execute 执行根命令
