@@ -34,7 +34,7 @@ GYscan是一款基于Go语言开发的现代化内网横向渗透测试工具，
 | 项目信息 | 详情 |
 |---------|------|
 | **作者** | BiliBili-弈秋啊 |
-| **版本** | v2.0.0 |
+| **版本** | v2.0.1 |
 | **语言** | Go 1.24.5+ |
 | **平台** | Windows/Linux |
 | **许可证** | 仅限授权安全测试使用 |
@@ -91,17 +91,23 @@ go build -o GYscan-Client.exe .
 
 #### 1. C2服务器端使用
 ```bash
-# Windows C2服务器 - 漏洞扫描
-.\GYscan-Win-C2.exe cve
-
 # Windows C2服务器 - 用户信息分析
 .\GYscan-Win-C2.exe userinfo
 
-# Linux C2服务器 - 漏洞扫描
-.\GYscan-linux-C2.exe cve
+# Windows C2服务器 - 容器安全扫描
+.\GYscan-Win-C2.exe trivy
+
+# Windows C2服务器 - SSH服务检测
+.\GYscan-Win-C2.exe ssh
 
 # Linux C2服务器 - 用户信息分析
 .\GYscan-linux-C2.exe userinfo
+
+# Linux C2服务器 - 容器安全扫描
+.\GYscan-linux-C2.exe trivy
+
+# Linux C2服务器 - SSH服务检测
+.\GYscan-linux-C2.exe ssh
 ```
 
 #### 2. 查看工具信息
@@ -111,28 +117,34 @@ go build -o GYscan-Client.exe .
 
 ### 🎯 实战示例
 
-#### 示例1：Windows系统漏洞扫描
+#### 示例1：Windows用户信息分析
 ```bash
-# 扫描Windows系统漏洞并生成HTML报告
-.\GYscan-Win-C2.exe cve
-```
-
-#### 示例2：Linux系统漏洞扫描
-```bash
-# 扫描Linux系统漏洞并生成HTML报告
-.\GYscan-linux-C2.exe cve
-```
-
-#### 示例3：Windows用户信息分析
-```bash
-# 分析Windows系统用户信息
+# 分析Windows系统用户信息并生成报告
 .\GYscan-Win-C2.exe userinfo
 ```
 
-#### 示例4：Linux用户信息分析
+#### 示例2：Linux用户信息分析
 ```bash
-# 分析Linux系统用户信息
+# 分析Linux系统用户信息并生成报告
 .\GYscan-linux-C2.exe userinfo
+```
+
+#### 示例3：Windows容器安全扫描
+```bash
+# 扫描Windows容器安全配置
+.\GYscan-Win-C2.exe trivy
+```
+
+#### 示例4：Linux容器安全扫描
+```bash
+# 扫描Linux容器安全配置
+.\GYscan-linux-C2.exe trivy
+```
+
+#### 示例5：SSH服务检测
+```bash
+# 检测SSH服务配置和安全性
+.\GYscan-Win-C2.exe ssh
 ```
 
 ### ⚙️ 高级配置
@@ -163,36 +175,36 @@ GYscan采用模块化架构，包含C2服务器端和客户端组件，支持Win
 
 | 组件类型 | 平台 | 主要功能 | 技术特点 |
 |---------|------|---------|---------|
-| **C2服务器端** | Windows | 系统漏洞扫描、用户信息分析 | 基于系统API，支持HTML报告生成 |
-| **C2服务器端** | Linux | 系统漏洞扫描、用户信息分析 | 基于系统命令，支持文本报告生成 |
+| **C2服务器端** | Windows | 用户信息分析、系统安全检测 | 基于系统API，支持HTML报告生成 |
+| **C2服务器端** | Linux | 用户信息分析、系统安全检测 | 基于系统命令，支持文本报告生成 |
 | **客户端** | 跨平台 | 网络扫描、服务破解、Web安全 | 多线程并发，模块化设计 |
 
 ### 1. C2服务器端 - Windows平台
-Windows C2服务器端提供系统安全分析和漏洞扫描功能：
+Windows C2服务器端提供系统安全分析和用户信息检测功能：
 
 **主要功能：**
-- **系统漏洞扫描** - 扫描Windows系统服务和程序漏洞
 - **用户信息分析** - 分析本地用户和组信息
-- **HTML报告生成** - 生成美观的HTML格式漏洞报告
+- **系统安全检测** - 检测Windows系统安全配置
+- **HTML报告生成** - 生成美观的HTML格式安全报告
 - **文本报告生成** - 生成简洁的文本格式用户信息报告
 
 **技术特点：**
 - 基于Windows系统API实现
-- 支持子命令模式（cve/userinfo）
+- 支持子命令模式（userinfo/trivy/ssh）
 - 自动识别输出文件路径
 - 详细的扫描摘要和统计信息
 
 ### 2. C2服务器端 - Linux平台
-Linux C2服务器端提供系统安全分析和漏洞扫描功能：
+Linux C2服务器端提供系统安全分析和用户信息检测功能：
 
 **主要功能：**
-- **系统漏洞扫描** - 扫描Linux系统服务和程序漏洞
 - **用户信息分析** - 分析本地用户和组信息
+- **系统安全检测** - 检测Linux系统安全配置
 - **文本报告生成** - 生成文本格式的报告
 
 **技术特点：**
 - 基于Linux系统命令实现
-- 支持子命令模式（cve/userinfo）
+- 支持子命令模式（userinfo/trivy/ssh）
 - 跨发行版兼容性
 - 详细的执行时间统计
 
@@ -298,7 +310,18 @@ GYscan/
 
 ## 📝 更新日志
 
-### v1.0.0 (当前版本)
+### v2.0.1 (最新版本)
+- **功能优化**: 移除CVE漏洞检测功能，专注于核心安全分析 [终极原因是漏洞扫描需要预置很多的POC模板「21w+的模板」就不适合嵌入程序，还有一个原因是检测不准确！]
+- **代码清理**: 删除Windows和Linux版本中所有CVE相关代码残留
+- **版本更新**: 统一更新所有组件版本号为v2.0.1
+
+### v2.0.0
+- 重构项目架构，分离C2服务器端和客户端组件
+- 增强Windows和Linux平台的兼容性
+- 优化子命令参数解析机制
+- 改进报告生成格式和内容
+
+### v1.0.0
 - 初始版本发布
 - 集成C2服务器端和客户端组件
 - 支持Windows和Linux平台的系统安全分析
