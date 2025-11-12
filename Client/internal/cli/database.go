@@ -87,7 +87,7 @@ var databaseCmd = &cobra.Command{
 // runDatabaseCrack 执行数据库破解
 func runDatabaseCrack(target, username, password, dbName string, threads, timeout int, ssl, protocol bool) error {
 	// 解析目标地址
-	dbType, host, port, err := parseTarget(target)
+	dbType, host, port, err := parseDatabaseTarget(target)
 	if err != nil {
 		return fmt.Errorf("解析目标地址失败: %v", err)
 	}
@@ -159,8 +159,8 @@ func runDatabaseCrack(target, username, password, dbName string, threads, timeou
 	return nil
 }
 
-// parseTarget 解析目标地址
-func parseTarget(target string) (database.DatabaseType, string, int, error) {
+// parseDatabaseTarget 解析数据库目标地址
+func parseDatabaseTarget(target string) (database.DatabaseType, string, int, error) {
 	// 支持格式: mysql://host:port, postgres://host:port, mssql://host:port, oracle://host:port, mariadb://host:port
 	if strings.Contains(target, "://") {
 		parts := strings.Split(target, "://")

@@ -23,11 +23,6 @@ var rootCmd = &cobra.Command{
 	Long: `GYscan - 作者：BiliBili-弈秋啊 | 基于Go语言开发，专注内网横向边界安全测试
 警告：仅用于授权测试，严禁未授权使用！`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// 检查是否请求帮助
-		if len(args) > 0 && args[0] == "help" {
-			cmd.Help()
-			return
-		}
 		// 直接运行程序时显示艺术字
 		printBanner()
 	},
@@ -61,38 +56,15 @@ func printBanner() {
 
 // Execute 执行根命令
 func Execute() {
-	// 设置帮助函数，确保显示帮助信息时也显示艺术字
+	// 设置自定义帮助函数，在显示帮助时也显示艺术字
 	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 		printBanner()
 		cmd.Usage()
 	})
-
-	// 为所有子命令也设置帮助函数
-	setHelpFuncForCommands(rootCmd)
-
+	
 	if err := rootCmd.Execute(); err != nil {
 		utils.ErrorPrint("%v", err)
 		os.Exit(1)
-	}
-}
-
-// setHelpFuncForCommands 递归为所有命令设置帮助函数和PersistentPreRun
-func setHelpFuncForCommands(cmd *cobra.Command) {
-	for _, subCmd := range cmd.Commands() {
-		subCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
-			printBanner()
-			cmd.Usage()
-		})
-		// 为子命令设置PersistentPreRun，确保执行时显示艺术字
-		originalPreRun := subCmd.PersistentPreRun
-		subCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-			printBanner()
-			if originalPreRun != nil {
-				originalPreRun(cmd, args)
-			}
-		}
-		// 递归设置子命令的帮助函数
-		setHelpFuncForCommands(subCmd)
 	}
 }
 
@@ -123,4 +95,5 @@ func init() {
 	rootCmd.AddCommand(processCmd)
 	// 添加route命令
 	rootCmd.AddCommand(routeCmd)
+
 }
