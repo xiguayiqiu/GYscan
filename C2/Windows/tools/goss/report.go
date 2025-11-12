@@ -78,12 +78,18 @@ func (s *Scanner) GenerateHTMLReport(result *ScanResult, outputPath string) erro
 	// 创建HTML模板
 	tmpl := template.Must(template.New("report").Parse(htmlTemplate))
 
-	// 创建输出文件
+	// 创建输出文件，使用UTF-8编码
 	file, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("创建HTML文件失败: %v", err)
 	}
 	defer file.Close()
+
+	// 写入UTF-8 BOM头以确保正确编码
+	_, err = file.Write([]byte{0xEF, 0xBB, 0xBF})
+	if err != nil {
+		return fmt.Errorf("写入UTF-8 BOM失败: %v", err)
+	}
 
 	// 执行模板
 	if err := tmpl.Execute(file, reportData); err != nil {

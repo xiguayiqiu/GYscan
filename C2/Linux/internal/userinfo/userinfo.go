@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/encoding/simplifiedchinese"
+	"GYscan-linux-C2/pkg/utils"
 )
 
 // UserInfo 用户信息结构体
@@ -308,15 +308,14 @@ func analyzeLinuxGroups() ([]GroupInfo, error) {
 func FormatUserInfo(users []UserInfo) string {
 	var result strings.Builder
 	
-	cyan := color.New(color.FgCyan).SprintFunc()
-	green := color.New(color.FgGreen).SprintFunc()
+	color := utils.NewColor()
 	
-	result.WriteString(cyan("=== 本地用户信息分析报告 ===\n"))
+	result.WriteString(color.Title("=== 本地用户信息分析报告 ===\n"))
 	result.WriteString(fmt.Sprintf("分析时间: %s\n", time.Now().Format("2006-01-02 15:04:05")))
 	result.WriteString(fmt.Sprintf("发现用户数量: %d\n\n", len(users)))
 	
 	for i, user := range users {
-		result.WriteString(green(fmt.Sprintf("用户 %d:\n", i+1)))
+		result.WriteString(color.Success(fmt.Sprintf("用户 %d:\n", i+1)))
 		result.WriteString(fmt.Sprintf("  用户名: %s\n", user.Name))
 		if user.FullName != "" {
 			result.WriteString(fmt.Sprintf("  全名: %s\n", user.FullName))
@@ -337,15 +336,14 @@ func FormatUserInfo(users []UserInfo) string {
 func FormatGroupInfo(groups []GroupInfo) string {
 	var result strings.Builder
 	
-	cyan := color.New(color.FgCyan).SprintFunc()
-	green := color.New(color.FgGreen).SprintFunc()
+	color := utils.NewColor()
 	
-	result.WriteString(cyan("=== 本地组信息分析报告 ===\n"))
+	result.WriteString(color.Title("=== 本地组信息分析报告 ===\n"))
 	result.WriteString(fmt.Sprintf("分析时间: %s\n", time.Now().Format("2006-01-02 15:04:05")))
 	result.WriteString(fmt.Sprintf("发现组数量: %d\n\n", len(groups)))
 	
 	for i, group := range groups {
-		result.WriteString(green(fmt.Sprintf("组 %d:\n", i+1)))
+		result.WriteString(color.Success(fmt.Sprintf("组 %d:\n", i+1)))
 		result.WriteString(fmt.Sprintf("  组名: %s\n", group.Name))
 		if group.Description != "" {
 			result.WriteString(fmt.Sprintf("  描述: %s\n", group.Description))

@@ -35,21 +35,21 @@ func (r RiskLevel) String() string {
 
 // RiskFactor 风险因素
 type RiskFactor struct {
-	Name        string    `json:"name"`        // 风险因素名称
-	Description string    `json:"description"` // 风险描述
-	Weight      float64   `json:"weight"`      // 权重 (0-1)
-	Score       float64   `json:"score"`      // 评分 (0-1)
+	Name        string  `json:"name"`        // 风险因素名称
+	Description string  `json:"description"` // 风险描述
+	Weight      float64 `json:"weight"`      // 权重 (0-1)
+	Score       float64 `json:"score"`       // 评分 (0-1)
 }
 
 // RiskAssessment 风险评估
 type RiskAssessment struct {
 	// 风险因素
 	Factors []RiskFactor `json:"factors"`
-	
+
 	// 配置参数
 	LowThreshold    float64 `json:"low_threshold"`    // 低风险阈值
 	MediumThreshold float64 `json:"medium_threshold"` // 中风险阈值
-	HighThreshold   float64 `json:"high_threshold"`  // 高风险阈值
+	HighThreshold   float64 `json:"high_threshold"`   // 高风险阈值
 }
 
 // NewRiskAssessment 创建风险评估实例
@@ -102,12 +102,12 @@ func NewRiskAssessment() *RiskAssessment {
 // AssessNetworkExposure 评估网络暴露度
 func (r *RiskAssessment) AssessNetworkExposure(isPublic bool, openPorts int, services []string) float64 {
 	score := 0.0
-	
+
 	// 公网暴露
 	if isPublic {
 		score += 0.4
 	}
-	
+
 	// 开放端口数量
 	if openPorts > 10 {
 		score += 0.3
@@ -116,7 +116,7 @@ func (r *RiskAssessment) AssessNetworkExposure(isPublic bool, openPorts int, ser
 	} else if openPorts > 0 {
 		score += 0.1
 	}
-	
+
 	// 高风险服务
 	highRiskServices := []string{"ssh", "rdp", "telnet", "ftp", "smb"}
 	for _, service := range services {
@@ -127,24 +127,24 @@ func (r *RiskAssessment) AssessNetworkExposure(isPublic bool, openPorts int, ser
 			}
 		}
 	}
-	
+
 	// 限制在0-1范围内
 	if score > 1.0 {
 		score = 1.0
 	}
-	
+
 	return score
 }
 
 // AssessSystemImportance 评估系统重要性
 func (r *RiskAssessment) AssessSystemImportance(isCritical bool, userCount int, dataSensitivity string) float64 {
 	score := 0.0
-	
+
 	// 关键系统
 	if isCritical {
 		score += 0.5
 	}
-	
+
 	// 用户数量
 	if userCount > 1000 {
 		score += 0.3
@@ -153,7 +153,7 @@ func (r *RiskAssessment) AssessSystemImportance(isCritical bool, userCount int, 
 	} else if userCount > 10 {
 		score += 0.1
 	}
-	
+
 	// 数据敏感性
 	switch strings.ToLower(dataSensitivity) {
 	case "high":
@@ -163,27 +163,27 @@ func (r *RiskAssessment) AssessSystemImportance(isCritical bool, userCount int, 
 	case "low":
 		// 不加分
 	}
-	
+
 	return score
 }
 
 // AssessSecurityProtection 评估安全防护
 func (r *RiskAssessment) AssessSecurityProtection(hasFirewall bool, hasAV bool, hasEDR bool, patchLevel string) float64 {
 	score := 0.0
-	
+
 	// 防护措施缺失会增加风险
 	if !hasFirewall {
 		score += 0.3
 	}
-	
+
 	if !hasAV {
 		score += 0.2
 	}
-	
+
 	if !hasEDR {
 		score += 0.2
 	}
-	
+
 	// 补丁级别
 	switch strings.ToLower(patchLevel) {
 	case "outdated":
@@ -193,14 +193,14 @@ func (r *RiskAssessment) AssessSecurityProtection(hasFirewall bool, hasAV bool, 
 	case "current":
 		// 不加分
 	}
-	
+
 	return score
 }
 
 // AssessOperationImpact 评估操作影响
 func (r *RiskAssessment) AssessOperationImpact(operationType string, isDestructive bool, downtime int) float64 {
 	score := 0.0
-	
+
 	// 操作类型
 	switch strings.ToLower(operationType) {
 	case "reconnaissance":
@@ -212,31 +212,31 @@ func (r *RiskAssessment) AssessOperationImpact(operationType string, isDestructi
 	case "persistence":
 		score += 0.7
 	}
-	
+
 	// 破坏性操作
 	if isDestructive {
 		score += 0.3
 	}
-	
+
 	// 停机时间
 	if downtime > 60 {
 		score += 0.2
 	} else if downtime > 10 {
 		score += 0.1
 	}
-	
+
 	return score
 }
 
 // AssessLegalCompliance 评估法律合规
 func (r *RiskAssessment) AssessLegalCompliance(isAuthorized bool, jurisdiction string, dataClassification string) float64 {
 	score := 0.0
-	
+
 	// 授权状态
 	if !isAuthorized {
 		score += 0.6
 	}
-	
+
 	// 管辖区域
 	switch strings.ToLower(jurisdiction) {
 	case "strict":
@@ -246,7 +246,7 @@ func (r *RiskAssessment) AssessLegalCompliance(isAuthorized bool, jurisdiction s
 	case "lenient":
 		// 不加分
 	}
-	
+
 	// 数据分类
 	switch strings.ToLower(dataClassification) {
 	case "sensitive":
@@ -256,24 +256,24 @@ func (r *RiskAssessment) AssessLegalCompliance(isAuthorized bool, jurisdiction s
 	case "secret":
 		score += 0.3
 	}
-	
+
 	return score
 }
 
 // AssessTimeFactor 评估时间因素
 func (r *RiskAssessment) AssessTimeFactor(isBusinessHours bool, isHoliday bool, urgency string) float64 {
 	score := 0.0
-	
+
 	// 业务时段
 	if isBusinessHours {
 		score += 0.4
 	}
-	
+
 	// 节假日
 	if isHoliday {
 		score += 0.3
 	}
-	
+
 	// 紧急程度
 	switch strings.ToLower(urgency) {
 	case "high":
@@ -283,7 +283,7 @@ func (r *RiskAssessment) AssessTimeFactor(isBusinessHours bool, isHoliday bool, 
 	case "low":
 		// 不加分
 	}
-	
+
 	return score
 }
 
@@ -291,17 +291,17 @@ func (r *RiskAssessment) AssessTimeFactor(isBusinessHours bool, isHoliday bool, 
 func (r *RiskAssessment) CalculateOverallRisk() (float64, RiskLevel) {
 	totalScore := 0.0
 	totalWeight := 0.0
-	
+
 	for _, factor := range r.Factors {
 		totalScore += factor.Score * factor.Weight
 		totalWeight += factor.Weight
 	}
-	
+
 	// 归一化到0-1范围
 	if totalWeight > 0 {
 		totalScore = totalScore / totalWeight
 	}
-	
+
 	// 确定风险等级
 	var level RiskLevel
 	switch {
@@ -314,20 +314,20 @@ func (r *RiskAssessment) CalculateOverallRisk() (float64, RiskLevel) {
 	default:
 		level = RiskCritical
 	}
-	
+
 	return totalScore, level
 }
 
 // GenerateRiskReport 生成风险评估报告
 func (r *RiskAssessment) GenerateRiskReport() map[string]interface{} {
 	totalScore, riskLevel := r.CalculateOverallRisk()
-	
+
 	report := make(map[string]interface{})
 	report["overall_score"] = totalScore
 	report["risk_level"] = riskLevel.String()
 	report["risk_factors"] = r.Factors
 	report["recommendation"] = r.GetRecommendation(riskLevel)
-	
+
 	return report
 }
 
@@ -359,7 +359,7 @@ func (r *RiskAssessment) UpdateFactorScore(factorName string, score float64) err
 			return nil
 		}
 	}
-	
+
 	return fmt.Errorf("未找到风险因素: %s", factorName)
 }
 
@@ -369,15 +369,15 @@ func (r *RiskAssessment) ValidateConfiguration() error {
 	if r.LowThreshold <= 0 || r.LowThreshold >= 1 {
 		return fmt.Errorf("低风险阈值必须在0-1范围内")
 	}
-	
+
 	if r.MediumThreshold <= r.LowThreshold || r.MediumThreshold >= 1 {
 		return fmt.Errorf("中风险阈值必须大于低风险阈值且小于1")
 	}
-	
+
 	if r.HighThreshold <= r.MediumThreshold || r.HighThreshold >= 1 {
 		return fmt.Errorf("高风险阈值必须大于中风险阈值且小于1")
 	}
-	
+
 	// 验证权重总和
 	totalWeight := 0.0
 	for _, factor := range r.Factors {
@@ -386,11 +386,11 @@ func (r *RiskAssessment) ValidateConfiguration() error {
 		}
 		totalWeight += factor.Weight
 	}
-	
+
 	if totalWeight > 1.0 {
 		return fmt.Errorf("风险因素权重总和不能超过1")
 	}
-	
+
 	return nil
 }
 
@@ -403,8 +403,8 @@ func (r *RiskAssessment) QuickAssessment(target string, operation string) (float
 	r.UpdateFactorScore("操作影响", 0.6)
 	r.UpdateFactorScore("法律合规", 0.2)
 	r.UpdateFactorScore("时间因素", 0.3)
-	
+
 	logrus.Infof("[GYscan-Risk] 对目标 '%s' 执行操作 '%s' 进行快速风险评估", target, operation)
-	
+
 	return r.CalculateOverallRisk()
 }

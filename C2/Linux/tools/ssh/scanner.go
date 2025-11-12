@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
+	"GYscan-linux-C2/pkg/utils"
 )
 
 // ScanResult 包含SSH扫描结果
@@ -459,7 +459,9 @@ func (s *Scanner) calculateScoreAndRisk(result *ScanResult) {
 
 // PrintResult 打印扫描结果
 func (s *Scanner) PrintResult(result *ScanResult) {
-	fmt.Printf("\n=== SSH配置安全扫描结果 ===\n")
+	color := utils.NewColor()
+	
+	color.PrintTitle("SSH配置安全扫描结果")
 	fmt.Printf("目标: %s\n", result.Target)
 	fmt.Printf("扫描时间: %s\n", result.ScanTime.Format("2006-01-02 15:04:05"))
 	fmt.Printf("总体评分: %d/100\n", result.OverallScore)
@@ -467,13 +469,13 @@ func (s *Scanner) PrintResult(result *ScanResult) {
 	// 根据风险等级显示不同颜色
 	switch result.RiskLevel {
 	case "高危":
-		color.Red("风险等级: %s\n", result.RiskLevel)
+		utils.Printf(utils.BrightRed, "风险等级: %s\n", result.RiskLevel)
 	case "中危":
-		color.Yellow("风险等级: %s\n", result.RiskLevel)
+		utils.Printf(utils.BrightYellow, "风险等级: %s\n", result.RiskLevel)
 	case "低危":
-		color.Blue("风险等级: %s\n", result.RiskLevel)
+		utils.Printf(utils.BrightBlue, "风险等级: %s\n", result.RiskLevel)
 	default:
-		color.Green("风险等级: %s\n", result.RiskLevel)
+		utils.Printf(utils.BrightGreen, "风险等级: %s\n", result.RiskLevel)
 	}
 	
 	fmt.Printf("发现的安全问题: %d 个\n\n", len(result.Vulnerabilities))

@@ -50,7 +50,7 @@ func (v VersionInfo) ShortString() string {
 }
 
 // PrintVersion 打印版本信息
-func PrintVersion() {
+func PrintVersionInfo() {
 	version := GetVersionInfo()
 	fmt.Print(version.String())
 }
@@ -67,7 +67,7 @@ func GetVersion() string {
 }
 
 // GetBuildInfo 获取构建信息
-func GetBuildInfo() string {
+func GetBuildInfo() string { 
 	v := GetVersionInfo()
 	return fmt.Sprintf("版本 %s, 构建于 %s", v.Version, v.BuildDate.Format("2006-01-02 15:04:05"))
 }

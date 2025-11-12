@@ -10,9 +10,9 @@ import (
 	"time"
 	
 	"GYscan-Win-C2/internal/userinfo"
+	"GYscan-Win-C2/pkg/audit"
 	"GYscan-Win-C2/pkg/scanners"
 	"GYscan-Win-C2/tools/goss"
-	"GYscan-Win-C2/tools/trivy"
 )
 
 // Config 配置结构
@@ -27,13 +27,56 @@ type Config struct {
 	GossOutput   string // Goss子命令的输出文件
 }
 
+// PrintVersion 打印版本信息
+func PrintVersion() {
+	fmt.Println("GYscan-Win-C2 Windows安全审计工具")
+	PrintVersionInfo()
+	fmt.Println("作者: BiliBili-弈秋啊")
+}
+
+
+
 func main() {
 	var config Config
 
 	// 定义子命令
 	userinfoCmd := flag.NewFlagSet("userinfo", flag.ExitOnError)
-	trivyCmd := flag.NewFlagSet("trivy", flag.ExitOnError)
 	gossCmd := flag.NewFlagSet("goss", flag.ExitOnError)
+	auditCmd := flag.NewFlagSet("audit", flag.ExitOnError)
+
+	// 自定义Usage函数
+	flag.Usage = func() {
+		fmt.Println("==============================================")
+		fmt.Println("GYscan-Win-C2 - Windows安全审计工具")
+		fmt.Println("作者: BiliBili-弈秋啊")
+		fmt.Printf("工具版本: %s\n", GetVersion())
+		fmt.Println("描述: 专注Windows系统安全审计、漏洞扫描、配置检查")
+		fmt.Println("")
+		fmt.Println("警告: 仅用于授权测试，严禁未授权使用！")
+		fmt.Println("==============================================")
+		fmt.Println("")
+		fmt.Println("主命令参数:")
+		flag.PrintDefaults()
+		fmt.Println("\n子命令:")
+		fmt.Println("  userinfo  分析本地用户和组信息")
+		fmt.Println("  goss      Windows系统配置审计")
+		fmt.Println("  audit     Windows安全审计")
+		fmt.Println("\n使用示例:")
+		fmt.Println("  GYscan-Win-C2.exe userinfo -o user_report.txt")
+		fmt.Println("  GYscan-Win-C2.exe goss -o goss_report.html")
+		fmt.Println("  GYscan-Win-C2.exe audit -type all -o audit_report.json")
+		fmt.Println("  GYscan-Win-C2.exe -target 192.168.1.1 -type all -o report.txt")
+		fmt.Println("\n查看版本信息:")
+		fmt.Println("  GYscan-Win-C2.exe --version")
+		fmt.Println("  GYscan-Win-C2.exe -v")
+		fmt.Println("\n查看子命令帮助:")
+		fmt.Println("  GYscan-Win-C2.exe userinfo --help")
+		fmt.Println("  GYscan-Win-C2.exe goss --help")
+		fmt.Println("  GYscan-Win-C2.exe audit --help")
+		fmt.Println("")
+		fmt.Println("==============================================")
+		fmt.Println("使用 \"GYscan-Win-C2.exe -h\" 获取帮助信息")
+	}
 
 	// 主命令参数
 	flag.StringVar(&config.Target, "target", "", "扫描目标 (IP地址、域名或文件路径)")
@@ -52,11 +95,7 @@ func main() {
 	userinfoCmd.StringVar(&config.UserinfoOutput, "output", "windows_userinfo_report.txt", "输出文件路径")
 	userinfoCmd.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
 
-	// trivy子命令参数
-	trivyCmd.StringVar(&config.Output, "o", "trivy_report.json", "输出文件路径")
-	trivyCmd.StringVar(&config.Output, "output", "trivy_report.json", "输出文件路径")
-	trivyCmd.StringVar(&config.Target, "target", "", "扫描目标（镜像、文件系统路径等）")
-	trivyCmd.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
+
 
 	// goss子命令参数
 	gossCmd.StringVar(&config.GossOutput, "o", "goss_report.html", "输出文件路径")
@@ -64,9 +103,20 @@ func main() {
 	gossCmd.StringVar(&config.Target, "target", "localhost", "扫描目标（系统路径）")
 	gossCmd.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
 
-	// 检查版本参数
+	// audit子命令参数
+	auditCmd.StringVar(&config.Output, "output", "windows_audit_report.json", "输出文件路径")
+	auditCmd.StringVar(&config.Type, "type", "all", "审计类型: all|process|network|filesystem|registry|eventlog|account")
+	auditCmd.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
+
+	// 检查版本参数和帮助参数
 	if len(os.Args) > 1 && (os.Args[1] == "-version" || os.Args[1] == "--version" || os.Args[1] == "-v" || os.Args[1] == "--v") {
 		PrintVersion()
+		os.Exit(0)
+	}
+	
+	// 检查help参数
+	if len(os.Args) > 1 && (os.Args[1] == "help" || os.Args[1] == "-help" || os.Args[1] == "--help" || os.Args[1] == "-h" || os.Args[1] == "--h") {
+		flag.Usage()
 		os.Exit(0)
 	}
 
@@ -78,13 +128,14 @@ func main() {
 			config.LocalScan = true
 			config.Target = "localhost"
 			userinfoCmd.Parse(os.Args[2:])
-		case "trivy":
-			config.LocalScan = true
-			trivyCmd.Parse(os.Args[2:])
 		case "goss":
 			config.LocalScan = true
 			config.Target = "localhost"
 			gossCmd.Parse(os.Args[2:])
+		case "audit":
+			config.LocalScan = true
+			config.Target = "localhost"
+			auditCmd.Parse(os.Args[2:])
 		default:
 			flag.Parse()
 		}
@@ -99,28 +150,7 @@ func main() {
 	}
 
 	if !config.LocalScan && config.Target == "" {
-		// 显示完整的帮助信息
-		fmt.Println("Windows漏洞扫描工具")
-		fmt.Println("====================")
-		fmt.Printf("版本: %s\n\n", GetBuildInfo())
-		fmt.Println("主命令参数:")
 		flag.Usage()
-		fmt.Println("\n子命令:")
-		fmt.Println("  userinfo  分析本地用户和组信息")
-		fmt.Println("  trivy     容器镜像漏洞扫描")
-		fmt.Println("  goss      Windows系统配置审计")
-		fmt.Println("\n使用示例:")
-		fmt.Println("  GYscan-Win-C2.exe userinfo -o user_report.txt")
-		fmt.Println("  GYscan-Win-C2.exe trivy -target image:latest -o trivy_report.json")
-		fmt.Println("  GYscan-Win-C2.exe goss -o goss_report.html")
-		fmt.Println("  GYscan-Win-C2.exe -target 192.168.1.1 -type all -o report.txt")
-		fmt.Println("\n查看版本信息:")
-		fmt.Println("  GYscan-Win-C2.exe --version")
-		fmt.Println("  GYscan-Win-C2.exe -v")
-		fmt.Println("\n查看子命令帮助:")
-		fmt.Println("  GYscan-Win-C2.exe userinfo --help")
-		fmt.Println("  GYscan-Win-C2.exe trivy --help")
-		fmt.Println("  GYscan-Win-C2.exe goss --help")
 		os.Exit(1)
 	}
 
@@ -135,10 +165,10 @@ func main() {
 		switch os.Args[1] {
 		case "userinfo":
 			subcommand = "userinfo"
-		case "trivy":
-			subcommand = "trivy"
 		case "goss":
 			subcommand = "goss"
+		case "audit":
+			subcommand = "audit"
 		}
 	}
 	
@@ -147,14 +177,13 @@ func main() {
 	outputFile = config.Output
 	if subcommand == "userinfo" {
 		outputFile = config.UserinfoOutput
-	} else if subcommand == "trivy" {
-		outputFile = config.Output
 	} else if subcommand == "goss" {
 		outputFile = config.GossOutput
+	} else if subcommand == "audit" {
+		outputFile = config.Output
 	}
 	
-	// 调试信息：显示当前配置
-	fmt.Printf("调试信息: subcommand=%s, outputFile=%s\n", subcommand, outputFile)
+	// 根据子命令选择输出文件
 
 	// 根据子命令执行不同的操作
 	var scanType string
@@ -176,48 +205,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("生成用户信息报告失败: %v", err)
 		}
-	} else if subcommand == "trivy" {
-		// 执行Trivy扫描
-		scanType = "Trivy漏洞扫描"
-		
-		// 检查目标是否为空
-		if config.Target == "" {
-			log.Fatalf("错误: Trivy扫描需要指定目标，请使用 -target 参数")
-		}
-		
-		// 创建Trivy配置
-		trivyConfig := trivy.NewConfig()
-		trivyConfig.SetTarget(config.Target)
-		trivyConfig.SetOutput(config.Output)
-		trivyConfig.SetQuiet(!config.Verbose)
-		trivyConfig.SetDebug(config.Verbose)
-		
-		// 创建Trivy扫描器
-		trivyScanner := trivy.NewScanner(trivyConfig, config.Verbose)
-		
-		// 执行Trivy扫描
-		err := trivyScanner.Scan()
-		if err != nil {
-			log.Fatalf("Trivy扫描失败: %v", err)
-		}
-		
-		// 根据输出文件扩展名确定报告格式
-		if strings.HasSuffix(strings.ToLower(config.Output), ".html") {
-			// 生成HTML报告
-			err := trivyScanner.GenerateHTMLReport(config.Output)
-			if err != nil {
-				log.Fatalf("生成Trivy HTML报告失败: %v", err)
-			}
-		} else {
-			// 生成JSON报告
-			err := trivyScanner.GenerateReport(config.Output)
-			if err != nil {
-				log.Fatalf("生成Trivy报告失败: %v", err)
-			}
-		}
-		
-		// 打印摘要
-		fmt.Printf("Trivy扫描完成，报告已保存到: %s\n", config.Output)
+
 	} else if subcommand == "goss" {
 		// 执行Goss扫描
 		scanType = "Goss Windows配置审计"
@@ -264,6 +252,76 @@ func main() {
 			scanResult.Summary.TotalCount, 
 			scanResult.Summary.FailedCount, 
 			scanResult.Summary.SkippedCount)
+	} else if subcommand == "audit" {
+		// 检查audit子命令的help参数
+		if len(os.Args) > 2 && (os.Args[2] == "help" || os.Args[2] == "-help" || os.Args[2] == "--help" || os.Args[2] == "-h" || os.Args[2] == "--h") {
+			fmt.Println("Windows安全审计命令使用说明:")
+			fmt.Println("用法: GYscan-Win-C2.exe audit [选项]")
+			fmt.Println("")
+			fmt.Println("选项:")
+			fmt.Println("  -o, --output string     审计报告输出文件路径 (默认: windows_audit_report.html)")
+			fmt.Println("  -type string            审计类型，可选值: all|process|network|filesystem|registry|eventlog|account (默认: all)")
+			fmt.Println("  -verbose, -v            详细输出模式")
+			fmt.Println("  -help, -h               显示帮助信息")
+			fmt.Println("")
+			fmt.Println("示例:")
+			fmt.Println("  GYscan-Win-C2.exe audit -o audit_report.html")
+			fmt.Println("  GYscan-Win-C2.exe audit -type process|network -verbose")
+			fmt.Println("  GYscan-Win-C2.exe audit help")
+			os.Exit(0)
+		}
+		
+		// 执行Windows安全审计
+		scanType = "Windows安全审计"
+		
+		// 解析audit子命令参数
+		auditOutputFile := auditCmd.String("o", "windows_audit_report.html", "审计报告输出文件路径")
+		
+		auditCmd.Parse(os.Args[2:])
+		
+		// 设置输出文件
+		if *auditOutputFile != "windows_audit_report.json" {
+			outputFile = *auditOutputFile
+		}
+		
+		// 创建审计配置
+		auditConfig := &audit.Config{
+			Verbose:        config.Verbose,
+			OutputFile:     outputFile,
+			IncludeDetails: true,
+		}
+		
+		// 根据审计类型设置模块
+		if config.Type != "all" {
+			auditConfig.Modules = strings.Split(config.Type, "|")
+		}
+		
+		// 创建审计管理器
+		auditManager := audit.NewAuditManager(auditConfig)
+		
+		// 注册审计模块
+		auditManager.RegisterModule(audit.NewProcessAudit(auditConfig))
+		auditManager.RegisterModule(audit.NewNetworkAudit(auditConfig))
+		auditManager.RegisterModule(audit.NewFileSystemAudit(auditConfig))
+		auditManager.RegisterModule(audit.NewRegistryAudit(auditConfig))
+		auditManager.RegisterModule(audit.NewEventLogAudit(auditConfig))
+		auditManager.RegisterModule(audit.NewAccountAudit(auditConfig))
+		
+		// 执行审计
+		auditReport, err := auditManager.RunAudit()
+		if err != nil {
+			log.Fatalf("Windows安全审计失败: %v", err)
+		}
+		
+		// 生成审计报告
+		err = audit.GenerateAuditReport(auditReport, outputFile)
+		if err != nil {
+			log.Fatalf("生成审计报告失败: %v", err)
+		}
+		
+		// 打印摘要
+		audit.PrintAuditSummary(auditReport)
+		fmt.Printf("Windows安全审计完成，报告已保存到: %s\n", outputFile)
 	} else {
 		// 执行CVE扫描（默认或cve子命令）
 		scanType = "漏洞扫描"

@@ -9,7 +9,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
-//版本号
+
+// 版本号
 const (
 	Version = "v2.0.1"
 )
