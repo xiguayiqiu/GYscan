@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/godror/godror"
+	_ "github.com/sijms/go-ora"
 )
 
 // OracleCracker Oracle数据库破解器
@@ -32,7 +32,7 @@ func (o *OracleCracker) TestConnection(ctx context.Context, config *DatabaseConf
 	dsn := GetOracleConnectionString(config)
 	
 	// 尝试连接
-	db, err := sql.Open("godror", dsn)
+	db, err := sql.Open("oracle", dsn)
 	if err != nil {
 		return fmt.Errorf("failed to open Oracle connection: %v", err)
 	}
@@ -100,7 +100,7 @@ func (o *OracleProtocolCracker) oracleProtocolAuth(ctx context.Context, config *
 	
 	// 临时使用数据库驱动方式
 	dsn := GetOracleConnectionString(config)
-	db, err := sql.Open("godror", dsn)
+	db, err := sql.Open("oracle", dsn)
 	if err != nil {
 		return err
 	}
@@ -137,13 +137,14 @@ func OracleCrackerFactory(useProtocol bool) DatabaseCracker {
 
 // GetOracleConnectionString 获取Oracle连接字符串
 func GetOracleConnectionString(config *DatabaseConfig) string {
-	// Oracle连接字符串格式: user/password@host:port/service_name
+	// go-ora驱动连接字符串格式: oracle://user:password@host:port/service_name
 	var dsn strings.Builder
+	dsn.WriteString("oracle://")
 	
 	if config.Username != "" {
 		dsn.WriteString(config.Username)
 		if config.Password != "" {
-			dsn.WriteString("/")
+			dsn.WriteString(":")
 			dsn.WriteString(config.Password)
 		}
 		dsn.WriteString("@")

@@ -6,6 +6,7 @@ import (
 	"GYscan/internal/nmap"
 	"GYscan/internal/utils"
 
+	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ var rootCmd = &cobra.Command{
 			cmd.Help()
 			return
 		}
-
+		// 直接运行程序时显示艺术字
 		printBanner()
 	},
 	// 禁用completion命令
@@ -38,6 +39,11 @@ var rootCmd = &cobra.Command{
 
 // printBanner 输出工具标识横幅
 func printBanner() {
+	// 显示GYscan艺术字
+	fig := figure.NewFigure("GYscan", "slant", true)
+	fig.Print()
+	utils.InfoPrint("")
+
 	utils.InfoPrint("==============================================")
 	utils.InfoPrint("GYscan - Go语言内网横向边界安全测试工具")
 	utils.InfoPrint("作者: BiliBili-弈秋啊")
@@ -55,9 +61,38 @@ func printBanner() {
 
 // Execute 执行根命令
 func Execute() {
+	// 设置帮助函数，确保显示帮助信息时也显示艺术字
+	rootCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		printBanner()
+		cmd.Usage()
+	})
+
+	// 为所有子命令也设置帮助函数
+	setHelpFuncForCommands(rootCmd)
+
 	if err := rootCmd.Execute(); err != nil {
 		utils.ErrorPrint("%v", err)
 		os.Exit(1)
+	}
+}
+
+// setHelpFuncForCommands 递归为所有命令设置帮助函数和PersistentPreRun
+func setHelpFuncForCommands(cmd *cobra.Command) {
+	for _, subCmd := range cmd.Commands() {
+		subCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+			printBanner()
+			cmd.Usage()
+		})
+		// 为子命令设置PersistentPreRun，确保执行时显示艺术字
+		originalPreRun := subCmd.PersistentPreRun
+		subCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+			printBanner()
+			if originalPreRun != nil {
+				originalPreRun(cmd, args)
+			}
+		}
+		// 递归设置子命令的帮助函数
+		setHelpFuncForCommands(subCmd)
 	}
 }
 
