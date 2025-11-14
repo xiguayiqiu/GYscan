@@ -72,6 +72,11 @@ GOOS=windows GOARCH=amd64 go build -o GYscan-Windows.exe
 cd Client
 GOOS=linux GOARCH=amd64 go build -o GYscan-linux-amd64
 ```
+### 一键构建脚本
+```bash
+# 编译客户端
+build_linux.sh和build.ps1
+```
 
 ### 基础使用
 #### 主要功能
