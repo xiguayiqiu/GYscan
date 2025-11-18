@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+
 	"github.com/fatih/color"
 )
 
@@ -129,7 +130,7 @@ func WarningPrint(format string, a ...interface{}) {
 
 // InfoPrint 打印信息
 func InfoPrint(format string, a ...interface{}) {
-	color.Blue(format, a...)
+	fmt.Printf(format+"\n", a...)
 }
 
 // ProgressPrint 打印进度信息

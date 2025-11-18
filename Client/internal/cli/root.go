@@ -3,8 +3,10 @@ package cli
 import (
 	"os"
 
+	"GYscan/internal/csrf"
 	"GYscan/internal/nmap"
 	"GYscan/internal/utils"
+	"GYscan/internal/xss"
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
@@ -13,7 +15,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.0.1"
+	Version = "v2.5.0"
 )
 
 // rootCmd 表示基础命令
@@ -30,6 +32,9 @@ var rootCmd = &cobra.Command{
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
 	},
+	// 禁用mousetrap，允许双击直接进入交互式模式
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 // printBanner 输出工具标识横幅
@@ -61,39 +66,58 @@ func Execute() {
 		printBanner()
 		cmd.Usage()
 	})
-	
+
+	// 检查是否需要显示版本信息（仅在根命令下使用-v或--version）
+	if len(os.Args) > 1 && (os.Args[1] == "-v" || os.Args[1] == "--version") && len(os.Args) == 2 {
+		printBanner()
+		return
+	}
+
 	if err := rootCmd.Execute(); err != nil {
 		utils.ErrorPrint("%v", err)
 		os.Exit(1)
 	}
 }
 
-// init 初始化命令
-func init() {
+// GetRootCommand 获取根命令（用于插件系统集成）
+func GetRootCommand() *cobra.Command {
+	return rootCmd
+}
+
+// RegisterCommands 注册所有命令
+func RegisterCommands(cmd *cobra.Command) {
 	// 添加全局参数
-	rootCmd.PersistentFlags().BoolP("silent", "s", false, "静默模式，仅输出关键结果")
-	rootCmd.PersistentFlags().String("proxy", "", "代理服务器 (支持 HTTP/SOCKS5)")
-	rootCmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
-	rootCmd.PersistentFlags().BoolP("version", "v", false, "显示版本信息")
+	cmd.PersistentFlags().BoolP("silent", "s", false, "静默模式，仅输出关键结果")
+	cmd.PersistentFlags().String("proxy", "", "代理服务器 (支持 HTTP/SOCKS5)")
+	cmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
+	cmd.PersistentFlags().BoolP("version", "v", false, "显示版本信息")
 
 	// 添加子命令
-	rootCmd.AddCommand(aboutCmd)
-	rootCmd.AddCommand(webshellCmd)
-	rootCmd.AddCommand(crunchCmd)
-	rootCmd.AddCommand(samCmd)
+	cmd.AddCommand(aboutCmd)
+	cmd.AddCommand(webshellCmd)
+	cmd.AddCommand(crunchCmd)
+	cmd.AddCommand(samCmd)
 	// 添加nmap命令
-	rootCmd.AddCommand(nmap.ScanCmd)
+	cmd.AddCommand(nmap.ScanCmd)
 	// 添加ssh命令
-	rootCmd.AddCommand(sshCmd)
+	cmd.AddCommand(sshCmd)
 	// 添加database命令
-	rootCmd.AddCommand(databaseCmd)
+	cmd.AddCommand(databaseCmd)
 	// 添加userinfo命令
-	rootCmd.AddCommand(userinfoCmd)
+	cmd.AddCommand(userinfoCmd)
 	// 添加dirscan命令
-	rootCmd.AddCommand(dirscanCmd)
+	cmd.AddCommand(dirscanCmd)
 	// 添加process命令
-	rootCmd.AddCommand(processCmd)
+	cmd.AddCommand(processCmd)
 	// 添加route命令
-	rootCmd.AddCommand(routeCmd)
+	cmd.AddCommand(routeCmd)
+	// 添加xss命令
+	cmd.AddCommand(xss.XssCmd)
+	// 添加csrf命令
+	cmd.AddCommand(csrf.Cmd)
+}
 
+// init 初始化命令
+func init() {
+	RegisterCommands(rootCmd)
 }

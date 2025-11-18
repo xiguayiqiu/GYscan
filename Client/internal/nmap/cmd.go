@@ -98,7 +98,7 @@ func init() {
 		fmt.Printf("[GYscan-Nmap] 开始扫描目标: %s\n", target)
 		startTime := time.Now()
 		
-		results := NmapScan(config)
+		results := NmapScan(cmd.Context(), config)
 		
 		duration := time.Since(startTime)
 		fmt.Printf("[GYscan-Nmap] 扫描完成，耗时: %v\n", duration)

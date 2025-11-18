@@ -1,6 +1,7 @@
 package nmap
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strconv"
@@ -73,7 +74,7 @@ func applyTimingTemplate(config *ScanConfig) {
 }
 
 // NmapScan 执行完整的nmap扫描
-func NmapScan(config ScanConfig) []NmapResult {
+func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 	// 应用扫描速度模板
 	applyTimingTemplate(&config)
 	
@@ -102,6 +103,13 @@ func NmapScan(config ScanConfig) []NmapResult {
 		totalHosts, totalPorts, totalHosts*totalPorts)
 
 	for _, host := range hosts {
+		// 检查上下文是否已取消
+		select {
+		case <-ctx.Done():
+			fmt.Printf("[GYscan-Nmap] 扫描被用户取消\n")
+			return results
+		default:
+		}
 		wg.Add(1)
 		go func(ip string) {
 			defer wg.Done()
@@ -131,7 +139,7 @@ func NmapScan(config ScanConfig) []NmapResult {
 			result.Status = "up"
 
 			// 端口扫描
-			portResults := portScanWithProgress(ip, portList, config.ScanType, config.Threads, config.Timeout, &openPortsCount, &mu)
+			portResults := portScanWithProgress(ctx, ip, portList, config.ScanType, config.Threads, config.Timeout, &openPortsCount, &mu)
 			result.Ports = portResults
 
 			// 服务识别
@@ -219,45 +227,17 @@ func arpDiscovery(ip string, timeout time.Duration) bool {
 	return false
 }
 
-// portScan 端口扫描
+// portScan 端口扫描（已废弃，使用portScanWithProgress替代）
 func portScan(ip string, ports []int, scanType string, threads int, timeout time.Duration) map[int]PortInfo {
-	results := make(map[int]PortInfo)
+	// 创建一个空的上下文用于兼容旧代码
+	ctx := context.Background()
 	var mu sync.Mutex
-	var wg sync.WaitGroup
-
-	semaphore := make(chan struct{}, threads)
-
-	for _, port := range ports {
-		wg.Add(1)
-		go func(p int) {
-			defer wg.Done()
-			semaphore <- struct{}{}
-			defer func() { <-semaphore }()
-
-			var portInfo PortInfo
-			switch scanType {
-			case "syn":
-				portInfo = synScan(ip, p, timeout)
-			case "udp":
-				portInfo = udpScan(ip, p, timeout)
-			default:
-				portInfo = connectScan(ip, p, timeout)
-			}
-
-			if portInfo.State == "open" {
-				mu.Lock()
-				results[p] = portInfo
-				mu.Unlock()
-			}
-		}(port)
-	}
-
-	wg.Wait()
-	return results
+	var openPortsCount int
+	return portScanWithProgress(ctx, ip, ports, scanType, threads, timeout, &openPortsCount, &mu)
 }
 
 // portScanWithProgress 带进度显示的端口扫描
-func portScanWithProgress(ip string, ports []int, scanType string, threads int, timeout time.Duration, openPortsCount *int, muGlobal *sync.Mutex) map[int]PortInfo {
+func portScanWithProgress(ctx context.Context, ip string, ports []int, scanType string, threads int, timeout time.Duration, openPortsCount *int, muGlobal *sync.Mutex) map[int]PortInfo {
 	results := make(map[int]PortInfo)
 	var mu sync.Mutex
 	var wg sync.WaitGroup

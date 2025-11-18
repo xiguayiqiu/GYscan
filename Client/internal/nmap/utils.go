@@ -1,6 +1,7 @@
 package nmap
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -144,45 +145,45 @@ func DefaultScanConfig() ScanConfig {
 }
 
 // QuickScan 快速扫描（常用端口）
-func QuickScan(target string) []NmapResult {
+func QuickScan(ctx context.Context, target string) []NmapResult {
 	config := DefaultScanConfig()
 	config.Target = target
 	config.Ports = "21,22,23,25,53,80,110,135,139,143,443,445,993,995,1433,1521,3306,3389,5432,6379,27017"
 	config.Threads = 100
 	config.Timeout = 2 * time.Second
 
-	return NmapScan(config)
+	return NmapScan(ctx, config)
 }
 
 // FullScan 全端口扫描
-func FullScan(target string) []NmapResult {
+func FullScan(ctx context.Context, target string) []NmapResult {
 	config := DefaultScanConfig()
 	config.Target = target
 	config.Ports = "1-65535"
 	config.Threads = 200
 	config.Timeout = 1 * time.Second
 
-	return NmapScan(config)
+	return NmapScan(ctx, config)
 }
 
 // ServiceScan 服务扫描（带版本检测）
-func ServiceScan(target string) []NmapResult {
+func ServiceScan(ctx context.Context, target string) []NmapResult {
 	config := DefaultScanConfig()
 	config.Target = target
 	config.Ports = "" // 使用默认端口
 	config.ServiceDetection = true
 	config.OSDetection = true
 
-	return NmapScan(config)
+	return NmapScan(ctx, config)
 }
 
 // NetworkDiscovery 网络发现扫描
-func NetworkDiscovery(cidr string) []NmapResult {
+func NetworkDiscovery(ctx context.Context, cidr string) []NmapResult {
 	config := DefaultScanConfig()
 	config.Target = cidr
 	config.Ports = "" // 仅主机发现
 	config.Threads = 200
 	config.Timeout = 1 * time.Second
 
-	return NmapScan(config)
+	return NmapScan(ctx, config)
 }
