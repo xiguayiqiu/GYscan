@@ -2,12 +2,12 @@
 
 ## 项目简介
 
-GYscan是一款专注于内网横向移动和边界安全测试的专业工具。经过功能优化，当前版本专注于端口扫描、服务识别、漏洞检测和弱口令爆破等核心安全测试功能，为安全研究人员和渗透测试人员提供高效、可靠的内网安全评估解决方案。
+GYscan是一款专注于内网横向移动和边界安全测试的专业工具，基于Go语言开发。该工具集成了丰富的内网渗透测试功能，包括端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破等核心功能，为安全研究人员和渗透测试人员提供高效、可靠的内网安全评估解决方案。
 
 ## 核心优势
 
 - **专注内网安全**：专门针对内网横向移动和边界安全测试场景优化
-- **高度集成化**：集成了端口扫描、服务识别、漏洞检测、弱口令爆破等核心功能
+- **功能丰富**：集成了端口扫描、服务识别、远程命令执行、弱口令爆破等多种功能
 - **跨平台支持**：支持Windows、Linux、macOS三大主流操作系统
 - **模块化设计**：采用插件化架构，支持功能扩展和自定义模块开发
 - **易用性强**：提供简洁的命令行界面和详细的帮助文档
@@ -18,10 +18,10 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | 项目 | 信息 |
 |------|------|
 | **项目名称** | GYscan |
-| **开发语言** | Go 1.18+ |
+| **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
-| **许可证** | MIT |
-| **最新版本** | v2.0.1 |
+| **许可证** | Apache2.0 |
+| **最新版本** | v2.5.0 |
 
 ### ⚠️ 法律声明
 
@@ -29,13 +29,9 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 
 ## 🚀 快速上手
 
-## 额外说明
-
-这一段时间本作者原本是想实现插件的功能，但是太复杂就没有完成，插件的版本目前只是一个半成品所以现在还是以更新功能修复bug为主！
-
 ### 环境准备
 
-1. **安装Go环境** (版本1.24.5+)
+1. **安装Go环境** (版本1.18+)
    ```bash
    # 下载并安装Go
    https://golang.org/dl/
@@ -56,7 +52,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 ```bash
 # 编译客户端
 cd Client
-go build -o GYscan-Windows.exe
+go build -o GYscan.exe
 ```
 
 #### Linux平台编译
@@ -70,267 +66,169 @@ go build -o GYscan-linux-amd64
 ```bash
 # 编译Windows版本（在Linux上）
 cd Client
-GOOS=windows GOARCH=amd64 go build -o GYscan-Windows.exe
+GOOS=windows GOARCH=amd64 go build -o GYscan.exe
 
 # 编译Linux版本（在Windows上）
 cd Client
 GOOS=linux GOARCH=amd64 go build -o GYscan-linux-amd64
 ```
+
 ### 一键构建脚本
 ```bash
-# 编译客户端
-build_linux.sh和build.ps1
+# Windows平台
+.build.ps1
+
+# Linux平台
+chmod +x build_linux.sh
+./build_linux.sh
 ```
 
-### 基础使用
-#### 主要功能
- - about       查看工具信息
- - crunch      密码字典生成工具
- - csrf        CSRF漏洞检测 [测试]
- - database    数据库密码破解工具
- - dirscan     网站目录扫描工具
- - ftp         FTP密码破解工具
- - help        Help about any command
- - process     进程与服务信息收集工具
- - route       路由跳数检测
- - sam         Windows SAM文件分析工具 [功能测试]
- - scan        网络扫描工具，支持主机发现、端口扫描、服务识别等功能
- - ssh         SSH密码爆破工具（Hydra风格）
- - userinfo    本地用户和组分析
- - webshell    WebShell生成工具
- - xss         XSS漏洞检测工具，支持反射型、存储型、DOM型XSS检测
-#### C2 功能
- - userinfo  分析本地用户和组信息
- - goss      Windows系统配置审计
- - audit     Windows安全审计
-#### 端口扫描
+## 📋 功能列表
+
+### 核心功能
+
+| 命令 | 功能描述 | 状态 |
+|------|----------|------|
+| about | 查看工具信息 | ✅ 稳定 |
+| crunch | 密码字典生成工具 | ✅ 稳定 |
+| csrf | CSRF漏洞检测 | ⚠️ 测试阶段 |
+| database | 数据库密码破解工具 | ✅ 稳定 |
+| dirscan | 网站目录扫描工具 | ✅ 稳定 |
+| ftp | FTP密码破解工具 | ✅ 稳定 |
+| powershell | PowerShell远程执行工具 [WinRM服务利用] | ✅ 稳定 |
+| process | 进程与服务信息收集工具 | ✅ 稳定 |
+| rdp | RDP远程桌面工具 | ✅ 稳定 |
+| route | 路由跳数检测 | ✅ 稳定 |
+| sam | Windows SAM文件分析工具 | ⚠️ 测试阶段 |
+| scan | 网络扫描工具，支持主机发现、端口扫描、服务识别等功能 | ✅ 稳定 |
+| smb | SMB协议操作工具 | ✅ 稳定 |
+| ssh | SSH密码爆破工具（Hydra风格） | ✅ 稳定 |
+| userinfo | 本地用户和组分析 | ✅ 稳定 |
+| webshell | WebShell生成工具 | ✅ 稳定 |
+| wmi | WMI远程管理工具 | ✅ 稳定 |
+| xss | XSS漏洞检测工具，支持反射型、存储型、DOM型XSS检测 | ✅ 稳定 |
+
+## 💡 常用功能使用示例
+
+### 1. 网络扫描
+
 ```bash
 # 扫描单个IP地址
-./GYscan-linux-amd64 scan --target 192.168.1.100
+./GYscan.exe scan --target 192.168.1.100
 
 # 扫描IP段
-./GYscan-linux-amd64 scan --target 192.168.1.0/24
+./GYscan.exe scan --target 192.168.1.0/24
 
 # 扫描指定端口范围
-./GYscan-linux-amd64 scan --target 192.168.1.100 --ports 80,443,22,21
+./GYscan.exe scan --target 192.168.1.100 --ports 80,443,22,21
 ```
 
-#### 服务识别
+### 2. PowerShell远程执行
+
 ```bash
-# 识别目标服务类型和版本
-./GYscan-linux-amd64 service --target 192.168.1.100 --port 80
+# 执行远程PowerShell命令
+./GYscan.exe powershell exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
 
-# 批量服务识别
-./GYscan-linux-amd64 service --target 192.168.1.0/24 --ports 22,80,443
+# 测试WinRM端口
+./GYscan.exe powershell test --target 192.168.1.100 --port 5985
+
+# 使用HTTPS连接
+./GYscan.exe powershell exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami" --https
 ```
 
-#### 弱口令爆破
+### 3. WMI远程管理
+
+```bash
+# 获取操作系统信息
+./GYscan.exe wmi osinfo --target 192.168.1.100 --user Administrator --password "Password123"
+
+# 执行远程命令
+./GYscan.exe wmi exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
+
+# 列出远程进程
+./GYscan.exe wmi processes --target 192.168.1.100 --user Administrator --password "Password123"
+
+# 查询WMI数据
+./GYscan.exe wmi query --target 192.168.1.100 --user Administrator --password "Password123" --query "SELECT * FROM Win32_OperatingSystem"
+```
+
+### 4. RDP远程桌面
+
+```bash
+# 检查RDP服务可用性
+./GYscan.exe rdp check --target 192.168.1.100
+
+# 连接到RDP服务
+./GYscan.exe rdp connect --target 192.168.1.100 --user Administrator --password "Password123"
+
+# 列出RDP会话
+./GYscan.exe rdp sessions --target 192.168.1.100 --user Administrator --password "Password123"
+
+# 列出远程进程
+./GYscan.exe rdp processes --target 192.168.1.100 --user Administrator --password "Password123"
+```
+
+### 5. SMB协议操作
+
+```bash
+# 检测SMB版本
+./GYscan.exe smb version --target 192.168.1.100
+
+# 列出SMB共享
+./GYscan.exe smb shares --target 192.168.1.100 --user Administrator --password "Password123"
+
+# 执行远程命令
+./GYscan.exe smb exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
+```
+
+### 6. 漏洞检测
+
+```bash
+# XSS漏洞检测
+./GYscan.exe xss --target http://example.com --payload "<script>alert('xss')</script>"
+
+# CSRF漏洞检测
+./GYscan.exe csrf --target http://example.com/vul/csrf.php -X POST -d "action=delete&id=1"
+```
+
+### 7. 弱口令爆破
+
 ```bash
 # SSH弱口令检测
-./GYscan-linux-amd64 brute --target 192.168.1.100 --service ssh --user admin --wordlist passwords.txt
+./GYscan.exe ssh --target 192.168.1.100 --user admin --wordlist passwords.txt
 
 # FTP弱口令检测
-./GYscan-linux-amd64 brute --target 192.168.1.100 --service ftp --user anonymous --wordlist passwords.txt
+./GYscan.exe ftp --target 192.168.1.100 --user anonymous --wordlist passwords.txt
 ```
 
-#### 漏洞检测
-```bash
-# Web应用漏洞扫描
-./GYscan-linux-amd64 vuln --target 192.168.1.100 --web
+## ⚙️ 高级配置
 
-# 服务漏洞检测
-./GYscan-linux-amd64 vuln --target 192.168.1.100 --service ssh
-```
+### 性能调优
 
-### 实战示例
-
-#### 示例1：基础端口扫描
-```bash
-# 扫描单个IP地址
-./GYscan-linux-amd64 scan --target 192.168.1.100
-
-# 扫描IP段
-./GYscan-linux-amd64 scan --target 192.168.1.0/24
-
-# 扫描指定端口范围
-./GYscan-linux-amd64 scan --target 192.168.1.100 --ports 80,443,22,21
-```
-
-#### 示例2：服务识别和指纹采集
-```bash
-# 识别目标服务类型和版本
-./GYscan-linux-amd64 service --target 192.168.1.100 --port 80
-
-# 批量服务识别
-./GYscan-linux-amd64 service --target 192.168.1.0/24 --ports 22,80,443
-```
-
-#### 示例3：弱口令爆破
-```bash
-# SSH弱口令检测
-./GYscan-linux-amd64 brute --target 192.168.1.100 --service ssh --user admin --wordlist passwords.txt
-
-# FTP弱口令检测
-./GYscan-linux-amd64 brute --target 192.168.1.100 --service ftp --user anonymous --wordlist passwords.txt
-```
-
-#### 示例4：漏洞检测
-```bash
-# XSS漏洞专项扫描
-./GYscan-linux-amd64 xss --target http://example.com --payload "<script>alert('xss')</script>"
-
-# CSRF漏洞专项扫描
-./GYscan-linux-amd64 csrf --target http://example.com/vul/csrf.php -X POST -d "action=delete&id=1"
-```
-
-### 高级配置
-
-#### 性能调优
 ```bash
 # 设置并发线程数
-./GYscan-linux-amd64 scan --target 192.168.1.0/24 --threads 50
+./GYscan.exe scan --target 192.168.1.0/24 --threads 50
 
 # 设置超时时间
-./GYscan-linux-amd64 scan --target 192.168.1.100 --timeout 3
+./GYscan.exe scan --target 192.168.1.100 --timeout 3
 ```
 
-#### CSRF检测高级配置
-```bash
-# 自定义Cookie
-./GYscan-linux-amd64 csrf --target http://example.com/vul/csrf.php --cookies "session=xxx"
+### 输出控制
 
-# 自定义HTTP头
-./GYscan-linux-amd64 csrf --target http://example.com/vul/csrf.php --headers "X-Custom: value"
-
-# 详细输出模式
-./GYscan-linux-amd64 csrf --target http://example.com/vul/csrf.php -V
-```
-
-#### 输出控制
 ```bash
 # 静默模式（仅输出关键结果）
-./GYscan-linux-amd64 scan --target 192.168.1.100 --silent
+./GYscan.exe scan --target 192.168.1.100 --silent
 
-# 输出到文件
-./GYscan-linux-amd64 scan --target 192.168.1.0/24 -o scan_results.txt
+# 详细输出模式
+./GYscan.exe scan --target 192.168.1.100 --verbose
+
+# 更详细的输出模式
+./GYscan.exe scan --target 192.168.1.100 --very-verbose
 ```
 
-## 核心功能模块
-
-GYscan采用模块化架构，专注于内网安全测试的核心功能，提供专业的安全评估解决方案。
-
-### 功能模块概览
-
-| 功能模块 | 主要功能 | 技术特点 |
-|---------|---------|---------|
-| **端口扫描** | TCP/UDP端口发现、服务探测 | 多线程并发、智能端口范围 |
-| **服务识别** | 协议识别、版本检测、Banner抓取 | 自动化探测、智能策略选择 |
-| **漏洞检测** | Web漏洞扫描（增强XSS检测）、服务漏洞检测 | 高级XSS检测引擎、WAF绕过、Payload变异、上下文感知检测 |
-| **弱口令爆破** | 多协议弱口令检测 | 智能爆破、字典管理 |
-| **CSRF检测** | 跨站请求伪造漏洞检测 | 多种检测场景、Cookie SameSite配置检测、伪造Referer/Origin检测 |
-
-### 1. 端口扫描模块
-端口扫描模块提供高效的网络端口发现功能：
-
-**主要功能：**
-- **TCP SYN扫描** - 快速端口发现，减少网络流量
-- **TCP Connect扫描** - 准确的服务识别和连接验证
-- **UDP扫描** - UDP服务探测和响应分析
-- **智能端口范围** - 支持常用端口和自定义端口范围
-
-**技术特点：**
-- 基于Go语言原生网络库实现
-- 可配置的并发线程数
-- 智能超时控制和错误处理
-- 详细的扫描统计信息
-
-### 2. 服务识别模块
-服务识别模块提供精准的服务类型和版本检测：
-
-**主要功能：**
-- **协议识别** - 自动识别HTTP、FTP、SSH、SMB等协议
-- **版本检测** - 识别服务具体版本信息
-- **Banner抓取** - 获取服务标识和配置信息
-- **自动化探测** - 智能选择探测策略和参数
-
-**技术特点：**
-- 多协议指纹库支持
-- 自适应探测策略
-- 可配置的超时设置
-- 详细的识别结果报告
-
-### 3. 漏洞检测模块
-漏洞检测模块提供全面的安全漏洞识别功能，特别增强了XSS检测能力：
-
-**主要功能：**
-- **Web漏洞扫描** - SQL注入、XSS、文件包含等全面检测
-  - **反射型XSS检测** - 检测URL参数和表单输入中的反射型跨站脚本漏洞
-  - **存储型XSS检测** - 检测需要登录和数据存储的持久型跨站脚本漏洞
-  - **DOM型XSS检测** - 检测基于DOM操作的客户端跨站脚本漏洞
-- **服务漏洞检测** - 常见服务漏洞识别和风险评估
-- **安全配置检查** - 基础安全配置评估和建议
-
-**技术特点：**
-- **高级XSS检测引擎**
-  - WAF绕过技术（空格绕过、注释绕过、编码绕过等）
-  - Payload变异功能（多策略Payload变形）
-  - 参数智能提取（URL参数、表单参数、路径参数）
-  - 并发控制和速率限制
-  - 上下文感知检测（降低误报率）
-- 模块化检测规则
-- 可扩展的检测插件
-- 详细的漏洞描述和建议
-- 风险评估和优先级排序
-
-### 4. CSRF检测模块
-CSRF检测模块提供专业的跨站请求伪造漏洞检测功能：
-
-**主要功能：**
-- **无Token请求检测** - 检测未使用CSRF Token的敏感请求
-- **无效Token请求检测** - 检测使用无效或伪造Token的请求
-- **伪造Referer/Origin请求检测** - 检测使用伪造来源头的请求
-- **Cookie SameSite配置检测** - 检测Cookie的SameSite安全配置
-
-**技术特点：**
-- 动态请求模拟和响应分析
-- 多场景检测策略
-- 详细的漏洞风险评估
-- 支持自定义请求参数和头信息
-- 集成测试模式便于功能验证
-
-### 5. 弱口令爆破模块
-弱口令爆破模块提供多协议的密码强度检测：
-
-**主要功能：**
-- **多协议支持** - SSH、FTP、SMB、RDP等主流协议
-- **字典管理** - 内置常用弱口令字典，支持自定义字典
-- **智能爆破** - 基于响应特征的智能爆破策略
-- **并发控制** - 可配置的并发线程数和延迟设置
-
-**技术特点：**
-- 协议特定的认证机制
-- 智能错误处理和重试机制
-- 详细的爆破进度和结果统计
-- 安全的密码处理机制
-
-## 全局参数
-
-```bash
-./GYscan-linux-amd64 [command] [flags]
-
-全局参数:
-  -h, --help           显示帮助信息
-  -v, --version        显示版本信息
-  -s, --silent         静默模式，仅输出关键结果
-      --config string  配置文件路径
-      --threads int    并发线程数 (默认: 10)
-      --timeout int    超时时间(秒) (默认: 5)
-```
-
-## 技术架构
+## 🏗️ 技术架构
 
 ### 项目结构
-GYscan采用模块化架构设计，包含客户端和C2服务器两个主要部分：
 
 ```
 GYscan/
@@ -340,7 +238,7 @@ GYscan/
 ├── Client/                # 客户端主程序
 │   ├── main.go            # 程序主入口
 │   ├── go.mod             # Go模块依赖
-│   ├── go.sum             # Go模块校验和
+│   ├── go.sum             # Go模块校验
 │   ├── internal/          # 内部包
 │   │   ├── cli/           # 命令行界面
 │   │   ├── csrf/          # CSRF漏洞检测模块
@@ -350,21 +248,23 @@ GYscan/
 │   │   ├── network/       # 网络相关功能
 │   │   ├── nmap/          # Nmap集成功能
 │   │   ├── plugin/        # 插件系统
+│   │   ├── powershell/    # PowerShell远程执行模块
 │   │   ├── process/       # 进程相关功能
+│   │   ├── rdp/           # RDP远程桌面模块
 │   │   ├── sam/           # SAM文件分析
 │   │   ├── samcrack/      # SAM密码破解
 │   │   ├── security/      # 安全相关功能
+│   │   ├── smb/           # SMB协议操作模块
 │   │   ├── ssh/           # SSH相关功能
 │   │   ├── userinfo/      # 用户信息收集
 │   │   ├── utils/         # 工具函数
 │   │   ├── webshell/      # WebShell相关功能
+│   │   ├── wmi/           # WMI远程管理模块
 │   │   └── xss/           # XSS漏洞检测模块
-│   ├── dirmap/            # 目录扫描字典
-│   └── GYscan.exe         # 编译后的可执行文件
-├── PSTools/               # Windows系统工具
+│   └── dirmap/            # 目录扫描字典
+├── PSTools/               # 微软提供的Windows系统的测试工具
 ├── build.ps1              # Windows构建脚本
-├── build_linux.sh         # Linux构建脚本
-└── README.md              # 项目文档
+└── build_linux.sh         # Linux构建脚本
 ```
 
 ### 技术特性
@@ -389,36 +289,47 @@ GYscan/
 - **配置驱动** - 灵活的配置系统，支持多种场景
 - **标准接口** - 统一的接口规范，便于二次开发
 
-## 开发状态
+## 📊 开发状态
 
 ### 当前稳定功能
-- [x] 基础端口扫描（TCP/UDP）
-- [x] 服务识别和指纹采集
-- [x] 弱口令爆破框架
-- [x] 基础漏洞检测
-- [x] CSRF漏洞检测模块
-- [x] 命令行界面
-- [x] 配置文件管理
+- ✅ 基础端口扫描（TCP/UDP）
+- ✅ 服务识别和指纹采集
+- ✅ PowerShell远程执行工具 [WinRM服务利用]
+- ✅ WMI远程管理工具
+- ✅ RDP远程桌面工具
+- ✅ SMB协议操作工具
+- ✅ 弱口令爆破框架
+- ✅ 基础漏洞检测（XSS、CSRF等）
+- ✅ 命令行界面
+- ✅ 配置文件管理
 
 ### 近期优化
-- [x] 移除Payload生成功能，专注安全测试
-- [x] 优化代码结构和性能
-- [x] 完善帮助文档和示例
+- ✅ 完善PowerShell模块功能，支持HTTPS连接
+- ✅ 优化WMI模块功能，增强远程管理能力
+- ✅ 完善RDP模块功能，支持会话管理和进程查看
+- ✅ 优化SMB模块功能，支持版本检测和共享枚举
+- ✅ 改进各功能模块的性能和稳定性
+- ✅ 更新帮助文档和示例
 
 ### 计划功能
-- [ ] 高级漏洞检测插件
-- [ ] 分布式扫描架构
-- [ ] 自动化报告生成
+- ⏳ 高级漏洞检测插件
+- ⏳ 分布式扫描架构
 
-## 更新日志
+## 📝 更新日志
 
-### 2.0.1 (最新版本)
+### v2.5.0 (最新版本)
+- **新功能**: 完善PowerShell模块，添加HTTPS支持
+- **新功能**: 增强WMI模块功能，支持更多远程管理操作
+- **新功能**: 完善RDP模块，支持会话管理和进程查看
+- **新功能**: 优化SMB模块，支持版本检测和共享枚举
+- **代码优化**: 优化各模块代码结构和性能
+
+### v2.0.1
 - **功能优化**: 移除Payload生成功能，专注安全测试
 - **代码优化**: 优化代码结构和性能
 - **文档完善**: 更新帮助文档和示例
-- **版本更新**: 统一版本号为v2.0.1
 
-### v2.0.2 (开发中)
+### v2.0.0
 - **新功能**: 新增CSRF漏洞检测模块
 - **功能增强**: 完善XSS检测功能
 - **模块优化**: 改进各功能模块的性能和稳定性
@@ -439,8 +350,12 @@ GYscan/
 
 ## 📄 许可证
 
-本工具仅用于授权的安全测试目的。使用者需承担相应的法律责任。
+本项目采用MIT许可证。详情请查看LICENSE文件。
+
+## ⚠️ 免责声明
+
+**重要提示**: 本工具仅供安全研究和授权测试使用。任何未授权的使用行为均属违法，使用者需承担相应的法律责任。作者不承担任何因使用本工具而产生的直接或间接责任。
 
 ---
 
-**免责声明**: 本工具仅供安全研究和授权测试使用，任何未授权的使用行为与作者无关。
+**GYscan - 专注内网安全，守护网络边界** 🛡️
