@@ -1,5 +1,5 @@
 Write-Host "=================================================="
-Write-Host "           GYscan 自动化构建脚本           "
+Write-Host "           GYscan 自动构建脚本           "
 Write-Host "                 版本 1.0                        "
 Write-Host "=================================================="
 Write-Host ""
@@ -11,11 +11,11 @@ $Distro = "windows"
 Write-Host "[成功] 检测到系统: $OS ($Distro)"
 Write-Host ""
 
-# 检查Go环境
-Write-Host "[信息] 正在检查Go环境..."
+# 检测Go环境
+Write-Host "[信息] 正在检测Go环境..."
 $goCommand = Get-Command "go" -ErrorAction SilentlyContinue
 if (-not $goCommand) {
-    Write-Host "[错误] Go未安装。请安装Go 1.24.5或更高版本"
+    Write-Host "[错误] Go未安装，请安装Go 1.24.5或更高版本"
     exit 1
 }
 
@@ -23,7 +23,7 @@ $goVersionOutput = go version
 $goVersion = ($goVersionOutput -split ' ')[2].Substring(2)
 Write-Host "[信息] 检测到Go版本: $goVersion"
 
-# 检查Go版本是否满足要求
+# 检测Go版本是否符合要求
 $requiredVersion = "1.21.0"
 $versionParts = $goVersion -split '\.'
 $reqVersionParts = $requiredVersion -split '\.'
@@ -47,15 +47,15 @@ if (-not $isVersionOk) {
     exit 1
 }
 
-Write-Host "[成功] Go版本满足要求 ($goVersion >= $requiredVersion)"
+Write-Host "[成功] Go版本符合要求 ($goVersion >= $requiredVersion)"
 Write-Host ""
 
-# 配置Go代理
-Write-Host "[信息] 正在配置Go代理..."
+# 设置Go代理
+Write-Host "[信息] 正在设置Go代理..."
 go env -w GOPROXY=https://goproxy.cn,direct
 go env -w GOSUMDB=sum.golang.google.cn
 $proxyValue = go env GOPROXY
-Write-Host "[成功] Go代理已配置: $proxyValue"
+Write-Host "[成功] Go代理已设置: $proxyValue"
 Write-Host ""
 
 # 用户选择构建目标
@@ -146,7 +146,7 @@ Write-Host "[成功] 输出文件名: $outputName"
 Write-Host ""
 
 # 确认构建
-Write-Host "构建配置:"
+Write-Host "构建信息:"
 Write-Host "目标: $buildTarget"
 Write-Host "平台: $buildPlatform/$buildArch"
 Write-Host "输出: $outputName"
@@ -159,7 +159,7 @@ if ($confirm -notmatch "^[Yy]$") {
 }
 
 Write-Host ""
-Write-Host "[信息] 开始构建过程..."
+Write-Host "[信息] 开始构建..."
 
 # 执行构建
 $originalLocation = Get-Location
@@ -172,7 +172,7 @@ try {
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
         
-        go build -ldflags="-s -w" -o "..\$outputName"
+        go build -tags nowasm -ldflags="-s -w" -o "..\$outputName"
     } else {
         Set-Location $c2Dir
         Write-Host "[信息] 正在构建C2程序..."
@@ -180,7 +180,7 @@ try {
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
         
-        go build -ldflags="-s -w" -o "..\..\$outputName" ./cmd
+        go build -tags nowasm -ldflags="-s -w" -o "..\..\$outputName" ./cmd
     }
     
     if ($LASTEXITCODE -eq 0) {
