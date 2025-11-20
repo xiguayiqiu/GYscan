@@ -171,7 +171,7 @@ func parseCredentials(credStr, credFile string) ([]string, error) {
 
 func init() {
 	// 添加FTP命令到根命令
-	rootCmd.AddCommand(ftpCmd)
+	// rootCmd.AddCommand(ftpCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理
 	
 	// 定义命令行参数
 	ftpCmd.Flags().StringP("username", "u", "", "用户名列表，用逗号分隔")

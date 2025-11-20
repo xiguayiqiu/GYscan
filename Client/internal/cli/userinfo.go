@@ -36,7 +36,7 @@ var userinfoCmd = &cobra.Command{
   GYscan.exe userinfo --detailed
   
   # 显示帮助信息
-  GYscan.exe userinfo --help`,
+  GYscan.exe userinfo help`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 检查是否请求帮助
 		if len(args) > 0 && args[0] == "help" {

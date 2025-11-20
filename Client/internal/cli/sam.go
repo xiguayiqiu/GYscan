@@ -40,7 +40,7 @@ SAM文件通常位于：
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// 检查是否请求帮助
-		if len(args) == 1 && (args[0] == "help" || args[0] == "-h" || args[0] == "--help") {
+		if len(args) == 1 && (args[0] == "help" || args[0] == "-h") {
 			return cmd.Help()
 		}
 		

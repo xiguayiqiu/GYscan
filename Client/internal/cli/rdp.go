@@ -299,18 +299,9 @@ func init() {
 	rdpCmd.AddCommand(rdpSessionsCmd)
 	rdpCmd.AddCommand(rdpProcessesCmd)
 
-	// 设置必填参数
-	_ = rdpCheckCmd.MarkFlagRequired("target")
-	_ = rdpConnectCmd.MarkFlagRequired("target")
-	_ = rdpConnectCmd.MarkFlagRequired("user")
-	_ = rdpConnectCmd.MarkFlagRequired("password")
-	_ = rdpSessionsCmd.MarkFlagRequired("target")
-	_ = rdpSessionsCmd.MarkFlagRequired("user")
-	_ = rdpSessionsCmd.MarkFlagRequired("password")
-	_ = rdpProcessesCmd.MarkFlagRequired("target")
-	_ = rdpProcessesCmd.MarkFlagRequired("user")
-	_ = rdpProcessesCmd.MarkFlagRequired("password")
+	// 移除自动参数验证，改用手动验证（在Run函数中实现）
+	// 这样可以确保help命令正常工作，而不会因为缺少参数而报错
 
 	// 在根命令中注册rdp命令
-	rootCmd.AddCommand(rdpCmd)
+	// rootCmd.AddCommand(rdpCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理
 }

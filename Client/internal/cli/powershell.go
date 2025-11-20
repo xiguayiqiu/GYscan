@@ -317,19 +317,8 @@ func init() {
 	powershellCmd.AddCommand(powershellScriptCmd)
 	powershellCmd.AddCommand(powershellTestCmd)
 
-	// 设置必填参数
-	_ = powershellExecCmd.MarkFlagRequired("target")
-	_ = powershellExecCmd.MarkFlagRequired("user")
-	_ = powershellExecCmd.MarkFlagRequired("password")
-	_ = powershellExecCmd.MarkFlagRequired("command")
-
-	_ = powershellScriptCmd.MarkFlagRequired("target")
-	_ = powershellScriptCmd.MarkFlagRequired("user")
-	_ = powershellScriptCmd.MarkFlagRequired("password")
-	_ = powershellScriptCmd.MarkFlagRequired("script")
-
-	_ = powershellTestCmd.MarkFlagRequired("target")
+	// 注意：不再使用MarkFlagRequired，因为命令执行函数中已经包含了手动参数验证
 
 	// 在根命令中注册powershell命令
-	rootCmd.AddCommand(powershellCmd)
+	// rootCmd.AddCommand(powershellCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理
 }

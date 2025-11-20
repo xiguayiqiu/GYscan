@@ -221,5 +221,5 @@ func init() {
 	smbCmd.AddCommand(smbExecCmd)
 
 	// 在根命令中注册smb命令
-	rootCmd.AddCommand(smbCmd)
+	// rootCmd.AddCommand(smbCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理
 }

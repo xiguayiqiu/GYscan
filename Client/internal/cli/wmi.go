@@ -472,5 +472,5 @@ func init() {
 	})
 
 	// 在根命令中注册wmi命令
-	rootCmd.AddCommand(wmiCmd)
+	// rootCmd.AddCommand(wmiCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理
 }
