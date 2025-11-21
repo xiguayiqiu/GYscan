@@ -1,0 +1,1363 @@
+{
+  "waf_list": [
+    {
+      "name": "Cloudflare",
+      "vendor": "Cloudflare Inc.",
+      "confidence_threshold": 70,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "CF-RAY",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "cloudflare",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "ssl_certificate",
+          "field": "issuer",
+          "value": "Cloudflare, Inc.",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_content",
+          "value": "Cloudflare Ray ID",
+          "match_type": "contains",
+          "weight": 90
+        },
+        {
+          "type": "active_detect",
+          "request": {
+            "method": "GET",
+            "path": "/?test='123",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0"
+          },
+          "response_check": {
+            "status_code": 403,
+            "content_contains": "blocked",
+            "header_exists": "CF-RAY"
+          },
+          "weight": 60
+        }
+      ]
+    },
+    {
+      "name": "阿里云WAF",
+      "vendor": "阿里云",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Alibaba-CDN",
+          "match_type": "exists",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "X-Cache",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "response_content",
+          "value": "阿里云安全防护",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "安全狗",
+      "vendor": "安全狗科技",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Powered-By",
+          "value": "SafeDog",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "安全狗防护",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "ModSecurity",
+      "vendor": "开源",
+      "confidence_threshold": 60,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "ModSecurity",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "ModSecurity Action",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "深信服WAF",
+      "vendor": "深信服科技",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-SAFE-DOG",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "深信服安全防护",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "AWS WAF",
+      "vendor": "Amazon",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Amzn-Waf-Result",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "X-Amzn-Waf-Request-ID",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "AWS WAF",
+          "match_type": "contains",
+          "weight": 90
+        }
+      ]
+    },
+    {
+      "name": "Imperva",
+      "vendor": "Imperva Inc.",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Iinfo",
+          "match_type": "exists",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "X-CDN-Request-ID",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "ssl_certificate",
+          "field": "issuer",
+          "value": "Imperva",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "Imperva Inc.",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "F5 Advanced WAF",
+      "vendor": "F5 Networks",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-F5-Auth-Token",
+          "match_type": "exists",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "F5",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "F5 Networks",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "FortiWeb",
+      "vendor": "Fortinet",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-FortiWeb-ProxyID",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "FortiWeb",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_content",
+          "value": "FortiWeb",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Barracuda WAF",
+      "vendor": "Barracuda Networks",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Barracuda-Cache",
+          "match_type": "exists",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "X-Barracuda-URL",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "Barracuda Networks",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "DDoS-GUARD",
+      "vendor": "DDoS-GUARD LLC",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "DDoS-GUARD",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "DDoS-GUARD",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "ssl_certificate",
+          "field": "issuer",
+          "value": "DDoS-GUARD",
+          "match_type": "contains",
+          "weight": 70
+        }
+      ]
+    },
+    {
+      "name": "Akamai Kona",
+      "vendor": "Akamai Technologies",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Akamai-Edgescape",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Akamai",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "X-True-Client-IP",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "response_content",
+          "value": "Akamai Security",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "NSFocus WAF",
+      "vendor": "绿盟科技",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-NSF-Request-ID",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "绿盟科技",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "NSFocus",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "天融信WAF",
+      "vendor": "天融信",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-TOPSEC-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "天融信安全",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "TOPSEC",
+          "match_type": "contains",
+          "weight": 75
+        }
+      ]
+    },
+    {
+      "name": "启明星辰WAF",
+      "vendor": "启明星辰",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-VENUS-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "启明星辰",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "VENUS",
+          "match_type": "contains",
+          "weight": 75
+        }
+      ]
+    },
+    {
+      "name": "Cisco Firepower WAF",
+      "vendor": "Cisco",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Cisco-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Cisco",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "Cisco Firepower",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "SonicWall WAF",
+      "vendor": "SonicWall",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-SonicWALL",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "SonicWall",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Citrix ADC (NetScaler)",
+      "vendor": "Citrix",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Citrix",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "X-Citrix-Gateway",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "NetScaler",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Radware AppWall",
+      "vendor": "Radware",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Radware-ID",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "AppWall",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Radware",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Trend Micro TippingPoint",
+      "vendor": "Trend Micro",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-TippingPoint",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "TippingPoint",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "IBM Security WAF",
+      "vendor": "IBM",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-IBM-Security",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "IBM Security",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Oracle Cloud WAF",
+      "vendor": "Oracle",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Oracle-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Oracle WAF",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Trustwave WAF",
+      "vendor": "Trustwave",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Trustwave-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Trustwave",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Microsoft Azure Front Door WAF",
+      "vendor": "Microsoft",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Azure-Ref",
+          "match_type": "exists",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Microsoft",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "Azure Web Application Firewall",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Palo Alto Networks WAF",
+      "vendor": "Palo Alto Networks",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-PaloAlto-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Palo Alto Networks",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "AhnLab Adefense",
+      "vendor": "AhnLab",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-AhnLab",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "Adefense",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Sangfor NGAF",
+      "vendor": "深信服科技",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-SANGFOR",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "SANGFOR",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "NGAF",
+          "match_type": "contains",
+          "weight": 75
+        }
+      ]
+    },
+    {
+      "name": "Huawei Cloud WAF",
+      "vendor": "华为",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Huawei-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "X-Cloud-Request-ID",
+          "match_type": "exists",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "华为云WAF",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Tencent Cloud WAF",
+      "vendor": "腾讯云",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-TC-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "腾讯云安全",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Tencent Cloud",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Kingsoft WAF",
+      "vendor": "金山云",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-KSYUN-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "金山云WAF",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Kingsoft",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Array Networks WAF",
+      "vendor": "Array Networks",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Array-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Array Networks",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Sophos XG Firewall",
+      "vendor": "Sophos",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Sophos-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Sophos XG",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Dell SonicWALL SMA",
+      "vendor": "Dell",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Dell-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "SonicWALL SMA",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "WebKnight",
+      "vendor": "AQTRONIX",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-WebKnight",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "WebKnight",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Sucuri WAF",
+      "vendor": "Sucuri",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Sucuri-ID",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Sucuri",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_content",
+          "value": "Sucuri WebSite Firewall",
+          "match_type": "contains",
+          "weight": 90
+        }
+      ]
+    },
+    {
+      "name": "Cloudbric",
+      "vendor": "Penta Security",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Cloudbric",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Cloudbric",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "GoDaddy Website Security",
+      "vendor": "GoDaddy",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-GoDaddy-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "GoDaddy Website Security",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Incapsula",
+      "vendor": "Imperva Inc.",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Incapsula-Request-ID",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "incapsula",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "ChinaCache WAF",
+      "vendor": "蓝汛",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-ChinaCache",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "ChinaCache",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "BaishanCloud WAF",
+      "vendor": "白山云",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-BaishanCloud",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "BaishanCloud",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "360 Website Guardian",
+      "vendor": "奇虎360",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-360WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "360网站卫士",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Qiniu WAF",
+      "vendor": "七牛云",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Qiniu-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "七牛云WAF",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "UCloud WAF",
+      "vendor": "优刻得",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-UCLOUD-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "UCloud WAF",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "LeaseWeb WAF",
+      "vendor": "LeaseWeb",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-LeaseWeb-WAF",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "LeaseWeb",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Nginx App Protect",
+      "vendor": "F5 Networks",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "nginx+app_protect",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Nginx App Protect",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Safe3 WAF",
+      "vendor": "Safe3",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Safe3",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "Safe3",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "Yunsuo WAF",
+      "vendor": "安全狗科技",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Yunsuo-Response",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_content",
+          "value": "云锁",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "CloudFlare for SaaS",
+      "vendor": "Cloudflare Inc.",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "CF-RAY",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "CF-Cache-Status",
+          "value": "DYNAMIC",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_content",
+          "value": "Cloudflare for SaaS",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "Django WAF",
+      "vendor": "Django",
+      "confidence_threshold": 65,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "Server",
+          "value": "Django",
+          "match_type": "contains",
+          "weight": 70
+        },
+        {
+          "type": "response_content",
+          "value": "Django CSRF token",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "NodeJs Express Helmet",
+      "vendor": "NodeJs",
+      "confidence_threshold": 80,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "X-Content-Type-Options",
+          "value": "nosniff",
+          "match_type": "contains",
+          "weight": 65
+        },
+        {
+          "type": "response_header",
+          "key": "X-Frame-Options",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "response_header",
+          "key": "X-XSS-Protection",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "response_header",
+          "key": "Strict-Transport-Security",
+          "match_type": "exists",
+          "weight": 60
+        },
+        {
+          "type": "response_header",
+          "key": "X-Powered-By",
+          "value": "Express",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "Content-Security-Policy",
+          "match_type": "exists",
+          "weight": 70
+        },
+        {
+          "type": "response_header",
+          "key": "Referrer-Policy",
+          "match_type": "exists",
+          "weight": 65
+        }
+      ]
+    },
+    {
+      "name": "Cloudflare",
+      "vendor": "Cloudflare",
+      "confidence_threshold": 75,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "cf-cache-status",
+          "match_type": "exists",
+          "weight": 100
+        },
+        {
+          "type": "response_header",
+          "key": "cf-ray",
+          "match_type": "exists",
+          "weight": 95
+        },
+        {
+          "type": "response_header",
+          "key": "server",
+          "value": "cloudflare",
+          "match_type": "contains",
+          "weight": 90
+        },
+        {
+          "type": "response_header",
+          "key": "cf-edge-cache",
+          "match_type": "exists",
+          "weight": 95
+        },
+        {
+          "type": "response_header",
+          "key": "x-cloud-trace-context",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "content-security-policy",
+          "value": "cloudflare",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "report-to",
+          "value": "cf-nel",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "nel",
+          "value": "cloudflare",
+          "match_type": "contains",
+          "weight": 80
+        }
+      ]
+    },
+    {
+      "name": "AWS WAF",
+      "vendor": "Amazon",
+      "confidence_threshold": 75,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "x-amz-cf-waf-action",
+          "match_type": "exists",
+          "weight": 100
+        },
+        {
+          "type": "response_header",
+          "key": "x-amzn-waf-request-id",
+          "match_type": "exists",
+          "weight": 95
+        },
+        {
+          "type": "response_header",
+          "key": "x-amz-cf-id",
+          "match_type": "exists",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "server",
+          "value": "CloudFront",
+          "match_type": "contains",
+          "weight": 75
+        },
+        {
+          "type": "response_header",
+          "key": "x-cache",
+          "value": "CloudFront",
+          "match_type": "contains",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "x-amz-cf-pop",
+          "match_type": "exists",
+          "weight": 90
+        },
+        {
+          "type": "response_header",
+          "key": "x-amzn-requestid",
+          "match_type": "exists",
+          "weight": 70
+        },
+        {
+          "type": "response_header",
+          "key": "x-amz-id-2",
+          "match_type": "exists",
+          "weight": 75
+        }
+      ]
+    },
+    {
+      "name": "ModSecurity",
+      "vendor": "Open Source",
+      "confidence_threshold": 75,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "server",
+          "value": "ModSecurity",
+          "match_type": "contains",
+          "weight": 90
+        },
+        {
+          "type": "response_header",
+          "key": "x-mod-security",
+          "match_type": "exists",
+          "weight": 95
+        },
+        {
+          "type": "response_content",
+          "content": "ModSecurity Alert",
+          "match_type": "contains",
+          "weight": 85
+        }
+      ]
+    },
+    {
+      "name": "阿里云WAF",
+      "vendor": "Alibaba Cloud",
+      "confidence_threshold": 80,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "server",
+          "value": "ALB",
+          "match_type": "contains",
+          "weight": 80
+        },
+        {
+          "type": "response_header",
+          "key": "x-alicdn-da-upstream-servicetime",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "x-server-id",
+          "match_type": "exists",
+          "weight": 70
+        }
+      ]
+    },
+    {
+      "name": "腾讯云WAF",
+      "vendor": "Tencent Cloud",
+      "confidence_threshold": 80,
+      "features": [
+        {
+          "type": "response_header",
+          "key": "server",
+          "value": "TencentWAF",
+          "match_type": "contains",
+          "weight": 90
+        },
+        {
+          "type": "response_header",
+          "key": "x-tc-trace-id",
+          "match_type": "exists",
+          "weight": 85
+        },
+        {
+          "type": "response_header",
+          "key": "x-server",
+          "value": "Tencent",
+          "match_type": "contains",
+          "weight": 75
+        }
+      ]
+    }
+  ]
+}

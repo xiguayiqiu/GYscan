@@ -109,7 +109,8 @@ var samCrackCmd = &cobra.Command{
 }
 
 func init() {
-	samCmd.AddCommand(samCrackCmd)
+	// 由于samCmd已被移除，直接将samCrackCmd添加到rootCmd
+	rootCmd.AddCommand(samCrackCmd)
 	
 	// 文件路径参数
 	samCrackCmd.Flags().String("sam", "", "SAM文件路径（如未提供，将从注册表提取）")

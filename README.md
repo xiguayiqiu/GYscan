@@ -21,7 +21,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v2.5.0 |
+| **最新版本** | v2.5.1 |
 
 ### ⚠️ 法律声明
 
@@ -42,7 +42,10 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 
 2. **获取项目代码**
    ```bash
+   #Github
    git clone https://github.com/xiguayiqiu/GYscan.git
+   #Gitee
+   git clone https://gitee.com/bzhanyiqiua/GYscan.git
    cd GYscan
    ```
 
@@ -99,12 +102,12 @@ chmod +x build_linux.sh
 | process | 进程与服务信息收集工具 | ✅ 稳定 |
 | rdp | RDP远程桌面工具 | ✅ 稳定 |
 | route | 路由跳数检测 | ✅ 稳定 |
-| sam | Windows SAM文件分析工具 | ✅ 稳定 |
 | scan | 网络扫描工具，支持主机发现、端口扫描、服务识别等功能 | ✅ 稳定 |
 | ssh | SSH密码爆破工具（Hydra风格） | ✅ 稳定 |
 | userinfo | 本地用户和组分析 | ✅ 稳定 |
 | webshell | WebShell生成工具 | ✅ 稳定 |
 | wmi | WMI远程管理工具 | ✅ 稳定 |
+| waf | WAF检测工具，支持主流WAF识别和检测 | ✅ 稳定 |
 | xss | XSS漏洞检测工具，支持反射型、存储型、DOM型XSS检测 | ✅ 稳定 |
 
 ### 测试阶段命令
@@ -113,10 +116,7 @@ chmod +x build_linux.sh
 |------|----------|------|
 | csrf | CSRF漏洞检测 [测试阶段] | ⚠️ 测试阶段 |
 | dcom | DCOM远程执行模块 [测试阶段] | ⚠️ 测试阶段 |
-| kerberos | Kerberos攻击模块 [测试阶段] | ⚠️ 测试阶段 |
 | ldap | LDAP枚举模块 [测试阶段] | ⚠️ 测试阶段 |
-| persistence | 持久化技术模块 [测试阶段] | ⚠️ 测试阶段 |
-| tunnel | 网络隧道功能 [测试阶段] | ⚠️ 测试阶段 |
 
 ## 💡 常用功能使用示例
 
@@ -131,7 +131,6 @@ chmod +x build_linux.sh
 
 # 扫描指定端口范围
 ./GYscan.exe scan --target 192.168.1.100 --ports 80,443,22,21
-```
 
 ### 2. PowerShell远程执行
 
@@ -209,6 +208,13 @@ chmod +x build_linux.sh
 
 # FTP弱口令检测
 ./GYscan.exe ftp --target 192.168.1.100 --user anonymous --wordlist passwords.txt
+
+# WAF检测
+# 检测单个URL
+./GYscan.exe waf -u "https://www.example.com/"
+
+# 检测多个URL
+./GYscan.exe waf -u "https://www.example.com/" -u "https://test.com/"
 ```
 
 ## ⚙️ 高级配置
@@ -261,7 +267,6 @@ GYscan/
 │   │   ├── powershell/    # PowerShell远程执行模块
 │   │   ├── process/       # 进程相关功能
 │   │   ├── rdp/           # RDP远程桌面模块
-│   │   ├── sam/           # SAM文件分析
 │   │   ├── samcrack/      # SAM密码破解
 │   │   ├── security/      # 安全相关功能
 │   │   ├── smb/           # SMB协议操作模块
@@ -310,6 +315,7 @@ GYscan/
 - ✅ SMB协议操作工具
 - ✅ 弱口令爆破框架
 - ✅ 基础漏洞检测（XSS、CSRF等）
+- ✅ WAF检测工具
 - ✅ 命令行界面
 - ✅ 配置文件管理
 
@@ -327,7 +333,14 @@ GYscan/
 
 ## 📝 更新日志
 
-### v2.5.0 (最新版本)
+### v2.5.1 (最新版本)
+- **新功能**: 新增WAF检测模块，支持检测多种WAF类型
+- **版本更新**: 项目版本迭代至v2.5.1
+- **功能优化**: 优化WAF检测模块代码，提升字符串比较效率，使用strings.EqualFold代替strings.ToLower进行大小写不敏感比较
+- **Bug修复**: 修复WAF检测相关的代码黄色警告
+- **代码质量**: 提升代码稳定性和可读性
+
+### v2.5.0
 - **功能优化**: 统一命令注册机制，解决命令重复注册问题
 - **功能优化**: 实现命令分组显示，分为正式命令和测试阶段命令
 - **功能修复**: 修复WebShell生成器中的格式字符串错误

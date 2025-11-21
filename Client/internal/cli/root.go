@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.0"
+	Version = "v2.5.1"
 )
 
 // rootCmd 表示基础命令
@@ -167,7 +167,6 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(processCmd)         // 进程与服务信息收集工具
 	cmd.AddCommand(rdpCmd)             // RDP远程桌面工具
 	cmd.AddCommand(routeCmd)           // 路由跳数检测
-	cmd.AddCommand(samCmd)             // Windows SAM文件分析工具
 	cmd.AddCommand(nmap.ScanCmd)       // 网络扫描工具
 	cmd.AddCommand(smbCmd)             // SMB协议操作工具
 	cmd.AddCommand(sshCmd)             // SSH密码爆破工具（Hydra风格）
@@ -175,14 +174,12 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(webshellCmd)        // WebShell生成工具
 	cmd.AddCommand(wmiCmd)             // WMI远程管理工具
 	cmd.AddCommand(xss.XssCmd)         // XSS漏洞检测工具
+	cmd.AddCommand(wafCmd)             // WAF识别工具
 
 	// ===== 测试阶段命令 =====
 	cmd.AddCommand(csrf.Cmd)           // CSRF漏洞检测 [测试阶段]
 	cmd.AddCommand(dcomCmd)            // DCOM远程执行模块 [测试阶段]
-	cmd.AddCommand(kerberosCmd)        // Kerberos攻击模块 [测试阶段]
 	cmd.AddCommand(ldapCmd)            // LDAP枚举模块 [测试阶段]
-	cmd.AddCommand(persistenceCmd)     // 持久化技术模块 [测试阶段]
-	cmd.AddCommand(tunnelCmd)          // 网络隧道功能 [测试阶段]
 }
 
 // init 初始化命令

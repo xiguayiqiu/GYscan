@@ -108,7 +108,7 @@ func init() {
 	XssCmd.Flags().BoolVarP(&wafBypass, "waf-bypass", "w", false, "启用WAF绕过模式")
 	XssCmd.Flags().StringVarP(&payloadLevel, "payload-level", "p", "medium", "Payload级别 (low/medium/high)")
 	XssCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")
-	XssCmd.Flags().BoolVarP(&verbose, "verbose", "V", false, "显示详细测试过程")
+	XssCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "显示详细测试过程")
 	XssCmd.Flags().BoolVarP(&testMode, "test", "T", false, "启用XSS检测测试模式")
 	
 	// 添加help子命令
