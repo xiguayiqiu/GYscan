@@ -21,7 +21,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v2.5.1 |
+| **最新版本** | v2.5.2 |
 
 ### ⚠️ 法律声明
 
@@ -109,6 +109,7 @@ chmod +x build_linux.sh
 | wmi | WMI远程管理工具 | ✅ 稳定 |
 | waf | WAF检测工具，支持主流WAF识别和检测 | ✅ 稳定 |
 | xss | XSS漏洞检测工具，支持反射型、存储型、DOM型XSS检测 | ✅ 稳定 |
+| winlog | Windows日志查看工具，支持本地和远程日志查询 | ✅ 稳定 |
 
 ### 测试阶段命令
 
@@ -217,17 +218,49 @@ chmod +x build_linux.sh
 ./GYscan.exe waf -u "https://www.example.com/" -u "https://test.com/"
 ```
 
+### 8. Windows日志查看
+
+```bash
+# 查看本地系统日志
+./GYscan.exe winlog system
+
+# 查看远程系统日志
+./GYscan.exe winlog system --target 192.168.1.100 --user admin --password password
+
+# 查看安全日志（登录事件）
+./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --event-id 4624
+
+# 查看应用程序日志
+./GYscan.exe winlog application --target 192.168.1.100 --user admin --password password --hours 24
+
+# 查看安装日志
+./GYscan.exe winlog setup --target 192.168.1.100 --user admin --password password --event-id 2001
+
+# 查看转发事件日志
+./GYscan.exe winlog forwardedevents --target 192.168.1.100 --user admin --password password --limit 50
+
+# 使用域账号认证
+./GYscan.exe winlog system --target 192.168.1.100 --domain example.com --user admin --password password
+
+# 启用详细输出和颜色显示
+./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --verbose --color
+```
+
 ## ⚙️ 高级配置
 
 ### 性能调优
 
-```bash
+```
 # 设置并发线程数
+
 ./GYscan.exe scan --target 192.168.1.0/24 --threads 50
 
 # 设置超时时间
+
 ./GYscan.exe scan --target 192.168.1.100 --timeout 3
 ```
+
+
 
 ### 输出控制
 
@@ -248,39 +281,153 @@ chmod +x build_linux.sh
 
 ```
 GYscan/
-├── C2/                    # C2服务器端
-│   ├── Linux/             # Linux版本C2
-│   └── Windows/           # Windows版本C2
-├── Client/                # 客户端主程序
-│   ├── main.go            # 程序主入口
-│   ├── go.mod             # Go模块依赖
-│   ├── go.sum             # Go模块校验
-│   ├── internal/          # 内部包
-│   │   ├── cli/           # 命令行界面
+├── C2/                    # C2服务器端（命令与控制）
+│   ├── Linux/             # Linux版本C2服务器
+│   │   ├── cmd/           # 命令行入口程序
+│   │   ├── go.mod         # Go模块依赖配置
+│   │   ├── go.sum         # Go模块校验文件
+│   │   ├── internal/      # 内部实现模块
+│   │   ├── pkg/           # 公共包（扫描器、工具等）
+│   │   └── tools/         # 集成工具（Lynis、Trivy等）
+│   └── Windows/           # Windows版本C2服务器
+│       ├── cmd/           # 命令行入口程序
+│       ├── go.mod         # Go模块依赖配置
+│       ├── go.sum         # Go模块校验文件
+│       ├── internal/      # 内部实现模块
+│       ├── pkg/           # 公共包（审计、扫描器等）
+│       └── tools/         # 集成工具（Goss等）
+├── Client/                # 客户端主程序（渗透测试工具）
+│   ├── GYscan.exe         # 编译后的Windows可执行文件
+│   ├── app.ico            # 应用程序图标
+│   ├── app.manifest       # 应用程序清单文件
+│   ├── app.png            # 应用程序图片
+│   ├── app.syso           # Windows系统资源文件
+│   ├── dirmap/            # 目录扫描字典文件
+│   │   ├── dicc.txt       # 目录扫描字典
+│   │   └── medium.txt     # 中等规模字典
+│   ├── go.mod             # Go模块依赖配置
+│   ├── go.sum             # Go模块校验文件
+│   ├── internal/          # 内部功能模块
+│   │   ├── cli/           # 命令行界面和命令注册
 │   │   ├── csrf/          # CSRF漏洞检测模块
-│   │   ├── database/      # 数据库相关功能
-│   │   ├── dirscan/       # 目录扫描模块
-│   │   ├── ftp/           # FTP相关功能
-│   │   ├── network/       # 网络相关功能
+│   │   ├── database/      # 数据库密码破解工具
+│   │   ├── dcom/          # DCOM远程执行模块
+│   │   ├── dirscan/       # 网站目录扫描模块
+│   │   ├── ftp/           # FTP密码破解模块
+│   │   ├── kerberos/      # Kerberos协议相关功能
+│   │   ├── ldap/          # LDAP枚举模块
+│   │   ├── network/       # 网络扫描和主机发现
 │   │   ├── nmap/          # Nmap集成功能
-│   │   ├── plugin/        # 插件系统
+│   │   ├── plugin/        # 插件系统框架
 │   │   ├── powershell/    # PowerShell远程执行模块
-│   │   ├── process/       # 进程相关功能
+│   │   ├── process/       # 进程与服务信息收集
 │   │   ├── rdp/           # RDP远程桌面模块
-│   │   ├── samcrack/      # SAM密码破解
+│   │   ├── samcrack/      # SAM密码破解模块
 │   │   ├── security/      # 安全相关功能
 │   │   ├── smb/           # SMB协议操作模块
-│   │   ├── ssh/           # SSH相关功能
-│   │   ├── userinfo/      # 用户信息收集
-│   │   ├── utils/         # 工具函数
-│   │   ├── webshell/      # WebShell相关功能
+│   │   ├── ssh/           # SSH密码爆破模块
+│   │   ├── userinfo/      # 本地用户和组分析
+│   │   ├── utils/         # 工具函数和辅助方法
+│   │   ├── waf/           # WAF检测工具
+│   │   ├── weakpass/      # 弱口令检测框架
+│   │   ├── webshell/      # WebShell生成工具
 │   │   ├── wmi/           # WMI远程管理模块
 │   │   └── xss/           # XSS漏洞检测模块
-│   └── dirmap/            # 目录扫描字典
-├── PSTools/               # 微软提供的Windows系统的测试工具
-├── build.ps1              # Windows构建脚本
-└── build_linux.sh         # Linux构建脚本
+│   └── main.go            # 程序主入口文件
+├── PSTools/               # 微软PSTools套件（Windows系统测试工具）
+│   ├── PsExec.exe         # 远程命令执行工具
+│   ├── PsExec64.exe       # 64位远程命令执行工具
+│   ├── PsInfo.exe         # 系统信息收集工具
+│   ├── PsInfo64.exe       # 64位系统信息收集工具
+│   ├── PsService.exe      # 服务管理工具
+│   ├── PsService64.exe    # 64位服务管理工具
+│   ├── PsLoggedon.exe     # 登录用户查看工具
+│   ├── PsLoggedon64.exe   # 64位登录用户查看工具
+│   ├── Pstools.chm        # 帮助文档
+│   ├── accesschk.exe      # 访问权限检查工具
+│   ├── psfile.exe         # 文件共享查看工具
+│   ├── psfile64.exe       # 64位文件共享查看工具
+│   ├── pskill.exe         # 进程终止工具
+│   ├── pskill64.exe       # 64位进程终止工具
+│   ├── pslist.exe         # 进程列表查看工具
+│   ├── pslist64.exe       # 64位进程列表查看工具
+│   ├── psloglist.exe      # 事件日志查看工具
+│   ├── psloglist64.exe    # 64位事件日志查看工具
+│   ├── pspasswd.exe       # 密码修改工具
+│   ├── pspasswd64.exe     # 64位密码修改工具
+│   ├── psping.exe         # 网络连通性测试工具
+│   ├── psping64.exe       # 64位网络连通性测试工具
+│   ├── psshutdown.exe     # 远程关机工具
+│   ├── psshutdown64.exe   # 64位远程关机工具
+│   ├── pssuspend.exe      # 进程挂起工具
+│   ├── pssuspend64.exe    # 64位进程挂起工具
+│   ├── Eula.txt           # 最终用户许可协议
+│   └── psversion.txt      # 版本信息文件
+├── LICENSE                # 项目许可证文件
+├── README.md              # 项目说明文档
+├── build.ps1              # Windows平台构建脚本
+└── build_linux.sh         # Linux平台构建脚本
 ```
+
+### 目录详细说明
+
+#### C2/ - 命令与控制服务器端
+- **Linux/** - Linux版本C2服务器
+  - **cmd/** - 命令行入口程序，包含主程序逻辑
+  - **internal/** - 内部实现模块，包含系统信息收集、漏洞检测等核心功能
+  - **pkg/** - 公共包，包含扫描器、工具类等可复用组件
+  - **tools/** - 集成第三方工具，如Lynis（系统安全审计）、Trivy（容器安全扫描）
+- **Windows/** - Windows版本C2服务器
+  - **cmd/** - 命令行入口程序，支持多种扫描类型
+  - **internal/** - 内部实现模块，包含Windows系统审计、漏洞检测
+  - **pkg/** - 公共包，包含审计管理器、扫描器等
+  - **tools/** - 集成第三方工具，如Goss（基础设施测试）
+
+#### Client/ - 渗透测试客户端
+- **internal/** - 核心功能模块
+  - **cli/** - 命令行界面和命令注册系统，支持命令分组显示，包含winlog等命令实现
+  - **csrf/** - CSRF漏洞检测模块，支持POST请求检测
+  - **database/** - 数据库密码破解工具，支持多种数据库类型
+  - **dcom/** - DCOM远程执行模块（测试阶段）
+  - **dirscan/** - 网站目录扫描模块，支持自定义字典
+  - **ftp/** - FTP密码破解模块，支持匿名登录检测
+  - **kerberos/** - Kerberos协议相关功能模块
+  - **ldap/** - LDAP枚举模块（测试阶段）
+  - **network/** - 网络扫描和主机发现，支持TCP/UDP扫描
+  - **nmap/** - Nmap集成功能，支持全端口扫描和服务识别
+  - **plugin/** - 插件系统框架，支持功能扩展
+  - **powershell/** - PowerShell远程执行模块，支持WinRM服务利用
+  - **process/** - 进程与服务信息收集工具
+  - **rdp/** - RDP远程桌面模块，支持会话管理和进程查看
+  - **samcrack/** - SAM密码破解模块
+  - **security/** - 安全相关功能模块
+  - **smb/** - SMB协议操作模块，支持版本检测和共享枚举
+  - **ssh/** - SSH密码爆破模块，Hydra风格实现
+  - **userinfo/** - 本地用户和组分析工具
+  - **utils/** - 工具函数和辅助方法
+  - **waf/** - WAF检测工具，支持主流WAF识别
+  - **weakpass/** - 弱口令检测框架
+  - **webshell/** - WebShell生成工具
+  - **wmi/** - WMI远程管理模块，支持远程命令执行
+  - **xss/** - XSS漏洞检测模块，支持多种XSS类型检测
+  - **winlog功能** - Windows日志查看工具，支持本地和远程日志查询，包含：
+    - 系统日志查看（System）
+    - 安全日志查看（Security）
+    - 应用程序日志查看（Application）
+    - 安装日志查看（Setup）
+    - 转发事件日志查看（ForwardedEvents）
+    - 按事件ID筛选
+    - 按时间范围筛选
+    - 按数量限制筛选
+    - 支持域账号认证
+    - 自动错误恢复和备用查询
+- **dirmap/** - 目录扫描字典文件
+  - **dicc.txt** - 常用目录扫描字典
+  - **medium.txt** - 中等规模目录字典
+
+#### PSTools/ - 微软PSTools套件
+- 包含完整的Windows系统测试工具集，用于系统管理、进程控制、服务管理等
+- 支持32位和64位系统，提供丰富的系统管理功能
 
 ### 技术特性
 
@@ -333,7 +480,17 @@ GYscan/
 
 ## 📝 更新日志
 
-### v2.5.1 (最新版本)
+### v2.5.2 (最新版本)
+
+- **新功能**：本地远程Windows日志工具
+
+- **版本更新**: 项目版本迭代至v2.5.2
+- **功能优化**: 修复winlog命令帮助手册参数显示问题，添加详细参数说明和使用示例
+- **功能优化**: 改进日志条目显示格式，增加消息显示长度限制从50字符到100字符
+- **Bug修复**: 修复日志查询默认分页问题，确认程序默认不分页显示
+- **代码质量**: 提升代码稳定性和可读性
+
+### v2.5.1
 - **新功能**: 新增WAF检测模块，支持检测多种WAF类型
 - **版本更新**: 项目版本迭代至v2.5.1
 - **功能优化**: 优化WAF检测模块代码，提升字符串比较效率，使用strings.EqualFold代替strings.ToLower进行大小写不敏感比较

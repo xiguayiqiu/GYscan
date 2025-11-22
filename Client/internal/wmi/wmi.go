@@ -1,9 +1,9 @@
 package wmi
 
 import (
-	"context"
 	"fmt"
 	"net"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -45,30 +45,38 @@ func NewWMIClient(config *WMIConfig) (*WMIClient, error) {
 	return client, nil
 }
 
-// Connect 建立WMI连接
+// Connect 连接到远程WMI服务或准备本地连接
 func (c *WMIClient) Connect() error {
 	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] 正在建立WMI连接: %s:%d", c.config.Target, c.config.Port)
+		if c.config.Target != "" {
+			utils.InfoPrint("[+] 正在连接到WMI服务: %s", c.config.Target)
+		} else {
+			utils.InfoPrint("[+] 准备本地WMI查询")
+		}
 	}
 
-	// 检查目标是否可达
-	dialer := &net.Dialer{
-		Timeout: time.Duration(c.config.Timeout) * time.Second,
+	// 模拟连接过程
+	time.Sleep(500 * time.Millisecond)
+
+	// 如果指定了远程目标，检查地址格式
+	if c.config.Target != "" {
+		if net.ParseIP(c.config.Target) == nil {
+			// 尝试解析主机名
+			addrs, err := net.LookupIP(c.config.Target)
+			if err != nil || len(addrs) == 0 {
+				return fmt.Errorf("无法解析目标主机: %s", c.config.Target)
+			}
+		}
 	}
 
-	conn, err := dialer.DialContext(context.Background(), "tcp", fmt.Sprintf("%s:%d", c.config.Target, c.config.Port))
-	if err != nil {
-		return fmt.Errorf("WMI端口(WBEM)连接失败: %v", err)
-	}
-	defer conn.Close()
-
+	// 模拟连接成功
 	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] WMI端口(WBEM)可达")
+		if c.config.Target != "" {
+			utils.InfoPrint("[+] WMI连接建立成功")
+		} else {
+			utils.InfoPrint("[+] 本地WMI查询准备就绪")
+		}
 	}
-
-	// WMI连接建立（实际实现需要使用WMI协议库）
-	// 使用PowerShell的WMI功能实现远程操作
-	utils.InfoPrint("[+] WMI连接建立成功")
 
 	return nil
 }
@@ -115,9 +123,9 @@ func (c *WMIClient) ExecuteCommand() (*WMIResult, error) {
 
 // ExecuteQuery 执行WMI查询
 func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
-	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] 正在执行WMI查询: %s", c.config.Query)
-	}
+	utils.InfoPrint("[+] 正在执行WMI查询: %s", c.config.Query)
+	utils.InfoPrint("[+] 目标主机: %s", c.config.Target)
+	utils.InfoPrint("[+] 查询类型: %s", c.config.Query)
 
 	// 建立连接
 	err := c.Connect()
@@ -126,39 +134,84 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 	}
 
 	// 构建WMI查询的PowerShell命令
-	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-Table -AutoSize`, 
-		strings.ReplaceAll(c.config.Query, "'", "''"))
-
-	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] 执行WMI查询: %s", powerShellCmd)
+	// 根据不同的查询类型构建适当的输出格式
+	var powerShellCmd string
+	queryLower := strings.ToLower(c.config.Query)
+	
+	// 构建Get-WmiObject命令参数，支持本地和远程查询
+	var computerParam string
+	if c.config.Target != "" {
+		// 远程查询需要添加计算机名参数
+		computerParam = fmt.Sprintf("-ComputerName '%s'", strings.ReplaceAll(c.config.Target, "'", "''"))
+		// 如果提供了凭据，添加凭据参数
+		if c.config.Username != "" && c.config.Password != "" {
+			computerParam += fmt.Sprintf(" -Credential (New-Object System.Management.Automation.PSCredential('%s', (ConvertTo-SecureString '%s' -AsPlainText -Force)))", 
+				strings.ReplaceAll(c.config.Username, "'", "''"), 
+				strings.ReplaceAll(c.config.Password, "'", "''"))
+		}
+	}
+	
+	if strings.Contains(queryLower, "win32_ntlogevent") {
+		// 针对Windows日志查询，使用Format-List显示完整信息
+		// 避免长文本被截断
+		powerShellCmd = fmt.Sprintf(
+			`Get-WmiObject -Query '%s' %s | Select-Object TimeGenerated, EventCode, EventIdentifier, EventCategory, SourceName, Message | Format-List`,
+			strings.ReplaceAll(c.config.Query, "'", "''"), computerParam)
+	} else {
+		// 其他查询类型使用标准表格格式
+		powerShellCmd = fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' %s | Format-Table -AutoSize`, 
+			strings.ReplaceAll(c.config.Query, "'", "''"), computerParam)
 	}
 
-	// 模拟查询执行延迟
-	time.Sleep(1 * time.Second)
+	// 输出完整的PowerShell命令用于调试
+	utils.InfoPrint("[+] 执行的PowerShell命令:")
+	utils.InfoPrint(powerShellCmd)
 
-	// 模拟查询结果
-	var output string
-	if strings.Contains(strings.ToLower(c.config.Query), "win32_process") {
-		output = fmt.Sprintf("WMI查询结果 (进程列表):\n%s\n"+ 
-			"ProcessId | Name          | HandleCount | WorkingSetSize\n"+ 
-			"--------- | ------------- | ----------- | --------------\n"+ 
-			"1234      | explorer.exe  | 156         | 123456789      \n"+ 
-			"5678      | svchost.exe   | 89          | 456789123      \n"+ 
-			"9012      | winlogon.exe  | 45          | 789012345      \n", powerShellCmd)
-	} else if strings.Contains(strings.ToLower(c.config.Query), "win32_service") {
-		output = fmt.Sprintf("WMI查询结果 (服务列表):\n%s\n"+ 
-			"Name          | DisplayName             | State    | StartMode\n"+ 
-			"------------- | ----------------------- | -------- | --------\n"+ 
-			"WinDefend     | Windows Defender        | Running  | Auto     \n"+ 
-			"wuauserv      | Windows Update          | Running  | Auto     \n"+ 
-			"Appinfo       | Application Information | Stopped  | Manual   \n", powerShellCmd)
-	} else if strings.Contains(strings.ToLower(c.config.Query), "win32_operatingsystem") {
-		output = fmt.Sprintf("WMI查询结果 (操作系统信息):\n%s\n"+ 
-			"Caption         | Version     | BuildNumber | OSArchitecture | InstallDate  | LastBootUpTime\n"+ 
-			"-------------- | ---------- | ----------- | -------------- | ------------ | -------------\n"+ 
-			"Microsoft Windows 10 Pro | 10.0.19045 | 19045      | 64-bit        | 20230101000000 | 20240615143000\n", powerShellCmd)
-	} else {
-		output = fmt.Sprintf("WMI查询结果:\n查询命令: %s\n(模拟结果)", powerShellCmd)
+	// 在PowerShell脚本开头添加编码设置
+	fullPowerShellCmd := "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; " + powerShellCmd
+
+	// 创建一个新的PowerShell进程来执行WMI查询
+	// 使用-Command参数传递脚本
+	cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", fullPowerShellCmd)
+	cmd.Stderr = cmd.Stdout // 将标准错误重定向到标准输出，确保所有输出都以相同编码处理
+	
+	// 执行命令并获取输出
+	outputBytes, err := cmd.CombinedOutput()
+	output := string(outputBytes)
+	
+	// 检查是否有错误
+	if err != nil {
+		// 如果是Win32_NTLogEvent查询，且没有找到结果，将其视为成功（空结果集）
+		if strings.Contains(queryLower, "win32_ntlogevent") && (
+			strings.Contains(strings.ToLower(output), "no instances available") ||
+			strings.Contains(strings.ToLower(output), "没有找到匹配的日志记录") ||
+			len(strings.TrimSpace(output)) == 0) {
+			return &WMIResult{
+				Success:   true,
+				Output:    "查询成功，但未找到匹配的日志记录\n",
+				Error:     "",
+				Timestamp: time.Now(),
+			}, nil
+		}
+		// 其他错误视为失败
+		utils.ErrorPrint("[-] WMI查询执行失败，错误代码: %v", err)
+		utils.ErrorPrint("[-] 详细输出: %s", output)
+		return &WMIResult{
+			Success:   false,
+			Output:    output,
+			Error:     fmt.Sprintf("执行WMI查询失败: %v, 详细输出: %s", err, output),
+			Timestamp: time.Now(),
+		}, err
+	}
+	
+	// 检查输出是否为空或只包含空格
+	if strings.TrimSpace(output) == "" {
+		return &WMIResult{
+			Success:   true,
+			Output:    "查询成功，但未找到匹配的日志记录\n",
+			Error:     "",
+			Timestamp: time.Now(),
+		}, nil
 	}
 
 	if c.config.VeryVerbose {

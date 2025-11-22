@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.1"
+	Version = "v2.5.2"
 )
 
 // rootCmd 表示基础命令
@@ -162,7 +162,6 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(databaseCmd)        // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)         // 网站目录扫描工具
 	cmd.AddCommand(ftpCmd)             // FTP密码破解
-	cmd.AddCommand(passhashCmd)        // 凭证传递攻击模块
 	cmd.AddCommand(powershellCmd)      // PowerShell远程执行工具 [WinRM服务利用]
 	cmd.AddCommand(processCmd)         // 进程与服务信息收集工具
 	cmd.AddCommand(rdpCmd)             // RDP远程桌面工具
@@ -173,6 +172,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(userinfoCmd)        // 本地用户和组分析
 	cmd.AddCommand(webshellCmd)        // WebShell生成工具
 	cmd.AddCommand(wmiCmd)             // WMI远程管理工具
+	cmd.AddCommand(winlogCmd)          // 远程Windows日志查看工具
 	cmd.AddCommand(xss.XssCmd)         // XSS漏洞检测工具
 	cmd.AddCommand(wafCmd)             // WAF识别工具
 
