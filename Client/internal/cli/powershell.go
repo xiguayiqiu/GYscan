@@ -306,7 +306,7 @@ func init() {
 	powershellCmd.PersistentFlags().Int("timeout", 10, "连接超时时间(秒)")
 	powershellCmd.PersistentFlags().Bool("verbose", false, "详细输出模式")
 	powershellCmd.PersistentFlags().Bool("https", false, "使用HTTPS连接")
-	powershellCmd.PersistentFlags().BoolP("very-verbose", "V", false, "更详细的输出模式")
+	powershellCmd.PersistentFlags().BoolP("very-verbose", "", false, "更详细的输出模式")
 
 	// 子命令参数
 	powershellExecCmd.Flags().StringP("command", "c", "", "要执行的PowerShell命令")

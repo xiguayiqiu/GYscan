@@ -155,7 +155,7 @@ func init() {
 	sshCmd.Flags().IntP("attempt-delay", "d", 0, "尝试间隔(毫秒)，避免触发服务器安全机制")
 	sshCmd.Flags().IntP("attempt-delay-seconds", "D", 0, "尝试间隔(秒)，避免触发服务器安全机制（优先级高于-d）")
 	sshCmd.Flags().Bool("verbose", false, "详细输出模式")
-	sshCmd.Flags().BoolP("very-verbose", "V", false, "更详细的输出模式")
+	sshCmd.Flags().BoolP("very-verbose", "", false, "更详细的输出模式")
 	sshCmd.Flags().BoolP("stop-on-first", "f", false, "找到第一个匹配后停止")
 	sshCmd.Flags().StringP("extra-checks", "e", "", "额外检查 (n:空密码, s:用户名作为密码)")
 	sshCmd.Flags().Int("timeout", 30, "连接超时时间(秒)")

@@ -75,8 +75,13 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 	results := make([]CrackResult, 0)
 	resultMutex := &sync.Mutex{}
 	
+	// 使用WaitGroup确保结果收集完成
+	collectorWg := &sync.WaitGroup{}
+	collectorWg.Add(1)
+	
 	// 启动结果收集器
 	go func() {
+		defer collectorWg.Done()
 		for result := range w.results {
 			resultMutex.Lock()
 			results = append(results, result)
@@ -120,6 +125,9 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 	// 等待所有工作完成
 	w.wg.Wait()
 	close(w.results)
+	
+	// 等待结果收集器完成
+	collectorWg.Wait()
 	
 	return results
 }

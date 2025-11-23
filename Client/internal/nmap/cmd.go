@@ -124,7 +124,7 @@ func init() {
 	
 	// 服务识别和系统识别标志（标准nmap风格简化命令）
 	ScanCmd.Flags().BoolVarP(&osDetection, "os-detection", "O", false, "启用系统识别 (等同于 -O)")
-	ScanCmd.Flags().BoolVarP(&serviceDetection, "service-detection", "V", true, "启用服务识别 (等同于 -sV)")
+	ScanCmd.Flags().BoolVarP(&serviceDetection, "service-detection", "s", true, "启用服务识别 (等同于 -sV)")
 	ScanCmd.Flags().BoolVarP(&ttlDetection, "ttl-detection", "D", false, "启用TTL检测，估算目标距离")
 	
 	ScanCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")

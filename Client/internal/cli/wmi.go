@@ -393,7 +393,7 @@ func init() {
 	wmiCmd.PersistentFlags().String("domain", "", "域名")
 	wmiCmd.PersistentFlags().Int("timeout", 10, "连接超时时间(秒)")
 	wmiCmd.PersistentFlags().Bool("verbose", false, "详细输出模式")
-	wmiCmd.PersistentFlags().BoolP("very-verbose", "V", false, "更详细的输出模式")
+	wmiCmd.PersistentFlags().BoolP("very-verbose", "", false, "更详细的输出模式")
 
 	// 子命令参数
 	wmiExecCmd.Flags().StringP("command", "c", "", "要执行的命令")

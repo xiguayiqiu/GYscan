@@ -66,7 +66,7 @@ func init() {
 	Cmd.Flags().StringP("headers", "H", "", "自定义HTTP头 (key:value格式，多个头用&分隔)")
 	Cmd.Flags().IntP("timeout", "T", 10, "请求超时时间(秒)")
 	Cmd.Flags().IntP("threads", "j", 5, "并发线程数")
-	Cmd.Flags().BoolP("verbose", "V", false, "显示详细信息")
+	Cmd.Flags().Bool("verbose", false, "显示详细信息")
 	Cmd.Flags().BoolP("test", "", false, "启用测试模式")
 	Cmd.Flags().StringP("proxy", "", "", "代理服务器")
 	Cmd.Flags().StringP("cookies", "", "", "Cookie信息")
