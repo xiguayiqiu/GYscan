@@ -102,7 +102,7 @@ func main() {
 		// 显示完整的帮助信息
 		fmt.Println("Linux漏洞扫描工具")
 		fmt.Println("==================")
-		fmt.Printf("版本: v2.5.2\n\n")
+		fmt.Printf("版本: v2.5.2.1\n\n")
 		fmt.Println("主命令参数:")
 		flag.Usage()
 		fmt.Println("子命令:")
@@ -137,7 +137,7 @@ func main() {
 
 	// 检查版本参数
 	if len(os.Args) > 1 && (os.Args[1] == "-version" || os.Args[1] == "--version" || os.Args[1] == "-v" || os.Args[1] == "--v") {
-		fmt.Println("GYscan Linux C2 Tool v2.5.2")
+		fmt.Println("GYscan Linux C2 Tool v2.5.2.1")
 		fmt.Println("Linux权限提升攻击工具")
 		os.Exit(0)
 	}
@@ -175,7 +175,7 @@ func main() {
 
 	// 检查版本标志
 	if *versionFlag {
-		fmt.Println("GYscan Linux C2 Tool v2.5.2")
+		fmt.Println("GYscan Linux C2 Tool v2.5.2.1")
 		fmt.Println("Linux权限提升攻击工具")
 		os.Exit(0)
 	}
@@ -187,7 +187,7 @@ func main() {
 		// 显示完整的帮助信息
 		fmt.Println("Linux漏洞扫描工具")
 		fmt.Println("==================")
-		fmt.Printf("版本: v2.5.2\n\n")
+		fmt.Printf("版本: v2.5.2.1\n\n")
 		fmt.Println("主命令参数:")
 		flag.Usage()
 		fmt.Println("\n子命令:")

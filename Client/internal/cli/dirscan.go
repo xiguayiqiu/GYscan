@@ -62,42 +62,34 @@ var dirscanCmd = &cobra.Command{
 		}
 
 		// 处理字典选择
-	var wordlistPath string
-	if wordlist == "" {
-		// 显示内置字典选择菜单
-		utils.InfoPrint("请选择内置字典:")
-		utils.InfoPrint("1. 大型字典 (dirmap/dicc.txt) - 9756个条目")
-		utils.InfoPrint("2. 中型字典 (dirmap/medium.txt) - 2762个条目")
-		utils.InfoPrint("输入选择 (1或2): ")
-		
-		var choice string
-		_, err := fmt.Scanln(&choice)
-		if err != nil {
-			// 处理输入错误，使用默认值
-			utils.WarningPrint("输入错误，使用默认中型字典")
-			choice = "2"
-		}
-		
-		// 清理输入，移除换行符和空格
-		choice = strings.TrimSpace(choice)
-		
-		if choice != "1" && choice != "2" {
-			utils.WarningPrint("无效选择，使用默认中型字典")
-			choice = "2"
-		}
-		
-		wordlist = choice
-		
-		// 验证内置字典文件存在
-		wordlistPath = dirscan.BuiltinWordlists[choice]
-		if _, err := os.Stat(wordlistPath); os.IsNotExist(err) {
-			utils.ErrorPrint("内置字典文件不存在: %s", wordlistPath)
-			utils.InfoPrint("请确保dirmap目录下的字典文件存在")
-			return
-		}
-		
-		utils.InfoPrint("使用内置字典: %s", wordlistPath)
-	} else {
+if wordlist == "" {
+	// 显示内置字典选择菜单
+	utils.InfoPrint("请选择内置字典:")
+	utils.InfoPrint("1. 大型字典 (dicc.txt) - 9756个条目")
+	utils.InfoPrint("2. 中型字典 (medium.txt) - 2762个条目")
+	utils.InfoPrint("输入选择 (1或2): ")
+	
+	var choice string
+	_, err := fmt.Scanln(&choice)
+	if err != nil {
+		// 处理输入错误，使用默认值
+		utils.WarningPrint("输入错误，使用默认中型字典")
+		choice = "2"
+	}
+	
+	// 清理输入，移除换行符和空格
+	choice = strings.TrimSpace(choice)
+	
+	if choice != "1" && choice != "2" {
+		utils.WarningPrint("无效选择，使用默认中型字典")
+		choice = "2"
+	}
+	
+	wordlist = choice
+	
+	// 直接使用嵌入资源，不检查文件系统
+	utils.InfoPrint("使用内置字典: %s", choice)
+} else {
 		// 验证外部字典文件存在
 		if _, err := os.Stat(wordlist); os.IsNotExist(err) {
 			utils.ErrorPrint("字典文件不存在: %s", wordlist)
@@ -116,15 +108,9 @@ var dirscanCmd = &cobra.Command{
 		statusCodeList := parseStatusCodes(statusCodes)
 
 		// 创建扫描配置
-	// 如果使用内置字典，使用实际的字典路径而不是选择数字
-	configWordlist := wordlist
-	if wordlistPath != "" {
-		configWordlist = wordlistPath
-	}
-	
 	config := &dirscan.ScanConfig{
 		URL:              targetURL,
-		Wordlist:         configWordlist,
+		Wordlist:         wordlist,
 		Threads:          threads,
 		Timeout:          time.Duration(timeout) * time.Second,
 		UserAgent:        userAgent,

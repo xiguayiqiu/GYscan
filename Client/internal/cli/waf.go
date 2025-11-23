@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -47,10 +46,8 @@ func executeWAFDetection() {
 	// 加载规则文件
 	rulesPath := wafRulesPath
 	if rulesPath == "" {
-		// 使用默认路径
-	exePath, _ := os.Executable()
-	exeDir := filepath.Dir(exePath)
-	rulesPath = filepath.Join(exeDir, "internal", "waf", "waf_rules.json")
+		// 使用嵌入规则文件，无需指定路径
+		rulesPath = ""
 	}
 
 	fmt.Println("\033[34m[INFO] 正在加载WAF规则...\033[0m")

@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"GYscan/internal/utils"
 )
 
 // WAFDetectorImpl 实现WAFDetector接口
@@ -32,13 +33,26 @@ func NewWAFDetector() *WAFDetectorImpl {
 
 // LoadRules 加载WAF规则配置文件
 func (d *WAFDetectorImpl) LoadRules(rulesPath string) error {
-	if rulesPath == "" {
-		rulesPath = "internal/waf/waf_rules.json"
-	}
+	var file []byte
+	var err error
 	
-	file, err := os.ReadFile(rulesPath)
-	if err != nil {
-		return fmt.Errorf("读取规则文件失败: %v", err)
+	if rulesPath == "" {
+		// 尝试使用嵌入的规则文件
+		file, err = utils.LoadEmbeddedWAFRules()
+		if err != nil {
+			// 如果嵌入文件加载失败，尝试使用默认路径
+			rulesPath = "internal/waf/waf_rules.json"
+			file, err = os.ReadFile(rulesPath)
+			if err != nil {
+				return fmt.Errorf("读取规则文件失败: %v", err)
+			}
+		}
+	} else {
+		// 使用用户指定的路径
+		file, err = os.ReadFile(rulesPath)
+		if err != nil {
+			return fmt.Errorf("读取规则文件失败: %v", err)
+		}
 	}
 	
 	var config WAFConfig

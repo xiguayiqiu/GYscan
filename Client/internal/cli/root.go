@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.2"
+	Version = "v2.5.2.1"
 )
 
 // rootCmd 表示基础命令

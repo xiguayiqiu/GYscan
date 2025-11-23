@@ -1,29 +1,29 @@
 Write-Host "=================================================="
-Write-Host "           GYscan ×Ô¶¯¹¹½¨½Å±¾           "
-Write-Host "                 °æ±¾ 1.0                        "
+Write-Host "           GYscan è‡ªåŠ¨æ„å»ºè„šæœ¬           "
+Write-Host "                 ç‰ˆæœ¬ 1.0                        "
 Write-Host "=================================================="
 Write-Host ""
 
-# ¼ì²âÏµÍ³Æ½Ì¨
-Write-Host "[ĞÅÏ¢] ÕıÔÚ¼ì²âÏµÍ³Æ½Ì¨..."
+# æ£€æµ‹ç³»ç»Ÿå¹³å°
+Write-Host "[ä¿¡æ¯] æ­£åœ¨æ£€æµ‹ç³»ç»Ÿå¹³å°..."
 $OS = "Windows"
 $Distro = "windows"
-Write-Host "[³É¹¦] ¼ì²âµ½ÏµÍ³: $OS ($Distro)"
+Write-Host "[æˆåŠŸ] æ£€æµ‹åˆ°ç³»ç»Ÿ: $OS ($Distro)"
 Write-Host ""
 
-# ¼ì²âGo»·¾³
-Write-Host "[ĞÅÏ¢] ÕıÔÚ¼ì²âGo»·¾³..."
+# æ£€æµ‹Goç¯å¢ƒ
+Write-Host "[ä¿¡æ¯] æ­£åœ¨æ£€æµ‹Goç¯å¢ƒ..."
 $goCommand = Get-Command "go" -ErrorAction SilentlyContinue
 if (-not $goCommand) {
-    Write-Host "[´íÎó] GoÎ´°²×°£¬Çë°²×°Go 1.24.5»ò¸ü¸ß°æ±¾"
+    Write-Host "[é”™è¯¯] Goæœªå®‰è£…ï¼Œè¯·å®‰è£…Go 1.21.0æˆ–æ›´é«˜ç‰ˆæœ¬"
     exit 1
 }
 
 $goVersionOutput = go version
 $goVersion = ($goVersionOutput -split ' ')[2].Substring(2)
-Write-Host "[ĞÅÏ¢] ¼ì²âµ½Go°æ±¾: $goVersion"
+Write-Host "[ä¿¡æ¯] æ£€æµ‹åˆ°Goç‰ˆæœ¬: $goVersion"
 
-# ¼ì²âGo°æ±¾ÊÇ·ñ·ûºÏÒªÇó
+# æ£€æŸ¥Goç‰ˆæœ¬æ˜¯å¦ç¬¦åˆè¦æ±‚
 $requiredVersion = "1.21.0"
 $versionParts = $goVersion -split '\.'
 $reqVersionParts = $requiredVersion -split '\.'
@@ -43,29 +43,29 @@ if ([int]$versionParts[0] -gt [int]$reqVersionParts[0]) {
 }
 
 if (-not $isVersionOk) {
-    Write-Host "[´íÎó] Go°æ±¾¹ıµÍ£¬ĞèÒª $requiredVersion »ò¸ü¸ß°æ±¾"
+    Write-Host "[é”™è¯¯] Goç‰ˆæœ¬è¿‡ä½ï¼Œéœ€è¦ $requiredVersion æˆ–æ›´é«˜ç‰ˆæœ¬"
     exit 1
 }
 
-Write-Host "[³É¹¦] Go°æ±¾·ûºÏÒªÇó ($goVersion >= $requiredVersion)"
+Write-Host "[æˆåŠŸ] Goç‰ˆæœ¬ç¬¦åˆè¦æ±‚ ($goVersion >= $requiredVersion)"
 Write-Host ""
 
-# ÉèÖÃGo´úÀí
-Write-Host "[ĞÅÏ¢] ÕıÔÚÉèÖÃGo´úÀí..."
+# è®¾ç½®Goä»£ç†
+Write-Host "[ä¿¡æ¯] æ­£åœ¨è®¾ç½®Goä»£ç†..."
 go env -w GOPROXY=https://goproxy.cn,direct
 go env -w GOSUMDB=sum.golang.google.cn
 $proxyValue = go env GOPROXY
-Write-Host "[³É¹¦] Go´úÀíÒÑÉèÖÃ: $proxyValue"
+Write-Host "[æˆåŠŸ] Goä»£ç†è®¾ç½®å®Œæˆ: $proxyValue"
 Write-Host ""
 
-# ÓÃ»§Ñ¡Ôñ¹¹½¨Ä¿±ê
-Write-Host "Ñ¡Ôñ¹¹½¨Ä¿±ê:"
-Write-Host "1) Client (¿Í»§¶Ë³ÌĞò)"
-Write-Host "2) C2 (¿ØÖÆ·şÎñÆ÷)"
+# ç”¨æˆ·é€‰æ‹©æ„å»ºç›®æ ‡
+Write-Host "é€‰æ‹©æ„å»ºç›®æ ‡:"
+Write-Host "1) Client (å®¢æˆ·ç«¯ç¨‹åº)"
+Write-Host "2) C2 (æ§åˆ¶æœåŠ¡å™¨)"
 Write-Host ""
 
 do {
-    $choice = Read-Host "ÇëÊäÈëÑ¡Ôñ (1/2)"
+    $choice = Read-Host "è¯·è¾“å…¥é€‰æ‹© (1/2)"
     switch ($choice) {
         "1" { 
             $buildTarget = "Client"
@@ -76,23 +76,23 @@ do {
             break
         }
         default {
-            Write-Host "ÎŞĞ§Ñ¡Ôñ£¬ÇëÊäÈë 1 »ò 2"
+            Write-Host "æ— æ•ˆé€‰æ‹©ï¼Œè¯·è¾“å…¥ 1 æˆ– 2"
         }
     }
 } while ($choice -notin @("1", "2"))
 
-Write-Host "[³É¹¦] ÒÑÑ¡Ôñ¹¹½¨Ä¿±ê: $buildTarget"
+Write-Host "[æˆåŠŸ] å·²é€‰æ‹©æ„å»ºç›®æ ‡: $buildTarget"
 Write-Host ""
 
-# Ñ¡Ôñ¹¹½¨Æ½Ì¨
+# é€‰æ‹©æ„å»ºå¹³å°
 if ($buildTarget -eq "Client") {
-    Write-Host "Ñ¡ÔñClient¹¹½¨Æ½Ì¨:"
+    Write-Host "é€‰æ‹©Clientæ„å»ºå¹³å°:"
     Write-Host "1) Linux"
     Write-Host "2) Windows"
     Write-Host ""
     
     do {
-        $choice = Read-Host "ÇëÊäÈëÑ¡Ôñ (1/2)"
+        $choice = Read-Host "è¯·è¾“å…¥é€‰æ‹© (1/2)"
         switch ($choice) {
             "1" { 
                 $buildPlatform = "linux"
@@ -107,18 +107,18 @@ if ($buildTarget -eq "Client") {
                 break
             }
             default {
-                Write-Host "ÎŞĞ§Ñ¡Ôñ£¬ÇëÊäÈë 1 »ò 2"
+                Write-Host "æ— æ•ˆé€‰æ‹©ï¼Œè¯·è¾“å…¥ 1 æˆ– 2"
             }
         }
     } while ($choice -notin @("1", "2"))
 } else {
-    Write-Host "Ñ¡ÔñC2¹¹½¨Æ½Ì¨:"
+    Write-Host "é€‰æ‹©C2æ„å»ºå¹³å°:"
     Write-Host "1) Linux"
     Write-Host "2) Windows"
     Write-Host ""
     
     do {
-        $choice = Read-Host "ÇëÊäÈëÑ¡Ôñ (1/2)"
+        $choice = Read-Host "è¯·è¾“å…¥é€‰æ‹© (1/2)"
         switch ($choice) {
             "1" { 
                 $buildPlatform = "linux"
@@ -135,47 +135,48 @@ if ($buildTarget -eq "Client") {
                 break
             }
             default {
-                Write-Host "ÎŞĞ§Ñ¡Ôñ£¬ÇëÊäÈë 1 »ò 2"
+                Write-Host "æ— æ•ˆé€‰æ‹©ï¼Œè¯·è¾“å…¥ 1 æˆ– 2"
             }
         }
     } while ($choice -notin @("1", "2"))
 }
 
-Write-Host "[³É¹¦] ÒÑÑ¡Ôñ¹¹½¨Æ½Ì¨: $buildPlatform/$buildArch"
-Write-Host "[³É¹¦] Êä³öÎÄ¼şÃû: $outputName"
+Write-Host "[æˆåŠŸ] å·²é€‰æ‹©æ„å»ºå¹³å°: $buildPlatform/$buildArch"
+Write-Host "[æˆåŠŸ] è¾“å‡ºæ–‡ä»¶å: $outputName"
 Write-Host ""
 
-# È·ÈÏ¹¹½¨
-Write-Host "¹¹½¨ĞÅÏ¢:"
-Write-Host "Ä¿±ê: $buildTarget"
-Write-Host "Æ½Ì¨: $buildPlatform/$buildArch"
-Write-Host "Êä³ö: $outputName"
+# ç¡®è®¤æ„å»º
+Write-Host "æ„å»ºä¿¡æ¯:"
+Write-Host "ç›®æ ‡: $buildTarget"
+Write-Host "å¹³å°: $buildPlatform/$buildArch"
+Write-Host "è¾“å‡º: $outputName"
 Write-Host ""
 
-$confirm = Read-Host "È·ÈÏ¿ªÊ¼¹¹½¨? (y/N)"
+$confirm = Read-Host "ç¡®è®¤å¼€å§‹æ„å»º? (y/N)"
 if ($confirm -notmatch "^[Yy]$") {
-    Write-Host "[ĞÅÏ¢] ÓÃ»§È¡Ïû¹¹½¨"
+    Write-Host "[ä¿¡æ¯] ç”¨æˆ·å–æ¶ˆæ„å»º"
     exit 0
 }
 
 Write-Host ""
-Write-Host "[ĞÅÏ¢] ¿ªÊ¼¹¹½¨..."
+Write-Host "[ä¿¡æ¯] å¼€å§‹æ„å»º..."
 
-# Ö´ĞĞ¹¹½¨
+# æ‰§è¡Œæ„å»º
 $originalLocation = Get-Location
 
 try {
     if ($buildTarget -eq "Client") {
         Set-Location "Client"
-        Write-Host "[ĞÅÏ¢] ÕıÔÚ¹¹½¨Client³ÌĞò..."
+        Write-Host "[ä¿¡æ¯] æ­£åœ¨æ„å»ºClientç¨‹åº..."
         
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
         
+        # åµŒå…¥èµ„æºæ–‡ä»¶åˆ°å¯æ‰§è¡Œæ–‡ä»¶ä¸­
         go build -tags nowasm -ldflags="-s -w" -o "..\$outputName"
     } else {
         Set-Location $c2Dir
-        Write-Host "[ĞÅÏ¢] ÕıÔÚ¹¹½¨C2³ÌĞò..."
+        Write-Host "[ä¿¡æ¯] æ­£åœ¨æ„å»ºC2ç¨‹åº..."
         
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
@@ -184,17 +185,17 @@ try {
     }
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "[³É¹¦] ¹¹½¨³É¹¦!"
-        Write-Host "[³É¹¦] Êä³öÎÄ¼ş: $(Get-Location)\$outputName"
+        Write-Host "[æˆåŠŸ] æ„å»ºæˆåŠŸ!"
+        Write-Host "[æˆåŠŸ] è¾“å‡ºæ–‡ä»¶: $(Get-Location)\$outputName"
         
-        # ÏÔÊ¾ÎÄ¼şĞÅÏ¢
+        # æ˜¾ç¤ºæ–‡ä»¶ä¿¡æ¯
         if (Test-Path $outputName) {
             Write-Host ""
-            Write-Host "ÎÄ¼şĞÅÏ¢:"
+            Write-Host "æ–‡ä»¶ä¿¡æ¯:"
             Get-ChildItem $outputName | Format-Table Name, Length, LastWriteTime -AutoSize
         }
     } else {
-        Write-Host "[´íÎó] ¹¹½¨Ê§°Ü!"
+        Write-Host "[é”™è¯¯] æ„å»ºå¤±è´¥!"
         exit 1
     }
 } finally {
@@ -202,4 +203,4 @@ try {
 }
 
 Write-Host ""
-Write-Host "[³É¹¦] ¹¹½¨Íê³É!"
+Write-Host "[æˆåŠŸ] æ„å»ºå®Œæˆ!"

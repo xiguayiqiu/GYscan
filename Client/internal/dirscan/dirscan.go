@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"GYscan/internal/utils"
 )
 
 // ScanConfig 目录扫描配置
@@ -434,8 +435,8 @@ func getStatusCodeColor(statusCode int) *color.Color {
 
 // BuiltinWordlists 内置字典列表
 var BuiltinWordlists = map[string]string{
-	"1": "dirmap/dicc.txt",    // 大型字典 (9756个条目)
-	"2": "dirmap/medium.txt", // 中型字典 (2762个条目)
+	"1": "dicc.txt",    // 大型字典 (9756个条目)
+	"2": "medium.txt", // 中型字典 (2762个条目)
 }
 
 // DefaultWordlist 返回默认字典路径
@@ -445,6 +446,37 @@ func DefaultWordlist() string {
 
 // GetBuiltinWordlist 获取内置字典内容
 func GetBuiltinWordlist(choice string) ([]string, error) {
+	var filename string
+	switch choice {
+	case "1":
+		filename = "dicc.txt"
+	case "2":
+		filename = "medium.txt"
+	default:
+		return nil, fmt.Errorf("无效的内置字典选择: %s", choice)
+	}
+
+	// 首先尝试使用嵌入的字典文件
+	dictData, err := utils.LoadEmbeddedDirscanDict(filename)
+	if err == nil {
+		// 成功加载嵌入字典
+		lines := strings.Split(string(dictData), "\n")
+		var wordlist []string
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line != "" && !strings.HasPrefix(line, "#") {
+				wordlist = append(wordlist, line)
+			}
+		}
+		
+		if len(wordlist) == 0 {
+			return nil, fmt.Errorf("嵌入字典文件为空: %s", filename)
+		}
+		
+		return wordlist, nil
+	}
+
+	// 如果嵌入文件加载失败，尝试使用文件系统路径
 	wordlistPath, exists := BuiltinWordlists[choice]
 	if !exists {
 		return nil, fmt.Errorf("无效的内置字典选择: %s", choice)

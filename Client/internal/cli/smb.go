@@ -210,7 +210,7 @@ func init() {
 	smbCmd.PersistentFlags().String("domain", "", "域名")
 	smbCmd.PersistentFlags().Int("timeout", 10, "连接超时时间(秒)")
 	smbCmd.PersistentFlags().Bool("verbose", false, "详细输出模式")
-	smbCmd.PersistentFlags().BoolP("very-verbose", "V", false, "更详细的输出模式")
+	smbCmd.PersistentFlags().Bool("very-verbose", false, "更详细的输出模式")
 
 	// 执行命令参数
 	smbExecCmd.Flags().StringP("command", "c", "", "要执行的命令")
