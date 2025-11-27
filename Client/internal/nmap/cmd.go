@@ -23,7 +23,12 @@ var ScanCmd = &cobra.Command{
 
 简化命令 (nmap风格):
   -O: 启用系统识别 (等同于 --os-detection)
-  -V: 启用服务识别 (等同于 --service-detection)
+  -s: 启用服务识别 (等同于 --service-detection)
+
+默认行为:
+  默认仅显示端口状态信息 (nmap的六种状态)
+  使用-s参数显示服务信息
+  使用-O参数探测系统信息
 
 用法:
   1. 直接传递目标: GYscan scan 目标 [选项]
@@ -43,18 +48,22 @@ var ScanCmd = &cobra.Command{
 // init 初始化nmap命令
 func init() {
 	var (
-		target      string
-		ports       string
-		threads     int
-		timeout     int
-		timingTemplate int
-		scanType    string
-		osDetection bool
+		target           string
+		ports            string
+		threads          int
+		timeout          int
+		timingTemplate   int
+		synScan          bool
+		osDetection      bool
 		serviceDetection bool
-		ttlDetection bool
-		output      string
+		ttlDetection     bool
+		aggressiveScan   bool
+		fragmentedScan   bool
+		tcpScan          bool
+		udpScan          bool
+		hostDiscovery    bool
+		output           string
 	)
-
 	// 配置命令运行函数
 	ScanCmd.Run = func(cmd *cobra.Command, args []string) {
 		// 检查是否请求帮助
@@ -62,12 +71,12 @@ func init() {
 			cmd.Help()
 			return
 		}
-		
+
 		// 优先使用命令行参数中的目标，如果没有则使用--target标志
 		if len(args) > 0 {
 			target = args[0]
 		}
-		
+
 		if target == "" {
 			fmt.Println("请指定扫描目标 (直接传递目标参数或使用 --target 标志)")
 			fmt.Println("用法: GYscan scan 目标 [选项] 或 GYscan scan --target 目标 [选项]")
@@ -81,30 +90,57 @@ func init() {
 			return
 		}
 
+		// 根据nmap参数设置扫描类型
+		actualScanType := "connect" // 默认扫描类型
+		if tcpScan {
+			actualScanType = "connect"
+		} else if udpScan {
+			actualScanType = "udp"
+		} else if synScan {
+			actualScanType = "syn"
+		}
+
 		// 创建扫描配置
 		config := ScanConfig{
-			Target:          target,
-			Ports:           ports,
-			Threads:         threads,
-			Timeout:         time.Duration(timeout) * time.Second,
-			ScanType:        scanType,
-			OSDetection:     osDetection,
+			Target:           target,
+			Ports:            ports,
+			Threads:          threads,
+			Timeout:          time.Duration(timeout) * time.Second,
+			ScanType:         actualScanType,
+			OSDetection:      osDetection,
 			ServiceDetection: serviceDetection,
-			TimingTemplate:  timingTemplate,
-			TTLDetection:    ttlDetection,
+			TimingTemplate:   timingTemplate,
+			TTLDetection:     ttlDetection,
+			AggressiveScan:   aggressiveScan,
+			FragmentedScan:   fragmentedScan,
+			TCPScan:          tcpScan,
+			UDPScan:          udpScan,
+			HostDiscovery:    hostDiscovery,
+		}
+
+		// 如果启用了全面扫描模式 (-A)，自动启用相关功能
+		if aggressiveScan {
+			config.OSDetection = true
+			config.ServiceDetection = true
+			config.TTLDetection = true
+			// 设置更快的扫描速度以匹配nmap -A的行为
+			if config.TimingTemplate < 4 {
+				config.TimingTemplate = 4 // Aggressive模式
+			}
+			fmt.Printf("[GYscan-Nmap] 全面扫描模式已启用 (-A参数)\n")
 		}
 
 		// 执行扫描
 		fmt.Printf("[GYscan-Nmap] 开始扫描目标: %s\n", target)
 		startTime := time.Now()
-		
+
 		results := NmapScan(cmd.Context(), config)
-		
+
 		duration := time.Since(startTime)
 		fmt.Printf("[GYscan-Nmap] 扫描完成，耗时: %v\n", duration)
 
 		// 打印结果
-		PrintNmapResult(results)
+		PrintNmapResult(results, config)
 
 		// 保存结果
 		if output != "" {
@@ -114,21 +150,36 @@ func init() {
 		}
 	}
 
-	// 定义命令行标志
+	// 定义命令行标志（完全照搬nmap参数命名）
 	ScanCmd.Flags().StringVarP(&target, "target", "t", "", "扫描目标 (IP/CIDR/IP范围/域名)")
-	ScanCmd.Flags().StringVarP(&ports, "ports", "p", "", "扫描端口 (默认: 常用端口, 支持: 80,443, 1-1000, 22,80,443)")
+	ScanCmd.Flags().StringVarP(&ports, "ports", "p", "", "扫描端口 (默认: 1-1000, 支持: 80,443, 1-1000, 22,80,443, -p- 表示全端口扫描)")
 	ScanCmd.Flags().IntVarP(&threads, "threads", "n", 50, "并发线程数")
 	ScanCmd.Flags().IntVarP(&timeout, "timeout", "", 3, "超时时间(秒)")
 	ScanCmd.Flags().IntVarP(&timingTemplate, "timing", "T", 3, "扫描速度级别 (0-5, 完全模仿nmap -T参数)")
-	ScanCmd.Flags().StringVarP(&scanType, "scan-type", "S", "connect", "扫描类型 (connect/syn/udp)")
-	
-	// 服务识别和系统识别标志（标准nmap风格简化命令）
-	ScanCmd.Flags().BoolVarP(&osDetection, "os-detection", "O", false, "启用系统识别 (等同于 -O)")
-	ScanCmd.Flags().BoolVarP(&serviceDetection, "service-detection", "s", true, "启用服务识别 (等同于 -sV)")
-	ScanCmd.Flags().BoolVarP(&ttlDetection, "ttl-detection", "D", false, "启用TTL检测，估算目标距离")
-	
+
+	// 扫描类型参数（nmap标准参数）
+	ScanCmd.Flags().BoolVarP(&tcpScan, "sT", "", false, "TCP连接扫描")
+	ScanCmd.Flags().BoolVarP(&udpScan, "sU", "", false, "UDP扫描")
+	ScanCmd.Flags().BoolVarP(&synScan, "sS", "", false, "SYN扫描")
+
+	// 服务识别和系统识别标志（nmap标准参数）
+	ScanCmd.Flags().BoolVarP(&osDetection, "O", "", false, "启用系统识别")
+	ScanCmd.Flags().BoolVarP(&serviceDetection, "sV", "", false, "启用服务识别")
+
+	// 全面扫描模式 (nmap -A参数)
+	ScanCmd.Flags().BoolVarP(&aggressiveScan, "A", "", false, "全面扫描模式")
+
+	// 碎片化扫描模式 (nmap -f参数)
+	ScanCmd.Flags().BoolVarP(&fragmentedScan, "f", "", false, "碎片化扫描模式")
+
+	// 主机存活探测模式 (nmap -sn参数)
+	ScanCmd.Flags().BoolVarP(&hostDiscovery, "sn", "", false, "主机存活探测模式")
+
+	// 其他功能参数
+	ScanCmd.Flags().BoolVarP(&ttlDetection, "ttl", "", false, "启用TTL检测，估算目标距离")
+
 	ScanCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")
-	
+
 	// 添加-T参数的详细说明到帮助文档
 	ScanCmd.SetHelpTemplate(`{{.UsageString}}
 
@@ -140,11 +191,31 @@ func init() {
   4: 激进 (Aggressive) - 快速扫描，可能被检测到
   5: 疯狂 (Insane) - 极速扫描，容易被检测
 
-TTL检测说明 (-D):
-  启用TTL检测可以估算目标距离（网络跳数），帮助判断目标位置
-  本地网络: 1跳，私有网络: 2跳，公网: 3-15跳
+扫描类型参数说明:
+  --sT: TCP连接扫描 (nmap -sT)
+  --sU: UDP扫描
+  --sS: SYN扫描
+
+服务识别和系统识别:
+  --O: 启用系统识别
+  --sV: 启用服务识别
+
+全面扫描模式 (--A):
+  启用全面扫描模式，等同于同时使用以下功能:
+  - 启用系统识别 (--O)
+  - 启用服务识别 (--sV)
+  - 设置扫描速度为激进模式 (-T4)
+  这是nmap -A参数的完全实现
+
+碎片化扫描模式 (--f):
+  碎片化扫描模式 (等同于nmap -f参数，数据包分片发送以规避检测)
+
+主机存活探测模式 (--sn):
+  仅进行主机存活探测，跳过端口扫描
+  采用多协议组合探测（ICMP Ping + TCP SYN/ACK + UDP），提高准确性
+  适用于快速发现网络中的在线主机，效率远高于全端口扫描
 `)
-	
+
 	// 添加help子命令
 	ScanCmd.AddCommand(&cobra.Command{
 		Use:   "help",
@@ -154,8 +225,6 @@ TTL检测说明 (-D):
 		},
 	})
 }
-
-
 
 // NmapHelp 显示nmap帮助信息
 func NmapHelp() {
@@ -179,14 +248,23 @@ GYscan Nmap模块使用说明
 
 常用选项:
   -t, --target: 扫描目标 (IP/CIDR/IP范围/域名)
-  -p, --ports: 指定扫描端口
+  -p, --ports: 指定扫描端口 (默认: 1-1000, 支持: 80,443, 1-1000, 22,80,443, -p- 表示全端口扫描)
   -n, --threads: 并发线程数
   -T, --timing: 扫描速度级别 (0-5, 完全模仿nmap -T参数)
-  -S, --scan-type: 扫描类型 (connect/syn/udp)
-  -O, --os-detection: 启用系统识别 (nmap风格简化命令)
-  -V, --service-detection: 启用服务识别 (nmap风格简化命令)
-  -D, --ttl-detection: 启用TTL检测，估算目标距离
   -o, --output: 结果输出文件
+
+扫描类型参数:
+  --sT: TCP连接扫描 (等同于nmap -sT参数)
+  --sU: UDP扫描 (等同于nmap -sU参数)
+  --sS: SYN扫描 (等同于nmap -sS参数)
+
+功能参数:
+  --O: 启用系统识别 (等同于nmap -O参数)
+  --sV: 启用服务识别 (等同于nmap -sV参数)
+  --A: 全面扫描模式 (等同于nmap -A参数)
+  --f: 碎片化扫描模式 (等同于nmap -f参数，数据包分片发送以规避检测)
+  --ttl: 启用TTL检测，估算目标距离
+  --sn: 主机存活探测模式 (等同于nmap -sn参数，仅判断主机在线状态，跳过端口扫描)
 
 -T参数详细说明 (扫描速度级别):
   0: 偏执 (Paranoid) - 非常慢的扫描，每5分钟发送一个包，用于IDS规避

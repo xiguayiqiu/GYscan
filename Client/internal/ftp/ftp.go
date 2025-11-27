@@ -28,12 +28,8 @@ func CrackFTP(target string, usernames, passwords []string, threads, timeout int
 		return nil, fmt.Errorf("配置验证失败: %v", err)
 	}
 
-	fmt.Printf("开始FTP破解...\n")
-	fmt.Printf("目标: %s:%d\n", config.Host, config.Port)
-	fmt.Printf("用户数: %d, 密码数: %d\n", len(config.Username), len(config.Password))
-	fmt.Printf("线程数: %d, 超时: %d秒\n", config.Threads, config.Timeout)
-	fmt.Printf("总尝试次数: %d\n", len(config.Username)*len(config.Password))
-	fmt.Println()
+	// 开始破解
+	fmt.Println("开始破解...")
 
 	// 创建破解工作器
 	worker := NewCrackWorker(config)
@@ -88,12 +84,8 @@ func CrackFTPWithConfig(config *FTPConfig) ([]CrackResult, error) {
 		return nil, fmt.Errorf("配置验证失败: %v", err)
 	}
 
-	fmt.Printf("开始FTP破解...\n")
-	fmt.Printf("目标: %s:%d\n", config.Host, config.Port)
-	fmt.Printf("用户数: %d, 密码数: %d\n", len(config.Username), len(config.Password))
-	fmt.Printf("线程数: %d, 超时: %d秒\n", config.Threads, config.Timeout)
-	fmt.Printf("总尝试次数: %d\n", len(config.Username)*len(config.Password))
-	fmt.Println()
+	// 开始破解
+	fmt.Println("开始破解...")
 
 	// 创建破解工作器
 	worker := NewCrackWorker(config)
