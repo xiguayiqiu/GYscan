@@ -65,6 +65,7 @@ type ScanConfig struct {
 	TCPScan          bool // TCP扫描模式 (等同于nmap -sT参数)
 	UDPScan          bool // UDP扫描模式 (等同于nmap -sU参数)
 	HostDiscovery    bool // 主机存活探测模式 (等同于nmap -sn参数)
+	Pn               bool // 跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)
 }
 
 // applyTimingTemplate 应用nmap风格的扫描速度模板
@@ -153,7 +154,14 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 			defer func() { <-semaphore }()
 
 			// 检查主机存活
-			isAlive := hostDiscovery(ip, config.Timeout)
+			isAlive := false
+			if config.Pn {
+				// 使用-Pn参数，跳过主机发现，直接假设主机存活
+				isAlive = true
+			} else {
+				// 正常进行主机存活检查
+				isAlive = hostDiscovery(ip, config.Timeout)
+			}
 
 			result := NmapResult{
 				IP:     ip,
@@ -191,11 +199,6 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 			// OS识别
 			if config.OSDetection && len(portResults) > 0 {
 				result.OS = osDetection(ip, portResults)
-
-				// 增强的操作系统检测（仅在全面扫描模式下）
-				if config.AggressiveScan {
-					result.OSGuesses = aggressiveOSDetection(ip, portResults)
-				}
 			}
 
 			// MAC地址识别（仅在全面扫描模式下）

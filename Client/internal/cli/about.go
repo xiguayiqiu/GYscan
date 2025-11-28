@@ -10,8 +10,8 @@ import (
 // aboutCmd 表示关于命令
 var aboutCmd = &cobra.Command{
 	Use:   "about",
-	Short: "查看工具信息, 横向攻击常规步骤",
-	Long:  "查看工具的作者、版本、寓意等信息",
+	Short: "综合测试工具，着重内网测试",
+	Long:  "GYscan是一款专注于内网横向移动和边界安全测试的综合工具，基于Go语言开发，提供高效、可靠的内网安全评估解决方案。",
 	Run: func(cmd *cobra.Command, args []string) {
 		// 检查是否请求帮助
 		if len(args) > 0 && args[0] == "help" {
@@ -41,9 +41,9 @@ func printAboutInfo() {
 	utils.InfoPrint("• 支持多种输出格式和报告生成")
 	utils.InfoPrint("")
 	utils.InfoPrint("适用场景：")
-	utils.InfoPrint("• 内网安全测试与评估")
-	utils.InfoPrint("• 红队攻防演练")
-	utils.InfoPrint("• 安全运维与监控")
+	utils.InfoPrint("• 作为综合测试工具，着重内网安全测试与评估")
+	utils.InfoPrint("• 红队攻防演练中的内网横向移动测试")
+	utils.InfoPrint("• 安全运维与监控中的内网边界安全检查")
 	utils.InfoPrint("")
 	utils.InfoPrint("常规横向测试步骤如下")
 	utils.InfoPrint("1. 资产探测: 使用各种手段发现目标网络中的存活主机、端口、服务等信息。")

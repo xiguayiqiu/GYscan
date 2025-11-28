@@ -1,0 +1,619 @@
+# GYscan - Internal Network Lateral Boundary Security Testing Tool
+
+## Project Introduction
+
+GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed based on the Go language. This tool integrates rich internal network penetration testing functions, including port scanning, service identification, vulnerability detection, remote command execution, weak password brute force cracking and other core functions, providing efficient and reliable internal network security assessment solutions for security researchers and penetration testers.
+
+## Core Advantages
+
+- **Focus on Internal Network Security**: Specially optimized for internal network lateral movement and boundary security testing scenarios
+- **Rich Functions**: Integrates multiple functions such as port scanning, service identification, remote command execution, weak password brute force cracking, etc.
+- **Cross-Platform Support**: Supports Windows, Linux, macOS three mainstream operating systems
+- **Modular Design**: Adopts plug-in architecture, supports function expansion and custom module development
+- **Strong Usability**: Provides a concise command-line interface and detailed help documentation
+- **Excellent Performance**: Developed based on Go language, with excellent concurrent processing capabilities
+
+### 📋 Basic Information
+
+| Project | Information |
+|---------|-------------|
+| **Project Name** | GYscan |
+| **Development Language** | Go 1.24+ |
+| **Supported Platforms** | Windows 7+/Linux/macOS |
+| **License** | Apache2.0 |
+| **Latest Version** | v2.5.3 |
+
+### ⚠️ Legal Statement
+
+**Important Note**: This tool is only for authorized testing purposes. Any unauthorized use is illegal, and users shall bear corresponding legal responsibilities.
+
+## 🚀 Quick Start
+
+### Environment Preparation
+
+1. **Install Go Environment** (version 1.18+)
+   ```bash
+   # Download and install Go
+   https://golang.org/dl/
+   
+   # Verify installation
+   go version
+   ```
+
+2. **Get Project Code**
+   ```bash
+   # Github
+   git clone https://github.com/xiguayiqiu/GYscan.git
+   # Gitee
+   git clone https://gitee.com/bzhanyiqiua/GYscan.git
+   cd GYscan
+   ```
+
+### Compilation and Installation
+
+#### Windows Platform Compilation
+```bash
+# Compile client
+cd Client
+go build -o GYscan.exe
+```
+
+#### Linux Platform Compilation
+```bash
+# Compile client
+cd Client
+go build -o GYscan-linux-amd64
+```
+
+#### Cross Compilation
+```bash
+# Compile Windows version (on Linux)
+cd Client
+GOOS=windows GOARCH=amd64 go build -o GYscan.exe
+
+# Compile Linux version (on Windows)
+cd Client
+GOOS=linux GOARCH=amd64 go build -o GYscan-linux-amd64
+```
+
+### One-Click Build Script
+```bash
+# Windows platform
+.build.ps1
+
+# Linux platform
+chmod +x build_linux.sh
+./build_linux.sh
+```
+
+## 📋 Function List
+
+### Official Commands
+
+| Command | Function Description | Status |
+|---------|---------------------|--------|
+| about | View tool information | ✅ Stable |
+| crunch | Password dictionary generation tool | ✅ Stable |
+| database | Database password cracking tool | ✅ Stable |
+| dirscan | Website directory scanning tool | ✅ Stable |
+| ftp | FTP password cracking | ✅ Stable |
+| passhash | Credential passing attack module | ✅ Stable |
+| powershell | PowerShell remote execution tool [WinRM service utilization] | ✅ Stable |
+| process | Process and service information collection tool | ✅ Stable |
+| rdp | RDP remote desktop tool | ✅ Stable |
+| route | Route hop detection | ✅ Stable |
+| scan | Network scanning tool, supporting host discovery, port scanning, service identification, etc. | ✅ Stable |
+| ssh | SSH password brute force tool (Hydra style) | ✅ Stable |
+| userinfo | Local user and group analysis | ✅ Stable |
+| webshell | WebShell generation tool | ✅ Stable |
+| wmi | WMI remote management tool | ✅ Stable |
+| waf | WAF detection tool, supporting mainstream WAF identification and detection | ✅ Stable |
+| xss | XSS vulnerability detection tool, supporting reflected, stored, DOM-based XSS detection | ✅ Stable |
+| winlog | Windows log viewing tool, supporting local and remote log query | ✅ Stable |
+
+### Testing Phase Commands
+
+| Command | Function Description | Status |
+|---------|---------------------|--------|
+| csrf | CSRF vulnerability detection [Testing phase] | ⚠️ Testing phase |
+| dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
+| ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
+
+## 💡 Common Function Usage Examples
+
+### 1. Network Scanning
+
+> [!NOTE]
+>
+>
+> If the scan parameter is a public domain name or public IP, the `-T` parameter cannot be speed level 5, otherwise it will link timeout and show the host as down state, because the connection rate is too fast to connect normally. The recommended connection speed for public networks is level 3-4, and try to keep the connection rate between 500ms and 1s!
+
+
+
+```bash
+# Scan a single IP address
+./GYscan.exe scan --target 192.168.1.100
+
+# Scan IP range
+./GYscan.exe scan --target 192.168.1.0/24
+
+# Scan specified port range
+./GYscan.exe scan --target 192.168.1.100 --ports 80,443,22,21
+
+### 2. PowerShell Remote Execution
+
+```bash
+# Execute remote PowerShell command
+./GYscan.exe powershell exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
+
+# Test WinRM port
+./GYscan.exe powershell test --target 192.168.1.100 --port 5985
+
+# Use HTTPS connection
+./GYscan.exe powershell exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami" --https
+```
+
+### 3. WMI Remote Management
+
+```bash
+# Get operating system information
+./GYscan.exe wmi osinfo --target 192.168.1.100 --user Administrator --password "Password123"
+
+# Execute remote command
+./GYscan.exe wmi exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
+
+# List remote processes
+./GYscan.exe wmi processes --target 192.168.1.100 --user Administrator --password "Password123"
+
+# Query WMI data
+./GYscan.exe wmi query --target 192.168.1.100 --user Administrator --password "Password123" --query "SELECT * FROM Win32_OperatingSystem"
+```
+
+### 4. RDP Remote Desktop
+
+```bash
+# Check RDP service availability
+./GYscan.exe rdp check --target 192.168.1.100
+
+# Connect to RDP service
+./GYscan.exe rdp connect --target 192.168.1.100 --user Administrator --password "Password123"
+
+# List RDP sessions
+./GYscan.exe rdp sessions --target 192.168.1.100 --user Administrator --password "Password123"
+
+# List remote processes
+./GYscan.exe rdp processes --target 192.168.1.100 --user Administrator --password "Password123"
+```
+
+### 5. SMB Protocol Operations
+
+```bash
+# Detect SMB version
+./GYscan.exe smb version --target 192.168.1.100
+
+# List SMB shares
+./GYscan.exe smb shares --target 192.168.1.100 --user Administrator --password "Password123"
+
+# Execute remote command
+./GYscan.exe smb exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
+```
+
+### 6. Vulnerability Detection
+
+```bash
+# XSS vulnerability detection
+./GYscan.exe xss --target http://example.com --payload "<script>alert('xss')</script>"
+
+# CSRF vulnerability detection
+./GYscan.exe csrf --target http://example.com/vul/csrf.php -X POST -d "action=delete&id=1"
+```
+
+### 7. Weak Password Brute Force
+
+```bash
+# SSH weak password detection
+./GYscan.exe ssh --target 192.168.1.100 --user admin --wordlist passwords.txt
+
+# FTP weak password detection
+./GYscan.exe ftp --target 192.168.1.100 --user anonymous --wordlist passwords.txt
+
+# WAF detection
+# Detect single URL
+./GYscan.exe waf -u "https://www.example.com/"
+
+# Detect multiple URLs
+./GYscan.exe waf -u "https://www.example.com/" -u "https://test.com/"
+```
+
+### 8. Windows Log Viewing
+
+```bash
+# View local system logs
+./GYscan.exe winlog system
+
+# View remote system logs
+./GYscan.exe winlog system --target 192.168.1.100 --user admin --password password
+
+# View security logs (login events)
+./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --event-id 4624
+
+# View application logs
+./GYscan.exe winlog application --target 192.168.1.100 --user admin --password password --hours 24
+
+# View setup logs
+./GYscan.exe winlog setup --target 192.168.1.100 --user admin --password password --event-id 2001
+
+# View forwarded events logs
+./GYscan.exe winlog forwardedevents --target 192.168.1.100 --user admin --password password --limit 50
+
+# Use domain account authentication
+./GYscan.exe winlog system --target 192.168.1.100 --domain example.com --user admin --password password
+
+# Enable verbose output and color display
+./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --verbose --color
+```
+
+## ⚙️ Advanced Configuration
+
+### Performance Tuning
+
+```
+# Set concurrent threads
+
+./GYscan.exe scan --target 192.168.1.0/24 --threads 50
+
+# Set timeout
+
+./GYscan.exe scan --target 192.168.1.100 --timeout 3
+```
+
+
+
+### Output Control
+
+```bash
+# Silent mode (only output key results)
+./GYscan.exe scan --target 192.168.1.100 --silent
+
+# Verbose output mode
+./GYscan.exe scan --target 192.168.1.100 --verbose
+
+# More verbose output mode
+./GYscan.exe scan --target 192.168.1.100 --very-verbose
+```
+
+## 🏗️ Technical Architecture
+
+### Project Structure
+
+```
+GYscan/
+├── C2/                    # C2 server side (Command and Control)
+│   ├── Linux/             # Linux version C2 server
+│   │   ├── cmd/           # Command line entry program
+│   │   ├── go.mod         # Go module dependency configuration
+│   │   ├── go.sum         # Go module verification file
+│   │   ├── internal/      # Internal implementation modules
+│   │   ├── pkg/           # Public packages (scanners, tools, etc.)
+│   │   └── tools/         # Integrated tools (Lynis, Trivy, etc.)
+│   └── Windows/           # Windows version C2 server
+│       ├── cmd/           # Command line entry program
+│       ├── go.mod         # Go module dependency configuration
+│       ├── go.sum         # Go module verification file
+│       ├── internal/      # Internal implementation modules
+│       ├── pkg/           # Public packages (auditors, scanners, etc.)
+│       └── tools/         # Integrated tools (Goss, etc.)
+├── Client/                # Client main program (penetration testing tool)
+│   ├── GYscan.exe         # Compiled Windows executable file
+│   ├── app.ico            # Application icon
+│   ├── app.manifest       # Application manifest file
+│   ├── app.png            # Application image
+│   ├── app.syso           # Windows system resource file
+│   ├── dirmap/            # Directory scanning dictionary files
+│   │   ├── dicc.txt       # Directory scanning dictionary
+│   │   └── medium.txt     # Medium-scale dictionary
+│   ├── go.mod             # Go module dependency configuration
+│   ├── go.sum             # Go module verification file
+│   ├── internal/          # Internal function modules
+│   │   ├── cli/           # Command line interface and command registration
+│   │   ├── csrf/          # CSRF vulnerability detection module
+│   │   ├── database/      # Database password cracking tool
+│   │   ├── dcom/          # DCOM remote execution module
+│   │   ├── dirscan/       # Website directory scanning module
+│   │   ├── ftp/           # FTP password cracking module
+│   │   ├── kerberos/      # Kerberos protocol related functions
+│   │   ├── ldap/          # LDAP enumeration module
+│   │   ├── network/       # Network scanning and host discovery
+│   │   ├── nmap/          # Nmap integration functions
+│   │   ├── plugin/        # Plugin system framework
+│   │   ├── powershell/    # PowerShell remote execution module
+│   │   ├── process/       # Process and service information collection
+│   │   ├── rdp/           # RDP remote desktop module
+│   │   ├── security/      # Security related functions
+│   │   ├── smb/           # SMB protocol operation module
+│   │   ├── ssh/           # SSH password brute force module
+│   │   ├── userinfo/      # Local user and group analysis
+│   │   ├── utils/         # Utility functions and helper methods
+│   │   ├── waf/           # WAF detection tool
+│   │   ├── weakpass/      # Weak password detection framework
+│   │   ├── webshell/      # WebShell generation tool
+│   │   ├── wmi/           # WMI remote management module
+│   │   └── xss/           # XSS vulnerability detection module
+│   └── main.go            # Program main entry file
+├── PSTools/               # Microsoft PSTools suite (Windows system testing tools)
+│   ├── PsExec.exe         # Remote command execution tool
+│   ├── PsExec64.exe       # 64-bit remote command execution tool
+│   ├── PsInfo.exe         # System information collection tool
+│   ├── PsInfo64.exe       # 64-bit system information collection tool
+│   ├── PsService.exe      # Service management tool
+│   ├── PsService64.exe    # 64-bit service management tool
+│   ├── PsLoggedon.exe     # Logged-on user viewing tool
+│   ├── PsLoggedon64.exe   # 64-bit logged-on user viewing tool
+│   ├── Pstools.chm        # Help documentation
+│   ├── accesschk.exe      # Access permission checking tool
+│   ├── psfile.exe         # File share viewing tool
+│   ├── psfile64.exe       # 64-bit file share viewing tool
+│   ├── pskill.exe         # Process termination tool
+│   ├── pskill64.exe       # 64-bit process termination tool
+│   ├── pslist.exe         # Process list viewing tool
+│   ├── pslist64.exe       # 64-bit process list viewing tool
+│   ├── psloglist.exe      # Event log viewing tool
+│   ├── psloglist64.exe    # 64-bit event log viewing tool
+│   ├── pspasswd.exe       # Password modification tool
+│   ├── pspasswd64.exe     # 64-bit password modification tool
+│   ├── psping.exe         # Network connectivity testing tool
+│   ├── psping64.exe       # 64-bit network connectivity testing tool
+│   ├── psshutdown.exe     # Remote shutdown tool
+│   ├── psshutdown64.exe   # 64-bit remote shutdown tool
+│   ├── pssuspend.exe      # Process suspension tool
+│   ├── pssuspend64.exe    # 64-bit process suspension tool
+│   ├── Eula.txt           # End User License Agreement
+│   └── psversion.txt      # Version information file
+├── LICENSE                # Project license file
+├── README.md              # Project description documentation
+├── build.ps1              # Windows platform build script
+└── build_linux.sh         # Linux platform build script
+```
+
+### Detailed Directory Description
+
+#### C2/ - Command and Control Server Side
+- **Linux/** - Linux version C2 server
+  - **cmd/** - Command line entry program, containing main program logic
+  - **internal/** - Internal implementation modules, including system information collection, vulnerability detection and other core functions
+  - **pkg/** - Public packages, containing reusable components such as scanners and tools
+  - **tools/** - Integrated third-party tools, such as Lynis (system security audit), Trivy (container security scanning)
+- **Windows/** - Windows version C2 server
+  - **cmd/** - Command line entry program, supporting multiple scan types
+  - **internal/** - Internal implementation modules, including Windows system audit, vulnerability detection
+  - **pkg/** - Public packages, containing audit managers, scanners, etc.
+  - **tools/** - Integrated third-party tools, such as Goss (infrastructure testing)
+
+#### Client/ - Penetration Testing Client
+- **internal/** - Core function modules
+  - **cli/** - Command line interface and command registration system, supporting command group display, including winlog and other command implementations
+  - **csrf/** - CSRF vulnerability detection module, supporting POST request detection
+  - **database/** - Database password cracking tool, supporting multiple database types
+  - **dcom/** - DCOM remote execution module (testing phase)
+  - **dirscan/** - Website directory scanning module, supporting custom dictionaries
+  - **ftp/** - FTP password cracking module, supporting anonymous login detection
+  - **kerberos/** - Kerberos protocol related function module
+  - **ldap/** - LDAP enumeration module (testing phase)
+  - **network/** - Network scanning and host discovery, supporting TCP/UDP scanning
+  - **nmap/** - Nmap integration functions, supporting full port scanning and service identification
+  - **plugin/** - Plugin system framework, supporting function expansion
+  - **powershell/** - PowerShell remote execution module, supporting WinRM service utilization
+  - **process/** - Process and service information collection tool
+  - **rdp/** - RDP remote desktop module, supporting session management and process viewing
+  - **security/** - Security related function module
+  - **smb/** - SMB protocol operation module, supporting version detection and share enumeration
+  - **ssh/** - SSH password brute force module, Hydra style implementation
+  - **userinfo/** - Local user and group analysis tool
+  - **utils/** - Utility functions and helper methods
+  - **waf/** - WAF detection tool, supporting mainstream WAF identification
+  - **weakpass/** - Weak password detection framework
+  - **webshell/** - WebShell generation tool
+  - **wmi/** - WMI remote management module, supporting remote command execution
+  - **xss/** - XSS vulnerability detection module, supporting multiple XSS type detection
+  - **winlog function** - Windows log viewing tool, supporting local and remote log query, including:
+    - System log viewing (System)
+    - Security log viewing (Security)
+    - Application log viewing (Application)
+    - Setup log viewing (Setup)
+    - Forwarded events log viewing (ForwardedEvents)
+    - Filter by event ID
+    - Filter by time range
+    - Filter by quantity limit
+    - Support for domain account authentication
+    - Automatic error recovery and alternative query
+- **dirmap/** - Directory scanning dictionary files
+  - **dicc.txt** - Common directory scanning dictionary
+  - **medium.txt** - Medium-scale directory dictionary
+
+#### PSTools/ - Microsoft PSTools Suite
+- Contains a complete set of Windows system testing tools for system management, process control, service management, etc.
+- Supports 32-bit and 64-bit systems, providing rich system management functions
+
+### Technical Features
+
+#### High-Performance Concurrency
+- **Go Native Concurrency** - Lightweight concurrency model based on goroutines
+- **Intelligent Thread Management** - Configurable concurrent thread count
+- **Timeout Control** - Configurable timeout mechanism to avoid infinite waiting
+
+#### Security Mechanisms
+- **Error Isolation** - Modular error handling to avoid single point of failure
+- **Resource Management** - Intelligent resource release to prevent memory leaks
+- **Input Validation** - Strict parameter validation to ensure operation security
+
+#### User Experience
+- **Real-Time Progress** - Detailed scan progress and statistics
+- **Multiple Outputs** - Support for console and file output formats
+- **Intelligent Tips** - Friendly error prompts and usage suggestions
+
+#### Extensibility Design
+- **Modular Architecture** - Clear module separation, easy for function expansion
+- **Configuration Driven** - Flexible configuration system, supporting multiple scenarios
+- **Standard Interface** - Unified interface specifications, convenient for secondary development
+
+### Recent Optimizations
+- Optimized scan performance and improved scan network scanning, scan supports nmap common parameters, can skillfully use scan functions, can function this update includes the following:
+
+  - Support `-p-` for full port scanning
+
+  - Support `-A` parameter, simplified
+
+    ```
+    GYscan scan 192.168.100.10 --A -T 5
+    
+    Scan statistics: Total 1 host, active 1
+    
+    Host: 192.168.100.10
+    (About 2 hops away)
+    (About 2 hops away)
+    [Linux/Unix]
+    Operating system guess: Linux Server (Ubuntu/CentOS/Debian), Linux 2.6.32 - 4.9 (96%)
+    
+    Route tracing:
+      1. 192.168.100.10 10ms
+    
+    Open ports:
+      22/tcp open     ssh (SSH-2.0-OpenSSH_10.2)
+      21/tcp open     ftp (220 (vsFTPd 3.0.5))
+      3306/tcp open     mysql (R12.0.2-MariaDB;u{,c3rh0=VB';1&ia+P0@mysql_native_password)
+    ```
+
+    - Support `--sT` and `--sU` for forced TCP and UDP scanning respectively
+    - Support `-sS` for forced SYN scanning
+    - Support `--f` parameter for fragmented scanning
+    - Support `--sV` for scanning services and service versions
+    - Support `--ttl` TTL detection for hop routing
+    - Support `--sn` for scanning live hosts (internal network scanning)
+    - Support `--Pn` parameter, same effect as nmap's Pn, skip host discovery during scanning, directly start port and service discovery
+    - Optimized FTP single-user password dictionary brute force success rate (FTP brute force temporarily does not support user password cross-brute force, only supports single-user multi-password sniper brute force, FTP cracking will be improved to support cross-brute force in the future!)
+- Optimized FTP functions
+
+  - FTP function supports user, password, target cross-cracking
+
+  - Added `-k` parameter to specify the number of simultaneous cracking targets
+  - Optimized result formatting display after successful FTP cracking
+
+
+### Planned Features
+- ⏳ Advanced vulnerability detection plugins
+- ⏳ Distributed scanning architecture
+
+## 📝 Changelog
+
+### v2.5.3 (Latest Update)
+
+- Optimized scan performance and improved scan network scanning, scan supports nmap common parameters, can skillfully use scan functions, can function this update includes the following:
+
+  - Support `-p-` for full port scanning
+
+  - Support `-A` parameter, simplified
+
+    ```
+    GYscan scan 192.168.100.10 --A -T 5
+    
+    Scan statistics: Total 1 host, active 1
+    
+    Host: 192.168.100.10
+    (About 2 hops away)
+    (About 2 hops away)
+    [Linux/Unix]
+    Operating system guess: Linux Server (Ubuntu/CentOS/Debian), Linux 2.6.32 - 4.9 (96%)
+    
+    Route tracing:
+      1. 192.168.100.10 10ms
+    
+    Open ports:
+      22/tcp open     ssh (SSH-2.0-OpenSSH_10.2)
+      21/tcp open     ftp (220 (vsFTPd 3.0.5))
+      3306/tcp open     mysql (R12.0.2-MariaDB;u{,c3rh0=VB';1&ia+P0@mysql_native_password)
+    ```
+    
+    - Support `--sT` and `--sU` for forced TCP and UDP scanning respectively
+    - Support `-sS` for forced SYN scanning
+    - Support `--f` parameter for fragmented scanning
+    - Support `--sV` for scanning services and service versions
+    - Support `--ttl` TTL detection for hop routing
+    - Support `--sn` for scanning live hosts (internal network scanning)
+    - Support `--Pn` parameter, same effect as nmap's Pn, skip host discovery during scanning, directly start port and service discovery
+    - Optimized FTP single-user password dictionary brute force success rate (FTP brute force temporarily does not support user password cross-brute force, only supports single-user multi-password sniper brute force, FTP cracking will be improved to support cross-brute force in the future!)
+  
+- Optimized FTP functions
+
+  - FTP function supports user, password, target cross-cracking
+
+  - Added `-k` parameter to specify the number of simultaneous cracking targets
+  - Optimized result formatting display after successful FTP cracking
+
+### v2.5.2.1
+
+- **Function Fix**: Fixed dirscan module embedded dictionary loading issue, please create a dirmap folder in the software directory, place dicc.txt and mediume.txt, otherwise use the `-w` parameter to specify the file
+- **Function Optimization**: Improved dirscan CLI interface, optimized dictionary selection logic and error handling
+- **Function Verification**: Verified large dictionary (9756 entries) and medium dictionary (2762 entries) loading functions
+
+### v2.5.2
+
+- **New Function**: Local remote Windows log tool
+- **Version Update**: Project version iterated to v2.5.2
+- **Function Optimization**: Fixed winlog command help manual parameter display issue, added detailed parameter description and usage examples
+- **Function Optimization**: Improved log entry display format, increased message display length limit from 50 characters to 100 characters
+- **Bug Fix**: Fixed log query default pagination issue, confirmed program defaults to no pagination display
+- **Code Quality**: Improved code stability and readability
+
+### v2.5.1
+- **New Function**: Added WAF detection module, supporting detection of multiple WAF types
+- **Version Update**: Project version iterated to v2.5.1
+- **Function Optimization**: Optimized WAF detection module code, improved string comparison efficiency, used strings.EqualFold instead of strings.ToLower for case-insensitive comparison
+- **Bug Fix**: Fixed code yellow warnings related to WAF detection
+- **Code Quality**: Improved code stability and readability
+
+### v2.5.0
+- **Function Optimization**: Unified command registration mechanism, resolved command duplicate registration issue
+- **Function Optimization**: Implemented command group display, divided into official commands and testing phase commands
+- **Function Fix**: Fixed format string error in WebShell generator
+- **Function Optimization**: Optimized tool help information display, improved user experience
+- **New Function**: Improved PowerShell module, added HTTPS support
+- **New Function**: Enhanced WMI module functions, supporting more remote management operations
+- **New Function**: Improved RDP module, supporting session management and process viewing
+- **New Function**: Optimized SMB module, supporting version detection and share enumeration
+- **Code Optimization**: Optimized code structure and performance of each module
+
+### v2.0.1
+- **Function Optimization**: Removed Payload generation function, focused on security testing
+- **Code Optimization**: Optimized code structure and performance
+- **Documentation Improvement**: Updated help documentation and examples
+
+### v2.0.0
+- **New Function**: Added CSRF vulnerability detection module
+- **Function Enhancement**: Improved XSS detection function
+- **Module Optimization**: Improved performance and stability of each function module
+
+### v1.0.0
+- **Initial Release**: Basic port scanning function
+- **Function Implementation**: Service identification and fingerprint collection
+- **Framework Construction**: Weak password brute force framework
+- **Basic Detection**: Basic vulnerability detection function
+
+## 🤝 Contribution Guide
+
+Welcome to submit Issues and Pull Requests to improve the project. Please ensure:
+1. Code conforms to Go language specifications
+2. Add appropriate test cases
+3. Update relevant documentation
+4. Follow secure development specifications
+
+## 📄 License
+
+This project adopts the MIT License. For details, please check the LICENSE file.
+
+## ⚠️ Disclaimer
+
+**Important Note**: This tool is only for security research and authorized testing purposes. Any unauthorized use is illegal, and users shall bear corresponding legal responsibilities. The author does not assume any direct or indirect responsibility arising from the use of this tool.
+
+---
+
+**GYscan - Focus on Internal Network Security, Guard Network Boundaries** 🛡️

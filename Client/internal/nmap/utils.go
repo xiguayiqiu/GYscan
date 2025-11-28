@@ -77,11 +77,6 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 				utils.WarningPrint("[%s]", result.OS)
 			}
 
-			// 显示操作系统猜测信息
-			if len(result.OSGuesses) > 0 {
-				utils.ProgressPrint("操作系统猜测: %s", strings.Join(result.OSGuesses, ", "))
-			}
-
 			fmt.Println()
 
 			// 显示路由追踪信息
@@ -153,7 +148,7 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 					fmt.Println()
 				}
 			}
-			
+
 			// 显示HTTP/HTTPS访问链接
 			var httpPorts []int
 			var httpsPorts []int
@@ -176,7 +171,7 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 					}
 				}
 			}
-			
+
 			if len(httpPorts) > 0 || len(httpsPorts) > 0 {
 				utils.InfoPrint("HTTP/HTTPS访问链接:")
 				// 显示HTTPS链接

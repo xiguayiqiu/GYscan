@@ -38,8 +38,6 @@ func CrackFTP(target string, usernames, passwords []string, threads, timeout int
 	go func() {
 		total := len(config.Username) * len(config.Password)
 		completed := 0
-		successCount := 0
-		lastProgressLine := ""
 		
 		for {
 			select {
@@ -49,20 +47,14 @@ func CrackFTP(target string, usernames, passwords []string, threads, timeout int
 				}
 				completed += progress
 				progressPercent := float64(completed) / float64(total) * 100
-				// 保存当前进度行，用于成功信息后重新显示
-				lastProgressLine = fmt.Sprintf("进度: %d/%d (%.2f%%)", completed, total, progressPercent)
-				fmt.Printf("\r%s", lastProgressLine)
+				// 直接输出进度
+				fmt.Printf("\r进度: %d/%d (%.2f%%)", completed, total, progressPercent)
 				
-			case successResult, ok := <-worker.GetSuccessResults():
+			case _, ok := <-worker.GetSuccessResults():
 				if !ok {
 					continue
 				}
-				successCount++
-				// 先换行显示成功信息
-				fmt.Printf("\n✅ 成功破解: 用户名: %s, 密码: %s, 耗时: %v\n", 
-					successResult.Username, successResult.Password, successResult.Duration)
-				// 然后在新行显示当前进度
-				fmt.Printf("%s\n", lastProgressLine)
+				// 成功结果将在最终结果中统一显示，这里不再单独输出
 			}
 		}
 	}()
@@ -72,7 +64,8 @@ func CrackFTP(target string, usernames, passwords []string, threads, timeout int
 	results := worker.Run()
 	duration := time.Since(startTime)
 
-	fmt.Printf("\n破解完成，总耗时: %v\n", duration)
+	// 确保进度行有换行，避免影响后续输出
+	fmt.Printf("\n破解完成，总耗时: %v\n\n", duration)
 
 	return results, nil
 }
@@ -94,8 +87,6 @@ func CrackFTPWithConfig(config *FTPConfig) ([]CrackResult, error) {
 	go func() {
 		total := len(config.Username) * len(config.Password)
 		completed := 0
-		successCount := 0
-		lastProgressLine := ""
 		
 		for {
 			select {
@@ -105,20 +96,14 @@ func CrackFTPWithConfig(config *FTPConfig) ([]CrackResult, error) {
 				}
 				completed += progress
 				progressPercent := float64(completed) / float64(total) * 100
-				// 保存当前进度行，用于成功信息后重新显示
-				lastProgressLine = fmt.Sprintf("进度: %d/%d (%.2f%%)", completed, total, progressPercent)
-				fmt.Printf("\r%s", lastProgressLine)
+				// 直接输出进度
+				fmt.Printf("\r进度: %d/%d (%.2f%%)", completed, total, progressPercent)
 				
-			case successResult, ok := <-worker.GetSuccessResults():
+			case _, ok := <-worker.GetSuccessResults():
 				if !ok {
 					continue
 				}
-				successCount++
-				// 先换行显示成功信息
-				fmt.Printf("\n✅ 成功破解: 用户名: %s, 密码: %s, 耗时: %v\n", 
-					successResult.Username, successResult.Password, successResult.Duration)
-				// 然后在新行显示当前进度
-				fmt.Printf("%s\n", lastProgressLine)
+				// 成功结果将在最终结果中统一显示，这里不再单独输出
 			}
 		}
 	}()
@@ -128,7 +113,8 @@ func CrackFTPWithConfig(config *FTPConfig) ([]CrackResult, error) {
 	results := worker.Run()
 	duration := time.Since(startTime)
 
-	fmt.Printf("\n破解完成，总耗时: %v\n", duration)
+	// 确保进度行有换行，避免影响后续输出
+	fmt.Printf("\n破解完成，总耗时: %v\n\n", duration)
 
 	return results, nil
 }

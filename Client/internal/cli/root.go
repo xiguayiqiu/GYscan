@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.2.1"
+	Version = "v2.5.3"
 )
 
 // rootCmd 表示基础命令
@@ -49,7 +49,7 @@ func printBanner() {
 	utils.InfoPrint("GYscan - Go语言内网横向边界安全测试工具")
 	utils.InfoPrint("作者: BiliBili-弈秋啊")
 	utils.InfoPrint("工具版本: " + Version)
-	utils.InfoPrint("描述: 专注内网资产探测、横向移动、安全验证")
+	utils.InfoPrint("描述: 综合测试工具，着重内网资产探测、横向移动、安全验证")
 
 	// 使用color包实现跨平台红色警告显示
 	red := color.New(color.FgRed)
@@ -101,11 +101,11 @@ func printCustomHelp() {
 	fmt.Println("  GYscan [help] [flags]")
 	fmt.Println("  GYscan [command]")
 	fmt.Println()
-	
+
 	// 定义命令分组
 	var normalCommands []*cobra.Command
 	var testCommands []*cobra.Command
-	
+
 	// 将命令分组
 	for _, cmd := range rootCmd.Commands() {
 		if cmd.Name() == "help" {
@@ -117,21 +117,21 @@ func printCustomHelp() {
 			normalCommands = append(normalCommands, cmd)
 		}
 	}
-	
+
 	// 显示正常命令
 	fmt.Println("Available Commands:")
 	fmt.Println()
 	for _, cmd := range normalCommands {
 		fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
 	}
-	
+
 	// 显示测试阶段命令
 	fmt.Println()
 	fmt.Println("  ==== 测试阶段命令 ====")
 	for _, cmd := range testCommands {
 		fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
 	}
-	
+
 	// 显示全局参数
 	fmt.Println()
 	fmt.Println("Flags:")
@@ -157,29 +157,29 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
 
 	// ===== 非测试阶段命令 =====
-	cmd.AddCommand(aboutCmd)           // 查看工具信息
-	cmd.AddCommand(crunchCmd)          // 密码字典生成工具
-	cmd.AddCommand(databaseCmd)        // 数据库密码破解工具
-	cmd.AddCommand(dirscanCmd)         // 网站目录扫描工具
-	cmd.AddCommand(ftpCmd)             // FTP密码破解
-	cmd.AddCommand(powershellCmd)      // PowerShell远程执行工具 [WinRM服务利用]
-	cmd.AddCommand(processCmd)         // 进程与服务信息收集工具
-	cmd.AddCommand(rdpCmd)             // RDP远程桌面工具
-	cmd.AddCommand(routeCmd)           // 路由跳数检测
-	cmd.AddCommand(nmap.ScanCmd)       // 网络扫描工具
-	cmd.AddCommand(smbCmd)             // SMB协议操作工具
-	cmd.AddCommand(sshCmd)             // SSH密码爆破工具（Hydra风格）
-	cmd.AddCommand(userinfoCmd)        // 本地用户和组分析
-	cmd.AddCommand(webshellCmd)        // WebShell生成工具
-	cmd.AddCommand(wmiCmd)             // WMI远程管理工具
-	cmd.AddCommand(winlogCmd)          // 远程Windows日志查看工具
-	cmd.AddCommand(xss.XssCmd)         // XSS漏洞检测工具
-	cmd.AddCommand(wafCmd)             // WAF识别工具
+	cmd.AddCommand(aboutCmd)      // 查看工具信息
+	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
+	cmd.AddCommand(databaseCmd)   // 数据库密码破解工具
+	cmd.AddCommand(dirscanCmd)    // 网站目录扫描工具
+	cmd.AddCommand(ftpCmd)        // FTP密码破解
+	cmd.AddCommand(powershellCmd) // PowerShell远程执行工具 [WinRM服务利用]
+	cmd.AddCommand(processCmd)    // 进程与服务信息收集工具
+	cmd.AddCommand(rdpCmd)        // RDP远程桌面工具
+	cmd.AddCommand(routeCmd)      // 路由跳数检测
+	cmd.AddCommand(nmap.ScanCmd)  // 网络扫描工具
+	cmd.AddCommand(smbCmd)        // SMB协议操作工具
+	cmd.AddCommand(sshCmd)        // SSH密码爆破工具（Hydra风格）
+	cmd.AddCommand(userinfoCmd)   // 本地用户和组分析
+	cmd.AddCommand(webshellCmd)   // WebShell生成工具
+	cmd.AddCommand(wmiCmd)        // WMI远程管理工具
+	cmd.AddCommand(winlogCmd)     // 远程Windows日志查看工具
+	cmd.AddCommand(xss.XssCmd)    // XSS漏洞检测工具
+	cmd.AddCommand(wafCmd)        // WAF识别工具
 
 	// ===== 测试阶段命令 =====
-	cmd.AddCommand(csrf.Cmd)           // CSRF漏洞检测 [测试阶段]
-	cmd.AddCommand(dcomCmd)            // DCOM远程执行模块 [测试阶段]
-	cmd.AddCommand(ldapCmd)            // LDAP枚举模块 [测试阶段]
+	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
+	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
+	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]
 }
 
 // init 初始化命令

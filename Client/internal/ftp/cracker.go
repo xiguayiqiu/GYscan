@@ -12,6 +12,7 @@ import (
 
 // CrackResult 破解结果
 type CrackResult struct {
+	Target   string        // 目标
 	Username string        // 用户名
 	Password string        // 密码
 	Success  bool          // 是否成功
@@ -85,25 +86,26 @@ func safeProgressUpdate(w *CrackWorker) {
 		return
 	}
 
-	// 使用非阻塞方式发送进度更新
-	select {
-	case w.progress <- 1:
-		// 成功发送进度更新
-	default:
-		// 通道可能已满或已关闭，忽略发送
-	}
+	// 只在通道未关闭时发送进度更新
+	// 注意：这里不使用非阻塞发送，因为通道容量足够大
+	// 通道关闭后发送会导致panic，所以必须先检查channelsClosed
+	w.progress <- 1
 }
 
 // connectFTP 连接到FTP服务器
 func (w *CrackWorker) connectFTP() (net.Conn, error) {
 	address := net.JoinHostPort(w.config.Host, fmt.Sprintf("%d", w.config.Port))
-	conn, err := net.DialTimeout("tcp", address, time.Duration(w.config.Timeout)*time.Second)
+	// 连接超时设置为更短的时间，默认2秒
+	conn, err := net.DialTimeout("tcp", address, 2*time.Second)
 	if err != nil {
 		return nil, err
 	}
 
-	// 设置完整的超时
+	// 设置读写超时，根据配置但不超过5秒
 	timeout := time.Duration(w.config.Timeout) * time.Second
+	if timeout > 5*time.Second {
+		timeout = 5 * time.Second
+	}
 	conn.SetReadDeadline(time.Now().Add(timeout))
 	conn.SetWriteDeadline(time.Now().Add(timeout))
 
@@ -262,6 +264,7 @@ func (w *CrackWorker) worker(jobs <-chan [2]string, successChan chan<- string, c
 			success, duration, err := w.authenticateFTP(username, password)
 
 			result := CrackResult{
+				Target:   w.config.Host,
 				Username: username,
 				Password: password,
 				Success:  success,
@@ -282,83 +285,40 @@ func (w *CrackWorker) worker(jobs <-chan [2]string, successChan chan<- string, c
 				safeSendSuccess(w, successChan, username, result)
 			}
 
-			// 发送进度更新前检查上下文是否已取消
-			select {
-			case <-ctx.Done():
-				// 上下文已取消，立即返回
-				return
-			default:
-				// 发送进度更新
-				safeProgressUpdate(w)
-			}
-		case <-ctx.Done():
-			return
+			// 发送进度更新
+			safeProgressUpdate(w)
 		}
 	}
 }
 
 // Run 运行FTP破解
 func (w *CrackWorker) Run() []CrackResult {
-	// 创建工作队列和成功信号通道
-	jobs := make(chan [2]string, 100)
+	// 创建更大的工作队列，减少阻塞
+	jobs := make(chan [2]string, len(w.config.Username)*len(w.config.Password))
 	successChan := make(chan string, len(w.config.Username))
-
-	// 创建上下文用于控制停止
-	ctx, _ := context.WithCancel(context.Background())
 
 	// 启动工作线程
 	for i := 0; i < w.config.Threads; i++ {
 		w.wg.Add(1)
-		go w.worker(jobs, successChan, ctx)
+		go w.worker(jobs, successChan, nil)
 	}
 
-	// 按用户顺序破解：对每个用户按顺序尝试密码，一旦成功就跳过该用户的后续密码
+	// 快速填充所有工作任务
 	go func() {
-		// 记录已成功的用户
-		successUsers := make(map[string]bool)
-
+		// 先将所有任务发送到队列
 		for _, username := range w.config.Username {
-			// 如果该用户已经成功，跳过
-			if successUsers[username] {
-				continue
-			}
-
-			// 按顺序尝试该用户的密码
 			for _, password := range w.config.Password {
-				// 检查上下文是否已取消
-				select {
-				case <-ctx.Done():
-					// 上下文被取消，停止分发任务
-					close(jobs)
-					return
-				default:
-					// 继续分发任务
-				}
-
-				// 检查是否有成功信号（非阻塞）
-				select {
-				case successUser := <-successChan:
-					successUsers[successUser] = true
-				default:
-					// 没有成功信号，继续
-				}
-
-				// 如果该用户已经成功，跳过后续密码
-				if successUsers[username] {
-					break
-				}
-
 				jobs <- [2]string{username, password}
 			}
 		}
 		close(jobs)
-		close(successChan)
 	}()
 
 	// 等待所有工作完成
 	w.wg.Wait()
 
-	// 关闭进度通道，防止后续发送操作
+	// 关闭所有通道
+	close(successChan)
 	close(w.progress)
 	close(w.successResults)
 	w.channelsClosed = true

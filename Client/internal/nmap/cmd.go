@@ -62,6 +62,7 @@ func init() {
 		tcpScan          bool
 		udpScan          bool
 		hostDiscovery    bool
+		pn               bool
 		output           string
 	)
 	// 配置命令运行函数
@@ -116,6 +117,7 @@ func init() {
 			TCPScan:          tcpScan,
 			UDPScan:          udpScan,
 			HostDiscovery:    hostDiscovery,
+			Pn:               pn,
 		}
 
 		// 如果启用了全面扫描模式 (-A)，自动启用相关功能
@@ -154,7 +156,7 @@ func init() {
 	ScanCmd.Flags().StringVarP(&target, "target", "t", "", "扫描目标 (IP/CIDR/IP范围/域名)")
 	ScanCmd.Flags().StringVarP(&ports, "ports", "p", "", "扫描端口 (默认: 1-1000, 支持: 80,443, 1-1000, 22,80,443, -p- 表示全端口扫描)")
 	ScanCmd.Flags().IntVarP(&threads, "threads", "n", 50, "并发线程数")
-	ScanCmd.Flags().IntVarP(&timeout, "timeout", "", 3, "超时时间(秒)")
+	ScanCmd.Flags().IntVarP(&timeout, "timeout", "w", 3, "超时时间(秒)")
 	ScanCmd.Flags().IntVarP(&timingTemplate, "timing", "T", 3, "扫描速度级别 (0-5, 完全模仿nmap -T参数)")
 
 	// 扫描类型参数（nmap标准参数）
@@ -163,14 +165,14 @@ func init() {
 	ScanCmd.Flags().BoolVarP(&synScan, "sS", "", false, "SYN扫描")
 
 	// 服务识别和系统识别标志（nmap标准参数）
-	ScanCmd.Flags().BoolVarP(&osDetection, "O", "", false, "启用系统识别")
+	ScanCmd.Flags().BoolVarP(&osDetection, "O", "O", false, "启用系统识别")
 	ScanCmd.Flags().BoolVarP(&serviceDetection, "sV", "", false, "启用服务识别")
 
 	// 全面扫描模式 (nmap -A参数)
-	ScanCmd.Flags().BoolVarP(&aggressiveScan, "A", "", false, "全面扫描模式")
+	ScanCmd.Flags().BoolVarP(&aggressiveScan, "A", "A", false, "全面扫描模式")
 
 	// 碎片化扫描模式 (nmap -f参数)
-	ScanCmd.Flags().BoolVarP(&fragmentedScan, "f", "", false, "碎片化扫描模式")
+	ScanCmd.Flags().BoolVarP(&fragmentedScan, "f", "f", false, "碎片化扫描模式")
 
 	// 主机存活探测模式 (nmap -sn参数)
 	ScanCmd.Flags().BoolVarP(&hostDiscovery, "sn", "", false, "主机存活探测模式")
@@ -178,7 +180,13 @@ func init() {
 	// 其他功能参数
 	ScanCmd.Flags().BoolVarP(&ttlDetection, "ttl", "", false, "启用TTL检测，估算目标距离")
 
+	// 跳过主机发现，直接扫描端口 (nmap -Pn参数)
+	ScanCmd.Flags().BoolVarP(&pn, "Pn", "", false, "跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)")
+
 	ScanCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")
+
+	// 启用短参数支持（nmap风格）
+	ScanCmd.Flags().SetInterspersed(true)
 
 	// 添加-T参数的详细说明到帮助文档
 	ScanCmd.SetHelpTemplate(`{{.UsageString}}
