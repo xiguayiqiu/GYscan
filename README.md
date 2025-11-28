@@ -1,3 +1,5 @@
+ [**English**-README](README-en.md) 
+
 # GYscan - 内网横向边界安全测试工具
 
 ## 项目简介
