@@ -205,6 +205,9 @@ func GetHostname(ip string) string {
 
 // ValidateTarget 验证目标格式
 func ValidateTarget(target string) bool {
+	// 移除可能的协议前缀和端口号
+	target = RemoveProtocolPrefix(target)
+
 	// 检查是否为IP地址
 	if ip := net.ParseIP(target); ip != nil {
 		return true
@@ -230,6 +233,32 @@ func ValidateTarget(target string) bool {
 	}
 
 	return false
+}
+
+// RemoveProtocolPrefix 移除URL中的协议前缀、端口号和路径
+func RemoveProtocolPrefix(url string) string {
+	// 移除http://或https://前缀
+	if strings.HasPrefix(url, "http://") {
+		url = strings.TrimPrefix(url, "http://")
+	} else if strings.HasPrefix(url, "https://") {
+		url = strings.TrimPrefix(url, "https://")
+	}
+
+	// 移除端口号
+	if strings.Contains(url, ":") {
+		parts := strings.Split(url, ":")
+		// 只保留第一个部分（主机名/IP）
+		url = parts[0]
+	}
+
+	// 移除路径部分
+	if strings.Contains(url, "/") {
+		parts := strings.Split(url, "/")
+		// 只保留第一个部分（主机名/IP）
+		url = parts[0]
+	}
+
+	return url
 }
 
 // ParseScanType 解析扫描类型

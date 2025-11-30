@@ -1519,6 +1519,9 @@ func identifyUDPServiceByBanner(banner string) string {
 
 // parseTarget 解析目标
 func parseTarget(target string) []string {
+	// 移除可能的协议前缀、端口号和路径
+	target = RemoveProtocolPrefix(target)
+
 	if strings.Contains(target, "/") {
 		return parseCIDR(target)
 	} else if strings.Contains(target, "-") {

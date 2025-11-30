@@ -457,46 +457,8 @@ GYscan/
 - **Standard Interface** - Unified interface specifications, convenient for secondary development
 
 ### Recent Optimizations
-- Optimized scan performance and improved scan network scanning, scan supports nmap common parameters, can skillfully use scan functions, can function this update includes the following:
+- Minor change: scan perfectly supports short domain names, full domain names, IP addresses, and IP network segments
 
-  - Support `-p-` for full port scanning
-
-  - Support `-A` parameter, simplified
-
-    ```
-    GYscan scan 192.168.100.10 --A -T 5
-    
-    Scan statistics: Total 1 host, active 1
-    
-    Host: 192.168.100.10
-    (About 2 hops away)
-    (About 2 hops away)
-    [Linux/Unix]
-    Operating system guess: Linux Server (Ubuntu/CentOS/Debian), Linux 2.6.32 - 4.9 (96%)
-    
-    Route tracing:
-      1. 192.168.100.10 10ms
-    
-    Open ports:
-      22/tcp open     ssh (SSH-2.0-OpenSSH_10.2)
-      21/tcp open     ftp (220 (vsFTPd 3.0.5))
-      3306/tcp open     mysql (R12.0.2-MariaDB;u{,c3rh0=VB';1&ia+P0@mysql_native_password)
-    ```
-
-    - Support `--sT` and `--sU` for forced TCP and UDP scanning respectively
-    - Support `-sS` for forced SYN scanning
-    - Support `--f` parameter for fragmented scanning
-    - Support `--sV` for scanning services and service versions
-    - Support `--ttl` TTL detection for hop routing
-    - Support `--sn` for scanning live hosts (internal network scanning)
-    - Support `--Pn` parameter, same effect as nmap's Pn, skip host discovery during scanning, directly start port and service discovery
-    - Optimized FTP single-user password dictionary brute force success rate (FTP brute force temporarily does not support user password cross-brute force, only supports single-user multi-password sniper brute force, FTP cracking will be improved to support cross-brute force in the future!)
-- Optimized FTP functions
-
-  - FTP function supports user, password, target cross-cracking
-
-  - Added `-k` parameter to specify the number of simultaneous cracking targets
-  - Optimized result formatting display after successful FTP cracking
 
 
 ### Planned Features
