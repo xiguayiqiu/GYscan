@@ -459,7 +459,7 @@ GYscan/
 ### Recent Optimizations
 - Minor change: scan perfectly supports short domain names, full domain names, IP addresses, and IP network segments
 
-
+- Change the app mascot and the app icon to the official app icon
 
 ### Planned Features
 - ⏳ Advanced vulnerability detection plugins

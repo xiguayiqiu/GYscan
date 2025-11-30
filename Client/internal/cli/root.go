@@ -10,7 +10,6 @@ import (
 	"GYscan/internal/utils"
 	"GYscan/internal/xss"
 
-	"github.com/common-nighthawk/go-figure"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -41,35 +40,45 @@ var rootCmd = &cobra.Command{
 
 // printBanner 输出工具标识横幅
 func printBanner() {
-	// 显示GYscan艺术字
-	fig := figure.NewFigure("GYscan", "slant", true)
-	fig.Print()
+	fmt.Println()
 
-	utils.InfoPrint("==============================================")
-	utils.InfoPrint("GYscan - Go语言内网横向边界安全测试工具")
-	utils.InfoPrint("作者: BiliBili-弈秋啊")
-	utils.InfoPrint("工具版本: " + Version)
-	utils.InfoPrint("描述: 综合测试工具，着重内网资产探测、横向移动、安全验证")
+	// 显示GYscan艺术字 - 使用醒目的蓝色加粗
+	figColor := color.New(color.FgHiBlue, color.Bold)
+	figColor.Println(`    ____  __   __                             `)
+	figColor.Println(`   / ___| \ \ / /  ___    ___    __ _   _ __  `)
+	figColor.Println(`  | |  _   \ V /  / __|  / __|  / _` + "`" + ` | | '_ \ `)
+	figColor.Println(`  | |_| |   | |   \__ \ | (__  | (_| | | | | | `)
+	figColor.Println(`   \____|   |_|   |___/  \___|  \__,_| |_| |_|`)
+	figColor.Println(`                                              `)
+	fmt.Println()
 
-	// 使用color包实现跨平台红色警告显示
-	red := color.New(color.FgRed)
-	red.Println("警告: 仅用于授权测试，严禁未授权使用！")
+	// 使用不同颜色显示信息
+	utils.BoldInfo("==============================================")
+	utils.BoldInfo("GYscan - Go语言内网横向边界安全测试工具")
+	utils.BoldInfo("作者: BiliBili-弈秋啊")
+	utils.BoldInfo("工具版本: " + Version)
+	utils.BoldInfo("描述: 综合测试工具，着重内网资产探测、横向移动、安全验证")
 
-	utils.InfoPrint("==============================================")
-	utils.InfoPrint("使用 \"./GYscan help\" 获取帮助信息")
+	// 使用红色显示警告信息
+	redBold := color.New(color.FgHiRed, color.Bold)
+	redBold.Println("警告: 仅用于授权测试，严禁未授权使用！")
+
+	utils.BoldInfo("==============================================")
+	utils.BoldInfo("使用 \"./GYscan help\" 获取帮助信息")
 }
 
 // Execute 执行根命令
 func Execute() {
+	// 先显示ASCII艺术字，所有命令执行前都显示
+	printBanner()
+
 	// 检查是否需要显示版本信息（仅在根命令下使用-v或--version）
 	if len(os.Args) > 1 && (os.Args[1] == "-v" || os.Args[1] == "--version") && len(os.Args) == 2 {
-		printBanner()
 		return
 	}
 
 	// 检查是否是主帮助请求（根命令的帮助）
 	if (len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
-		printBanner()
 		printCustomHelp()
 		return
 	}
