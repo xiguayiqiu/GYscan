@@ -127,6 +127,41 @@ func (c *AIClient) GetBaseURL() string {
 		return "https://api.deepseek.com/v1"
 	case "ollama":
 		return "http://localhost:11434/v1"
+	// 新增云AI提供商
+	case "google":
+		return "https://generativelanguage.googleapis.com/v1"
+	case "cohere":
+		return "https://api.cohere.ai/v1"
+	case "huggingface":
+		return "https://api-inference.huggingface.co/v1"
+	case "mistral":
+		return "https://api.mistral.ai/v1"
+	case "togetherai":
+		return "https://api.together.xyz/v1"
+	case "replicate":
+		return "https://api.replicate.com/v1"
+	case "openrouter":
+		return "https://openrouter.ai/api/v1"
+	case "moonshot":
+		return "https://api.moonshot.cn/v1"
+	case "zhipu":
+		return "https://open.bigmodel.cn/api/paas/v4"
+	case "qwen":
+		return "https://dashscope.aliyuncs.com/compatible-mode/v1"
+	case "doubao":
+		return "https://ark.cn-beijing.volces.com/api/v3"
+	case "dashscope":
+		return "https://dashscope.aliyuncs.com/api/v1"
+	case "perplexity":
+		return "https://api.perplexity.ai/v1"
+	case "fireworks":
+		return "https://api.fireworks.ai/inference/v1"
+	case "inflection":
+		return "https://api.inflection.ai/v1"
+	case "anthropic-streaming":
+		return "https://streaming.api.anthropic.com/v1"
+	case "siliconflow":
+		return "https://api.siliconflow.cn/v1"
 	default:
 		return "https://api.openai.com/v1"
 	}
@@ -136,11 +171,27 @@ func (c *AIClient) GetBaseURL() string {
 func (c *AIClient) GetAuthorizationHeader() string {
 	// 根据服务提供商返回不同的授权头格式
 	switch c.Config.Provider {
-	case "openai", "deepseek":
+	case "openai", "deepseek", "mistral", "togetherai", "openrouter", "moonshot", "perplexity", "fireworks", "inflection", "siliconflow":
 		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
 	case "azure":
 		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
-	case "anthropic":
+	case "anthropic", "anthropic-streaming":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "google":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "cohere":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "huggingface":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "replicate":
+		return fmt.Sprintf("Token %s", c.Config.APIKey)
+	case "zhipu":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "qwen":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "doubao":
+		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
+	case "dashscope":
 		return fmt.Sprintf("Bearer %s", c.Config.APIKey)
 	case "ollama":
 		return ""
@@ -169,29 +220,141 @@ func (c *AIClient) Chat(messages []Message) (string, error) {
 		baseURL := c.GetBaseURL()
 		// 根据服务提供商选择不同的API端点
 		var url string
-		if c.Config.Provider == "ollama" {
-			// Ollama使用/api/chat端点
-			url = fmt.Sprintf("%s/api/chat", baseURL)
-		} else if c.Config.BaseURL != "" && (c.Config.BaseURL == baseURL || c.Config.BaseURL == "https://api.deepseek.com/chat/completions") {
-			// 使用用户配置的完整URL
-			url = baseURL
+
+		// 检查是否使用用户配置的完整URL
+		if c.Config.BaseURL != "" && c.Config.BaseURL != baseURL {
+			// 用户已配置完整URL，直接使用
+			url = c.Config.BaseURL
 		} else {
-			// 其他提供商使用OpenAI兼容的/chat/completions路径
-			url = fmt.Sprintf("%s/chat/completions", baseURL)
+			// 根据提供商选择API端点
+			switch c.Config.Provider {
+			case "ollama":
+				// Ollama使用/api/chat端点
+				url = fmt.Sprintf("%s/api/chat", baseURL)
+			case "google":
+				// Google Gemini使用/models/[model]:generateContent端点
+				url = fmt.Sprintf("%s/models/%s:generateContent", baseURL, c.Config.Model)
+			case "cohere":
+				// Cohere使用/generate端点
+				url = fmt.Sprintf("%s/generate", baseURL)
+			case "anthropic", "anthropic-streaming":
+				// Anthropic使用/messages端点
+				url = fmt.Sprintf("%s/messages", baseURL)
+			default:
+				// 其他提供商使用OpenAI兼容的/chat/completions路径
+				url = fmt.Sprintf("%s/chat/completions", baseURL)
+			}
 		}
 		utils.InfoPrint("请求URL: %s", url)
 
-		// 构建请求体
-		reqBody := AIRequest{
-			Model:       c.Config.Model,
-			Messages:    messages,
-			Temperature: c.Config.Temperature,
-			TopP:        c.Config.TopP,
-			MaxTokens:   c.Config.MaxTokens,
+		// 根据提供商构建不同的请求体
+		var reqJSON []byte
+		var err error
+
+		switch c.Config.Provider {
+		case "google":
+			// Google Gemini请求格式
+			type GoogleContent struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			}
+
+			type GoogleRequest struct {
+				Contents         []GoogleContent `json:"contents"`
+				GenerationConfig struct {
+					Temperature     float64 `json:"temperature"`
+					TopP            float64 `json:"topP"`
+					MaxOutputTokens int     `json:"maxOutputTokens"`
+				} `json:"generationConfig"`
+			}
+
+			// 构建Google请求体
+			googleReq := GoogleRequest{
+				GenerationConfig: struct {
+					Temperature     float64 `json:"temperature"`
+					TopP            float64 `json:"topP"`
+					MaxOutputTokens int     `json:"maxOutputTokens"`
+				}{
+					Temperature:     c.Config.Temperature,
+					TopP:            c.Config.TopP,
+					MaxOutputTokens: c.Config.MaxTokens,
+				},
+			}
+
+			// 转换messages为Google格式
+			for _, msg := range messages {
+				googleReq.Contents = append(googleReq.Contents, GoogleContent{
+					Parts: []struct {
+						Text string `json:"text"`
+					}{{
+						Text: msg.Content,
+					}},
+				})
+			}
+
+			reqJSON, err = json.Marshal(googleReq)
+		case "cohere":
+			// Cohere请求格式
+			type CohereRequest struct {
+				Model       string  `json:"model"`
+				Prompt      string  `json:"prompt"`
+				Temperature float64 `json:"temperature"`
+				TopP        float64 `json:"p"`
+				MaxTokens   int     `json:"max_tokens"`
+			}
+
+			// 构建Cohere请求体
+			// 将messages转换为单条prompt
+			var promptBuilder strings.Builder
+			for _, msg := range messages {
+				promptBuilder.WriteString(fmt.Sprintf("%s: %s\n", msg.Role, msg.Content))
+			}
+
+			cohereReq := CohereRequest{
+				Model:       c.Config.Model,
+				Prompt:      promptBuilder.String(),
+				Temperature: c.Config.Temperature,
+				TopP:        c.Config.TopP,
+				MaxTokens:   c.Config.MaxTokens,
+			}
+
+			reqJSON, err = json.Marshal(cohereReq)
+		case "anthropic", "anthropic-streaming":
+			// Anthropic请求格式
+			type AnthropicRequest struct {
+				Model       string    `json:"model"`
+				Messages    []Message `json:"messages"`
+				Temperature float64   `json:"temperature"`
+				TopP        float64   `json:"top_p"`
+				MaxTokens   int       `json:"max_tokens"`
+			}
+
+			anthropicReq := AnthropicRequest{
+				Model:       c.Config.Model,
+				Messages:    messages,
+				Temperature: c.Config.Temperature,
+				TopP:        c.Config.TopP,
+				MaxTokens:   c.Config.MaxTokens,
+			}
+
+			reqJSON, err = json.Marshal(anthropicReq)
+		default:
+			// 默认使用OpenAI兼容格式
+			reqBody := AIRequest{
+				Model:       c.Config.Model,
+				Messages:    messages,
+				Temperature: c.Config.Temperature,
+				TopP:        c.Config.TopP,
+				MaxTokens:   c.Config.MaxTokens,
+			}
+			reqJSON, err = json.Marshal(reqBody)
 		}
 
-		// 将请求体转换为JSON
-		reqJSON, err := json.Marshal(reqBody)
+		// 检查JSON序列化错误
+		if err != nil {
+			return "", fmt.Errorf("序列化请求失败: %v", err)
+		}
 		if err != nil {
 			return "", fmt.Errorf("序列化请求失败: %v", err)
 		}
@@ -639,8 +802,17 @@ func (c *AIClient) parseResponse(respBody []byte, provider string) (string, erro
 	case "ollama":
 		// Ollama返回的是流式响应，每行一个JSON对象
 		return c.parseOllamaResponse(respBody)
+	case "anthropic", "anthropic-streaming":
+		// Anthropic使用不同的响应格式
+		return c.parseAnthropicResponse(respBody)
+	case "google":
+		// Google Gemini使用不同的响应格式
+		return c.parseGoogleResponse(respBody)
+	case "cohere":
+		// Cohere使用不同的响应格式
+		return c.parseCohereResponse(respBody)
 	default:
-		// 默认使用OpenAI兼容格式
+		// 其他提供商使用OpenAI兼容格式
 		return c.parseOpenAIResponse(respBody)
 	}
 }
@@ -709,6 +881,101 @@ func (c *AIClient) parseOpenAIResponse(respBody []byte) (string, error) {
 
 	utils.InfoPrint("OpenAI响应解析成功，内容长度: %d 字符", len(aiResp.Choices[0].Message.Content))
 	return aiResp.Choices[0].Message.Content, nil
+}
+
+// parseAnthropicResponse 解析Anthropic的响应格式
+func (c *AIClient) parseAnthropicResponse(respBody []byte) (string, error) {
+	var anthropicResp struct {
+		ID      string `json:"id"`
+		Type    string `json:"type"`
+		Role    string `json:"role"`
+		Content []struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		} `json:"content"`
+		Model      string `json:"model"`
+		StopReason string `json:"stop_reason,omitempty"`
+		StopSeq    string `json:"stop_sequence,omitempty"`
+		Usage      struct {
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+		} `json:"usage"`
+	}
+
+	if err := json.Unmarshal(respBody, &anthropicResp); err != nil {
+		return "", fmt.Errorf("解析Anthropic响应失败: %v", err)
+	}
+
+	// 检查是否有响应内容
+	if len(anthropicResp.Content) == 0 || anthropicResp.Content[0].Text == "" {
+		return "", fmt.Errorf("Anthropic未返回有效响应")
+	}
+
+	content := anthropicResp.Content[0].Text
+	utils.InfoPrint("Anthropic响应解析成功，内容长度: %d 字符", len(content))
+	return content, nil
+}
+
+// parseGoogleResponse 解析Google Gemini的响应格式
+func (c *AIClient) parseGoogleResponse(respBody []byte) (string, error) {
+	var googleResp struct {
+		Candidates []struct {
+			Content struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			} `json:"content"`
+			FinishReason  string `json:"finishReason"`
+			SafetyRatings []struct {
+				Category    string `json:"category"`
+				Probability string `json:"probability"`
+			} `json:"safetyRatings"`
+		} `json:"candidates"`
+		Usage struct {
+			PromptTokenCount     int `json:"promptTokenCount"`
+			CandidatesTokenCount int `json:"candidatesTokenCount"`
+			TotalTokenCount      int `json:"totalTokenCount"`
+		} `json:"usage"`
+	}
+
+	if err := json.Unmarshal(respBody, &googleResp); err != nil {
+		return "", fmt.Errorf("解析Google响应失败: %v", err)
+	}
+
+	// 检查是否有响应内容
+	if len(googleResp.Candidates) == 0 || len(googleResp.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("Google未返回有效响应")
+	}
+
+	content := googleResp.Candidates[0].Content.Parts[0].Text
+	utils.InfoPrint("Google响应解析成功，内容长度: %d 字符", len(content))
+	return content, nil
+}
+
+// parseCohereResponse 解析Cohere的响应格式
+func (c *AIClient) parseCohereResponse(respBody []byte) (string, error) {
+	var cohereResp struct {
+		ID           string `json:"id"`
+		Text         string `json:"text"`
+		FinishReason string `json:"finish_reason"`
+		Usage        struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			GenerationTokens int `json:"generation_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
+	}
+
+	if err := json.Unmarshal(respBody, &cohereResp); err != nil {
+		return "", fmt.Errorf("解析Cohere响应失败: %v", err)
+	}
+
+	// 检查是否有响应内容
+	if cohereResp.Text == "" {
+		return "", fmt.Errorf("Cohere未返回有效响应")
+	}
+
+	utils.InfoPrint("Cohere响应解析成功，内容长度: %d 字符", len(cohereResp.Text))
+	return cohereResp.Text, nil
 }
 
 // Plan 生成渗透测试计划

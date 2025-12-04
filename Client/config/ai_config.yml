@@ -3,7 +3,7 @@
 # 详细文档请参考项目说明
 
 # 服务提供商配置
-# 支持的提供商: ollama, openai, azure, anthropic, deepseek
+# 支持的提供商: ollama, openai, azure, anthropic, deepseek, google, cohere, huggingface, mistral, togetherai, replicate, openrouter, moonshot, zhipu, qwen, doubao, dashscope, perplexity, fireworks, inflection, siliconflow
 provider: ollama
 model: llama3.1
 # API密钥（云服务必填，本地Ollama服务设置为false）
