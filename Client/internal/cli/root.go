@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"GYscan/internal/ai"
 	"GYscan/internal/csrf"
 	"GYscan/internal/nmap"
 	"GYscan/internal/utils"
@@ -16,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.3"
+	Version = "v3.0.0"
 )
 
 // rootCmd 表示基础命令
@@ -72,13 +73,18 @@ func Execute() {
 	// 先显示ASCII艺术字，所有命令执行前都显示
 	printBanner()
 
+	// 记录程序启动信息
+	utils.LogInfo("GYscan 程序启动，版本: %s", Version)
+
 	// 检查是否需要显示版本信息（仅在根命令下使用-v或--version）
 	if len(os.Args) > 1 && (os.Args[1] == "-v" || os.Args[1] == "--version") && len(os.Args) == 2 {
+		utils.LogInfo("显示版本信息")
 		return
 	}
 
 	// 检查是否是主帮助请求（根命令的帮助）
 	if (len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
+		utils.LogInfo("显示帮助信息")
 		printCustomHelp()
 		return
 	}
@@ -98,10 +104,14 @@ Flags:
 使用 "{{.CommandPath}} help [command]" 获取命令帮助信息
 `)
 
+	// 正常执行命令
+	utils.LogInfo("开始执行命令")
 	if err := rootCmd.Execute(); err != nil {
+		utils.LogError("命令执行失败: %v", err)
 		utils.ErrorPrint("%v", err)
 		os.Exit(1)
 	}
+	utils.LogInfo("命令执行完成")
 }
 
 // printCustomHelp 自定义帮助信息，将命令按类别分组显示
@@ -135,10 +145,12 @@ func printCustomHelp() {
 	}
 
 	// 显示测试阶段命令
-	fmt.Println()
-	fmt.Println("  ==== 测试阶段命令 ====")
-	for _, cmd := range testCommands {
-		fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
+	if len(testCommands) > 0 {
+		fmt.Println()
+		fmt.Println("  ==== 测试阶段命令 ====")
+		for _, cmd := range testCommands {
+			fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
+		}
 	}
 
 	// 显示全局参数
@@ -165,6 +177,9 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
 
+	// 注册AI命令
+	ai.RegisterCommands()
+
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)      // 查看工具信息
 	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
@@ -184,6 +199,8 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(winlogCmd)     // 远程Windows日志查看工具
 	cmd.AddCommand(xss.XssCmd)    // XSS漏洞检测工具
 	cmd.AddCommand(wafCmd)        // WAF识别工具
+	cmd.AddCommand(whoisCmd)      // Whois查询工具
+	cmd.AddCommand(ai.AICmd)      // AI模型驱动的渗透测试与安全探测功能
 
 	// ===== 测试阶段命令 =====
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]

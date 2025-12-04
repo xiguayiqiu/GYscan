@@ -1,0 +1,20 @@
+{
+  "log_level": "INFO",
+  "log_to_file": true,
+  "log_to_console": true,
+  "log_format": "%time% [%level%] %module%: %message%",
+  "log_dir": "",
+  "log_file_name": "gyscan.log",
+  "max_size_mb": 100,
+  "max_backups": 10,
+  "max_age_days": 30,
+  "compress": true,
+  "module_logging": {
+    "AI": true,
+    "Network": true,
+    "Security": true,
+    "Database": true,
+    "Web": true,
+    "System": true
+  }
+}

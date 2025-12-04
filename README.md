@@ -23,7 +23,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v2.5.3 |
+| **最新版本** | v3.0.0 |
 
 ### ⚠️ 法律声明
 
@@ -95,6 +95,7 @@ chmod +x build_linux.sh
 | 命令 | 功能描述 | 状态 |
 |------|----------|------|
 | about | 查看工具信息 | ✅ 稳定 |
+| ai | AI模型驱动的渗透测试与安全探测功能 | ✅ 稳定 |
 | crunch | 密码字典生成工具 | ✅ 稳定 |
 | database | 数据库密码破解工具 | ✅ 稳定 |
 | dirscan | 网站目录扫描工具 | ✅ 稳定 |
@@ -309,41 +310,52 @@ GYscan/
 │   ├── app.ico            # 应用程序图标
 │   ├── app.manifest       # 应用程序清单文件
 │   ├── app.png            # 应用程序图片
-│   ├── app.syso           # Windows系统资源文件
+│   ├── config/            # 配置文件目录
+│   │   ├── ai_config.yml  # AI功能配置文件
+│   │   └── logging.json   # 日志配置文件
 │   ├── dirmap/            # 目录扫描字典文件
 │   │   ├── dicc.txt       # 目录扫描字典
 │   │   └── medium.txt     # 中等规模字典
 │   ├── go.mod             # Go模块依赖配置
 │   ├── go.sum             # Go模块校验文件
 │   ├── internal/          # 内部功能模块
+│   │   ├── ai/            # AI模型驱动渗透测试模块
 │   │   ├── cli/           # 命令行界面和命令注册
+│   │   ├── config/        # 配置管理模块
 │   │   ├── csrf/          # CSRF漏洞检测模块
 │   │   ├── database/      # 数据库密码破解工具
 │   │   ├── dcom/          # DCOM远程执行模块
 │   │   ├── dirscan/       # 网站目录扫描模块
 │   │   ├── ftp/           # FTP密码破解模块
-│   │   ├── kerberos/      # Kerberos协议相关功能
-│   │   ├── ldap/          # LDAP枚举模块
+│   │   ├── ldap/          # LDAP枚举模块（测试阶段）
+│   │   ├── logging/       # 日志系统模块
 │   │   ├── network/       # 网络扫描和主机发现
 │   │   ├── nmap/          # Nmap集成功能
 │   │   ├── plugin/        # 插件系统框架
 │   │   ├── powershell/    # PowerShell远程执行模块
 │   │   ├── process/       # 进程与服务信息收集
 │   │   ├── rdp/           # RDP远程桌面模块
+│   │   ├── reports/       # 报告生成模块
 │   │   ├── security/      # 安全相关功能
 │   │   ├── smb/           # SMB协议操作模块
 │   │   ├── ssh/           # SSH密码爆破模块
+│   │   ├── system/        # 系统操作模块
 │   │   ├── userinfo/      # 本地用户和组分析
 │   │   ├── utils/         # 工具函数和辅助方法
 │   │   ├── waf/           # WAF检测工具
 │   │   ├── weakpass/      # 弱口令检测框架
 │   │   ├── webshell/      # WebShell生成工具
+│   │   ├── whois/         # WHOIS信息查询模块
 │   │   ├── wmi/           # WMI远程管理模块
 │   │   └── xss/           # XSS漏洞检测模块
-│   └── main.go            # 程序主入口文件
+│   ├── main.go            # 程序主入口文件
+│   ├── reports/           # 报告输出目录
+│   └── rsrc.syso          # Windows系统资源文件
 ├── PSTools/               # 微软PSTools套件（Windows系统测试工具）
 │   ├── PsExec.exe         # 远程命令执行工具
 │   ├── PsExec64.exe       # 64位远程命令执行工具
+│   ├── PsGetsid.exe       # SID查询工具
+│   ├── PsGetsid64.exe     # 64位SID查询工具
 │   ├── PsInfo.exe         # 系统信息收集工具
 │   ├── PsInfo64.exe       # 64位系统信息收集工具
 │   ├── PsService.exe      # 服务管理工具
@@ -370,8 +382,14 @@ GYscan/
 │   ├── pssuspend64.exe    # 64位进程挂起工具
 │   ├── Eula.txt           # 最终用户许可协议
 │   └── psversion.txt      # 版本信息文件
+├── app.ico                # 应用程序图标文件
+├── config/                # 配置文件目录
+│   ├── ai_config.yaml     # AI功能配置文件（YAML格式）
+│   └── ai_config.yml      # AI功能配置文件
+├── go.mod                 # Go模块依赖配置
 ├── LICENSE                # 项目许可证文件
-├── README.md              # 项目说明文档
+├── README-en.md           # 英文项目说明文档
+├── README.md              # 中文项目说明文档
 ├── build.ps1              # Windows平台构建脚本
 └── build_linux.sh         # Linux平台构建脚本
 ```
@@ -391,29 +409,40 @@ GYscan/
   - **tools/** - 集成第三方工具，如Goss（基础设施测试）
 
 #### Client/ - 渗透测试客户端
+- **config/** - 配置文件目录
+  - **ai_config.yml** - AI功能配置文件，支持多种AI模型参数配置
+  - **logging.json** - 日志配置文件，定义日志级别和输出格式
+- **dirmap/** - 目录扫描字典文件
+  - **dicc.txt** - 常用目录扫描字典
+  - **medium.txt** - 中等规模目录字典
 - **internal/** - 核心功能模块
+  - **ai/** - AI模型驱动渗透测试模块，支持多模型集成和智能漏洞利用
   - **cli/** - 命令行界面和命令注册系统，支持命令分组显示，包含winlog等命令实现
+  - **config/** - 配置管理模块，统一管理应用程序配置
   - **csrf/** - CSRF漏洞检测模块，支持POST请求检测
   - **database/** - 数据库密码破解工具，支持多种数据库类型
   - **dcom/** - DCOM远程执行模块（测试阶段）
   - **dirscan/** - 网站目录扫描模块，支持自定义字典
   - **ftp/** - FTP密码破解模块，支持匿名登录检测
-  - **kerberos/** - Kerberos协议相关功能模块
   - **ldap/** - LDAP枚举模块（测试阶段）
+  - **logging/** - 日志系统模块，提供结构化日志记录功能
   - **network/** - 网络扫描和主机发现，支持TCP/UDP扫描
   - **nmap/** - Nmap集成功能，支持全端口扫描和服务识别
   - **plugin/** - 插件系统框架，支持功能扩展
   - **powershell/** - PowerShell远程执行模块，支持WinRM服务利用
   - **process/** - 进程与服务信息收集工具
   - **rdp/** - RDP远程桌面模块，支持会话管理和进程查看
+  - **reports/** - 报告生成模块，生成HTML/PDF格式的渗透测试报告
   - **security/** - 安全相关功能模块
   - **smb/** - SMB协议操作模块，支持版本检测和共享枚举
   - **ssh/** - SSH密码爆破模块，Hydra风格实现
+  - **system/** - 系统操作模块，提供系统级功能支持
   - **userinfo/** - 本地用户和组分析工具
   - **utils/** - 工具函数和辅助方法
   - **waf/** - WAF检测工具，支持主流WAF识别
   - **weakpass/** - 弱口令检测框架
   - **webshell/** - WebShell生成工具
+  - **whois/** - WHOIS信息查询模块，提供域名信息查询功能
   - **wmi/** - WMI远程管理模块，支持远程命令执行
   - **xss/** - XSS漏洞检测模块，支持多种XSS类型检测
   - **winlog功能** - Windows日志查看工具，支持本地和远程日志查询，包含：
@@ -427,13 +456,39 @@ GYscan/
     - 按数量限制筛选
     - 支持域账号认证
     - 自动错误恢复和备用查询
-- **dirmap/** - 目录扫描字典文件
-  - **dicc.txt** - 常用目录扫描字典
-  - **medium.txt** - 中等规模目录字典
+- **reports/** - 报告输出目录，存储生成的渗透测试报告
 
 #### PSTools/ - 微软PSTools套件
 - 包含完整的Windows系统测试工具集，用于系统管理、进程控制、服务管理等
 - 支持32位和64位系统，提供丰富的系统管理功能
+
+### 技术栈
+
+GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易用性：
+
+| 类别 | 技术/库 | 版本 | 用途 |
+|------|---------|------|------|
+| **核心语言** | Go | 1.24+ | 主要开发语言 |
+| **AI集成** | go-openai | v1.24.0 | OpenAI API客户端，支持AI功能 |
+| **命令行框架** | cobra | v1.9.1 | 命令行界面和命令注册系统 |
+| **HTTP客户端** | resty/v2 | v2.16.5 | API请求和网络通信 |
+| **HTML解析** | goquery | v1.11.0 | 网页内容解析和处理 |
+| **彩色输出** | color | v1.18.0 | 命令行彩色输出 |
+| **LDAP客户端** | ldap/v3 | v3.4.12 | LDAP协议支持 |
+| **数据库驱动** | go-sql-driver/mysql | v1.9.3 | MySQL数据库支持 |
+| **数据库驱动** | go-mssqldb | v0.12.3 | SQL Server数据库支持 |
+| **数据库驱动** | lib/pq | v1.10.9 | PostgreSQL数据库支持 |
+| **数据库驱动** | go-ora | v1.3.2 | Oracle数据库支持 |
+| **SMB协议** | go-smb2 | v1.1.0 | SMB协议支持 |
+| **网络库** | x/net | v0.47.0 | 网络编程支持 |
+| **加密库** | x/crypto | v0.44.0 | 加密算法支持 |
+| **系统库** | x/sys | v0.38.0 | 系统调用和操作系统交互 |
+| **YAML解析** | yaml.v3 | v3.0.1 | YAML配置文件解析 |
+| **日志库** | logrus | v1.9.3 | 结构化日志记录 |
+| **UUID生成** | google/uuid | v1.6.0 | UUID生成 |
+| **WHOIS查询** | likexian/whois | v1.15.6 | WHOIS信息查询 |
+| **状态机** | looplab/fsm | v1.0.3 | 有限状态机实现 |
+| **WinRM客户端** | masterzen/winrm | v0.0.0-20250927112105-5f8e6c707321 | Windows远程管理 |
 
 ### 技术特性
 
@@ -468,13 +523,46 @@ GYscan/
 
 ## 📝 更新日志
 
-### v2.5.3 (最新更新)
+### v3.0.0 (最新更新)
 
-- 优化scan的扫描性能和具体完善scan网络扫描，scan支持nmap常用参数，能够熟练使用scan功能，can功能本次更新包括以下内容：
+
+
+#### AI模型驱动渗透测试功能
+
+- 新增AI模型驱动的渗透测试功能，集成Ollama本地AI模型和云Ai提供商的支持，支持智能漏洞扫描、利用和报告生成
+
+- 提供两个核心AI子命令：
+  - `ai exp`- AI驱动渗透测试，自动执行信息收集、漏洞扫描和利用
+  - `ai aux` - AI辅助探测，基于目标系统特点制定个性化探测策略
+  - `ai config` - AI配置管理，支持默认配置、测试配置和配置查看
+
+  - 配置示例
+  [**点击此处查看**](Client/config/ai_config.yml)
+  
+  ```
+  # AI驱动渗透测试示例
+  GYscan ai exp example.com
+  
+  # AI辅助探测示例
+  GYscan ai aux example.com
+  
+  # AI配置管理
+  GYscan ai config default
+  GYscan ai config test
+  GYscan ai config show
+  ```
+
+  - 支持`--config`参数指定AI配置文件
+  - 支持`--resource`参数指定资源目录
+  - 支持`--scan`参数强制进行全盘扫描
+
+#### 网络扫描功能优化
+
+- 优化scan的扫描性能和功能完善，支持nmap常用参数：
 
   - 支持`-p-`代表全端口扫描
 
-  - 支持`-A`参数，有所简化
+  - 支持`-A`参数（简化版）
 
     ```
     GYscan scan 192.168.100.10 --A -T 5
@@ -502,15 +590,13 @@ GYscan/
     - 支持`--sV`扫描服务和服务版本
     - 支持`--ttl`TTL检测跳跃路由
     - 支持`--sn`扫描存活主机（内网扫描）
-    - 支持`--Pn`参数和nmap的Pn效果一致扫描时直接跳过主机发现，直接开始端口、服务发现
-    - 优化FTP单用户密码字典爆破的成功率（FTP爆破暂时不支持用户密码交叉爆破，只支持单用户多密码的狙击爆破，后续会完善FTP破解使其支持交叉爆破！）
+    - 支持`--Pn`参数，跳过主机发现直接进行端口和服务扫描
 
-- 优化FTP功能	
+#### FTP功能优化	
 
   - FTP功能支持用户、密码、目标交叉破解
-
   - 新增`-k`参数指定同时破解目标的数量
-  - 优化FTP破解成功之后的的结果格式化显示
+  - 优化FTP破解成功之后的结果格式化显示
 
 ### v2.5.2.1
 

@@ -4,11 +4,12 @@ go 1.24.2
 
 toolchain go1.24.5
 
+require github.com/sashabaranov/go-openai v1.24.0
+
 // replace github.com/projectdiscovery/nuclei/v3 => ../nuclei-dev
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/fatih/color v1.18.0
 	github.com/go-ldap/ldap/v3 v3.4.12
@@ -17,6 +18,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/lib/pq v1.10.9
+	github.com/likexian/whois v1.15.6
+	github.com/likexian/whois-parser v1.24.20
+	github.com/looplab/fsm v1.0.3
 	github.com/masterzen/winrm v0.0.0-20250927112105-5f8e6c707321
 	github.com/sijms/go-ora v1.3.2
 	github.com/sirupsen/logrus v1.9.3
@@ -26,6 +30,7 @@ require (
 	golang.org/x/net v0.47.0
 	golang.org/x/sys v0.38.0
 	golang.org/x/text v0.31.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -52,6 +57,7 @@ require (
 	github.com/jcmturner/goidentity/v6 v6.0.1 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
+	github.com/likexian/gokit v0.25.15 // indirect
 	github.com/masterzen/simplexml v0.0.0-20190410153822-31eea3082786 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

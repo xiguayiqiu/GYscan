@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.5.3 |
+| **Latest Version** | v3.0.0 |
 
 ### ⚠️ Legal Statement
 
@@ -93,6 +93,7 @@ chmod +x build_linux.sh
 | Command | Function Description | Status |
 |---------|---------------------|--------|
 | about | View tool information | ✅ Stable |
+| ai | AI model-driven penetration testing and security detection | ✅ Stable |
 | crunch | Password dictionary generation tool | ✅ Stable |
 | database | Database password cracking tool | ✅ Stable |
 | dirscan | Website directory scanning tool | ✅ Stable |
@@ -303,46 +304,57 @@ GYscan/
 │       ├── internal/      # Internal implementation modules
 │       ├── pkg/           # Public packages (auditors, scanners, etc.)
 │       └── tools/         # Integrated tools (Goss, etc.)
-├── Client/                # Client main program (penetration testing tool)
+├── Client/                # Penetration testing client
 │   ├── GYscan.exe         # Compiled Windows executable file
 │   ├── app.ico            # Application icon
 │   ├── app.manifest       # Application manifest file
 │   ├── app.png            # Application image
-│   ├── app.syso           # Windows system resource file
+│   ├── config/            # Configuration file directory
+│   │   ├── ai_config.yml  # AI function configuration file
+│   │   └── logging.json   # Log configuration file
 │   ├── dirmap/            # Directory scanning dictionary files
 │   │   ├── dicc.txt       # Directory scanning dictionary
 │   │   └── medium.txt     # Medium-scale dictionary
 │   ├── go.mod             # Go module dependency configuration
 │   ├── go.sum             # Go module verification file
 │   ├── internal/          # Internal function modules
+│   │   ├── ai/            # AI model-driven penetration testing module
 │   │   ├── cli/           # Command line interface and command registration
+│   │   ├── config/        # Configuration management module
 │   │   ├── csrf/          # CSRF vulnerability detection module
 │   │   ├── database/      # Database password cracking tool
 │   │   ├── dcom/          # DCOM remote execution module
 │   │   ├── dirscan/       # Website directory scanning module
 │   │   ├── ftp/           # FTP password cracking module
-│   │   ├── kerberos/      # Kerberos protocol related functions
-│   │   ├── ldap/          # LDAP enumeration module
+│   │   ├── ldap/          # LDAP enumeration module (testing phase)
+│   │   ├── logging/       # Logging system module
 │   │   ├── network/       # Network scanning and host discovery
 │   │   ├── nmap/          # Nmap integration functions
 │   │   ├── plugin/        # Plugin system framework
 │   │   ├── powershell/    # PowerShell remote execution module
 │   │   ├── process/       # Process and service information collection
 │   │   ├── rdp/           # RDP remote desktop module
+│   │   ├── reports/       # Report generation module
 │   │   ├── security/      # Security related functions
 │   │   ├── smb/           # SMB protocol operation module
 │   │   ├── ssh/           # SSH password brute force module
+│   │   ├── system/        # System operation module
 │   │   ├── userinfo/      # Local user and group analysis
 │   │   ├── utils/         # Utility functions and helper methods
 │   │   ├── waf/           # WAF detection tool
 │   │   ├── weakpass/      # Weak password detection framework
 │   │   ├── webshell/      # WebShell generation tool
+│   │   ├── whois/         # WHOIS information query module
 │   │   ├── wmi/           # WMI remote management module
 │   │   └── xss/           # XSS vulnerability detection module
-│   └── main.go            # Program main entry file
+│   ├── main.go            # Main program entry file
+│   ├── reports/           # Report output directory
+│   └── rsrc.syso          # Windows system resource file
 ├── PSTools/               # Microsoft PSTools suite (Windows system testing tools)
 │   ├── PsExec.exe         # Remote command execution tool
 │   ├── PsExec64.exe       # 64-bit remote command execution tool
+│   ├── PsGetsid.exe       # SID query tool
+│   ├── PsGetsid64.exe     # 64-bit SID query tool
 │   ├── PsInfo.exe         # System information collection tool
 │   ├── PsInfo64.exe       # 64-bit system information collection tool
 │   ├── PsService.exe      # Service management tool
@@ -369,8 +381,14 @@ GYscan/
 │   ├── pssuspend64.exe    # 64-bit process suspension tool
 │   ├── Eula.txt           # End User License Agreement
 │   └── psversion.txt      # Version information file
+├── app.ico                # Application icon file
+├── config/                # Configuration file directory
+│   ├── ai_config.yaml     # AI function configuration file (YAML format)
+│   └── ai_config.yml      # AI function configuration file
+├── go.mod                 # Go module dependency configuration
 ├── LICENSE                # Project license file
-├── README.md              # Project description documentation
+├── README-en.md           # English project description documentation
+├── README.md              # Chinese project description documentation
 ├── build.ps1              # Windows platform build script
 └── build_linux.sh         # Linux platform build script
 ```
@@ -434,6 +452,34 @@ GYscan/
 - Contains a complete set of Windows system testing tools for system management, process control, service management, etc.
 - Supports 32-bit and 64-bit systems, providing rich system management functions
 
+### Technology Stack
+
+GYscan is built with modern technology stack to ensure high performance, scalability, and usability:
+
+| Category | Technology/Library | Version | Purpose |
+|----------|--------------------|---------|---------|
+| **Core Language** | Go | 1.24+ | Main development language |
+| **AI Integration** | go-openai | v1.24.0 | OpenAI API client, supporting AI features |
+| **CLI Framework** | cobra | v1.9.1 | Command-line interface and command registration system |
+| **HTTP Client** | resty/v2 | v2.16.5 | API requests and network communication |
+| **HTML Parsing** | goquery | v1.11.0 | Web content parsing and processing |
+| **Color Output** | color | v1.18.0 | Command-line colorized output |
+| **LDAP Client** | ldap/v3 | v3.4.12 | LDAP protocol support |
+| **Database Driver** | go-sql-driver/mysql | v1.9.3 | MySQL database support |
+| **Database Driver** | go-mssqldb | v0.12.3 | SQL Server database support |
+| **Database Driver** | lib/pq | v1.10.9 | PostgreSQL database support |
+| **Database Driver** | go-ora | v1.3.2 | Oracle database support |
+| **SMB Protocol** | go-smb2 | v1.1.0 | SMB protocol support |
+| **Network Library** | x/net | v0.47.0 | Network programming support |
+| **Crypto Library** | x/crypto | v0.44.0 | Cryptographic algorithms support |
+| **System Library** | x/sys | v0.38.0 | System calls and OS interaction |
+| **YAML Parsing** | yaml.v3 | v3.0.1 | YAML configuration file parsing |
+| **Logging Library** | logrus | v1.9.3 | Structured logging |
+| **UUID Generation** | google/uuid | v1.6.0 | UUID generation |
+| **WHOIS Query** | likexian/whois | v1.15.6 | WHOIS information query |
+| **State Machine** | looplab/fsm | v1.0.3 | Finite state machine implementation |
+| **WinRM Client** | masterzen/winrm | v0.0.0-20250927112105-5f8e6c707321 | Windows remote management |
+
 ### Technical Features
 
 #### High-Performance Concurrency
@@ -467,13 +513,43 @@ GYscan/
 
 ## 📝 Changelog
 
-### v2.5.3 (Latest Update)
+### v3.0.0 (Latest Update)
 
-- Optimized scan performance and improved scan network scanning, scan supports nmap common parameters, can skillfully use scan functions, can function this update includes the following:
+#### AI Model-Driven Penetration Testing Function
+
+- Added AI model-driven penetration testing function, integrated with Ollama local AI model, supporting intelligent vulnerability scanning, exploitation, and report generation
+- Provides two core AI subcommands:
+  - `ai exp` - AI-driven penetration testing, automatically performing information gathering, vulnerability scanning, and exploitation
+  - `ai aux` - AI-assisted detection, formulating personalized detection strategies based on target system characteristics
+  - `ai config` - AI configuration management, supporting default configuration, test configuration, and configuration viewing
+
+  - Configuration example
+    [**Click here to view** ](Client/config/ai_config.yml)
+  
+  ```
+  # AI-driven penetration testing example
+  GYscan ai exp example.com
+  
+  # AI-assisted detection example
+  GYscan ai aux example.com
+  
+  # AI configuration management
+  GYscan ai config default
+  GYscan ai config test
+  GYscan ai config show
+  ```
+  
+  - Support `--config` parameter to specify AI configuration file
+  - Support `--resource` parameter to specify resource directory
+  - Support `--scan` parameter to force full disk scanning
+
+#### Network Scanning Function Optimization
+
+- Optimized scan performance and improved network scanning functionality, supporting nmap common parameters:
 
   - Support `-p-` for full port scanning
 
-  - Support `-A` parameter, simplified
+  - Support `-A` parameter (simplified version)
 
     ```
     GYscan scan 192.168.100.10 --A -T 5
@@ -501,13 +577,11 @@ GYscan/
     - Support `--sV` for scanning services and service versions
     - Support `--ttl` TTL detection for hop routing
     - Support `--sn` for scanning live hosts (internal network scanning)
-    - Support `--Pn` parameter, same effect as nmap's Pn, skip host discovery during scanning, directly start port and service discovery
-    - Optimized FTP single-user password dictionary brute force success rate (FTP brute force temporarily does not support user password cross-brute force, only supports single-user multi-password sniper brute force, FTP cracking will be improved to support cross-brute force in the future!)
-  
-- Optimized FTP functions
+    - Support `--Pn` parameter, skipping host discovery and directly starting port and service scanning
 
-  - FTP function supports user, password, target cross-cracking
+#### FTP Function Optimization
 
+  - FTP function supports user, password, and target cross-cracking
   - Added `-k` parameter to specify the number of simultaneous cracking targets
   - Optimized result formatting display after successful FTP cracking
 
