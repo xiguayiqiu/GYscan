@@ -12,11 +12,7 @@ import (
 	"GYscan/internal/utils"
 )
 
-// ReportData 定义报告数据结构（已移至types包）
-type ReportData = types.ReportData
-
-// Finding 定义发现的漏洞或问题（已移至types包）
-type Finding = types.Finding
+// ReportData 和 Finding 类型已移至types包，直接使用types.ReportData和types.Finding
 
 // ReportFormat 报告格式类型
 type ReportFormat string
@@ -233,11 +229,11 @@ func generateHTMLReport(markdown string) string {
     </div>
     
     <div class="report-section">
-        %s
+        <!--REPORT_CONTENT-->
     </div>
     
     <div class="footer">
-        <p>报告生成时间: %s</p>
+        <p>报告生成时间: <!--REPORT_TIME--></p>
         <p>生成工具: GYscan AI 模块</p>
     </div>
 </body>
@@ -245,7 +241,11 @@ func generateHTMLReport(markdown string) string {
 
 	// 使用现有的markdownToHTML函数转换内容
 	htmlContent := markdownToHTML(markdown)
-	fullHTML := fmt.Sprintf(htmlTemplate, htmlContent, time.Now().Format("2006-01-02 15:04:05"))
+	reportTime := time.Now().Format("2006-01-02 15:04:05")
+
+	// 使用更安全的字符串替换方式，避免%字符导致的问题
+	fullHTML := strings.Replace(htmlTemplate, "<!--REPORT_CONTENT-->", htmlContent, 1)
+	fullHTML = strings.Replace(fullHTML, "<!--REPORT_TIME-->", reportTime, 1)
 	return fullHTML
 }
 
@@ -596,5 +596,5 @@ func markdownToPlainText(markdown string) string {
 	return text
 }
 
-// markdownToHTML 简单的Markdown到HTML转换（已移至enhanced_reporter.go）
-// 请使用enhanced_reporter.go中的markdownToHTML函数
+// markdownToHTML 简单的Markdown到HTML转换
+// 注意：此函数在enhanced_reporter.go中实现，此处直接使用

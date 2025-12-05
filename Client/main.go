@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-
 	"GYscan/internal/cli"
 	"GYscan/internal/logging"
 )

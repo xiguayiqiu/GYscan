@@ -126,44 +126,99 @@ func (tm *ToolManager) GetAvailableToolNames() []string {
 func ScanSystemTools(aiClient AIClientInterface) *ToolManager {
 	toolManager := NewToolManager()
 
-	// 扩展支持的安全渗透工具列表（增强版）
+	// 扩展支持的安全渗透工具列表（增强版，包含ParrotOS特有工具）
 	supportedTools := []string{
 		// 网络扫描工具
-		"nmap", "masscan", "zmap", "unicornscan", "hping3",
+		"nmap", "masscan", "zmap", "unicornscan", "hping3", "netdiscover", "arp-scan", "p0f", "xprobe2", "nbtscan",
 		// 域名枚举工具
-		"amass", "subfinder", "subjack", "assetfinder", "findomain", "dnsrecon", "dnsenum", "sublist3r", "httpx",
+		"amass", "subfinder", "subjack", "assetfinder", "findomain", "dnsrecon", "dnsenum", "sublist3r", "httpx", "dnsx", "puredns", "dnsgen", "dnscan", "altdns",
 		// Web应用扫描工具
-		"nikto", "dirb", "gobuster", "dirsearch", "ffuf", "wfuzz", "arjun", "nuclei",
+		"nikto", "dirb", "gobuster", "dirsearch", "ffuf", "wfuzz", "arjun", "nuclei", "gospider", "katana", "hakrawler", "feroxbuster", "dirbyp",
 		// 数据库安全工具
-		"sqlmap", "sqlninja", "sqlsus", "bbqsql",
+		"sqlmap", "sqlninja", "sqlsus", "bbqsql", "mysqldump", "pg_dump", "mssql-scripter",
 		// 漏洞扫描工具
-		"nessus", "openvas", "nexpose", "metasploit-framework", "msfconsole", "exploitdb", "wpscan", "joomscan", "drupwn",
+		"nessus", "openvas", "nexpose", "metasploit-framework", "msfconsole", "exploitdb", "wpscan", "joomscan", "drupwn", "droopescan", "wpseku", "lynis", "rkhunter", "chrootkit",
 		// 信息收集工具
-		"whatweb", "wafw00f", "theharvester", "recon-ng", "maltego", "shodan",
+		"whatweb", "wafw00f", "theharvester", "recon-ng", "maltego", "shodan", "censys", "onyphe", "intelx", "waybackurls", "urlscan", "gowitness", "httprobe",
 		// 密码破解工具
-		"hydra", "medusa", "ncrack", "john", "hashcat", "ophcrack", "rainbowcrack",
+		"hydra", "medusa", "ncrack", "john", "hashcat", "ophcrack", "rainbowcrack", "crunch", "hashid", "wordlistctl", "cewl", "pwdump7", "fgdump",
 		// 无线安全工具
-		"aircrack-ng", "reaver", "wifite", "kismet", "airmon-ng", "airodump-ng",
+		"aircrack-ng", "reaver", "wifite", "kismet", "airmon-ng", "airodump-ng", "airespay", "aircrack-ng", "airdecap-ng", "bully", "fluxion",
 		// 网络分析工具
-		"wireshark", "tcpdump", "tshark", "ettercap", "driftnet", "nc", "netcat", "ncat", "socat",
+		"wireshark", "tcpdump", "tshark", "ettercap", "driftnet", "nc", "netcat", "ncat", "socat", "tcpflow", "tcpick", "tcpreplay", "p0f", "xplico",
 		// 社会工程学工具
-		"setoolkit", "social-engineer-toolkit", "beef", "phishing-frenzy",
+		"setoolkit", "social-engineer-toolkit", "beef", "phishing-frenzy", "gophish", "evilginx2", "malicious-pdf", "social-engineer-toolkit",
 		// 后渗透工具
-		"meterpreter", "empire", "cobaltstrike", "pupy", "powersploit",
+		"meterpreter", "empire", "cobaltstrike", "pupy", "powersploit", "sliver", "merlin", "koadic", "weevely", "php-reverse-shell",
 		// 开发工具
-		"curl", "wget", "python3", "python", "perl", "ruby", "java", "node", "npm",
-		"git", "docker", "kubectl", "ansible", "terraform", "vagrant",
+		"curl", "wget", "python3", "python", "perl", "ruby", "java", "node", "npm", "yarn", "go", "rustc",
+		"git", "docker", "kubectl", "ansible", "terraform", "vagrant", "pip3", "pip",
 		// 系统工具
-		"ssh", "scp", "rsync", "tar", "gzip", "zip", "unzip", "find", "grep", "awk", "sed",
-		"ftp", "rdp", "smbclient", "rpcclient",
+		"ssh", "scp", "rsync", "tar", "gzip", "zip", "unzip", "find", "grep", "awk", "sed", "cut", "sort", "uniq",
+		"ftp", "rdp", "smbclient", "rpcclient", "nfsstat", "mount", "umount", "whoami", "id", "ps", "top", "netstat", "ss",
 		// 数据库工具
-		"mysql", "psql", "sqlite3", "mssql-cli",
+		"mysql", "psql", "sqlite3", "mssql-cli", "redis-cli", "mongodb", "mongo", "pg_restore", "mysqlimport",
 		// 其他安全工具
 		"burpsuite", "zap", "gdb", "radare2", "ida", "ollydbg", "immunitydebugger",
-		"volatility", "autopsy", "sleuthkit", "binwalk", "foremost", "scalpel",
+		"volatility", "autopsy", "sleuthkit", "binwalk", "foremost", "scalpel", "photorec", "testdisk", "exiftool", "steghide", "stegseek",
+		// ParrotOS特有工具
+		"parrot-menu", "parrot-core", "parrot-tools", "parrot-utils", "parrot-security", "parrot-tools-full",
+		// 额外的渗透测试工具
+		"lbd", "fierce", "dnswalk", "dnsmap", "theharvester", "recon-ng", "maltego", "shodan", "censys", "onyphe", "intelx",
+		"sublist3r", "subfinder", "amass", "assetfinder", "findomain", "dnsrecon", "dnsenum", "dnsx", "puredns", "dnsgen", "dnscan", "altdns",
+		"httpx", "httprobe", "waybackurls", "urlscan", "gowitness", "gospider", "katana", "hakrawler", "feroxbuster", "dirbyp",
+		"nuclei", "gobuster", "dirsearch", "ffuf", "wfuzz", "arjun", "lynis", "rkhunter", "chrootkit", "lynis", "nikto", "sqlmap",
+		"wpscan", "joomscan", "drupwn", "droopescan", "wpseku", "whatweb", "wafw00f", "hydra", "medusa", "ncrack", "john", "hashcat",
+		"ophcrack", "rainbowcrack", "crunch", "hashid", "wordlistctl", "cewl", "aircrack-ng", "reaver", "wifite", "kismet", "airmon-ng",
+		"airodump-ng", "airespay", "aircrack-ng", "airdecap-ng", "bully", "fluxion", "nmap", "masscan", "zmap", "unicornscan", "hping3",
+		"netdiscover", "arp-scan", "p0f", "xprobe2", "nbtscan", "metasploit-framework", "msfconsole", "exploitdb", "searchsploit",
+		"msfvenom", "shellter", "veil-evasion", "backdoor-factory", "weevely", "php-reverse-shell", "meterpreter", "empire", "cobaltstrike",
+		"pupy", "powersploit", "sliver", "merlin", "koadic", "wireshark", "tcpdump", "tshark", "ettercap", "driftnet", "nc", "netcat",
+		"ncat", "socat", "tcpflow", "tcpick", "tcpreplay", "p0f", "xplico", "burpsuite", "zap", "gdb", "radare2", "ida", "ollydbg",
+		"immunitydebugger", "volatility", "autopsy", "sleuthkit", "binwalk", "foremost", "scalpel", "photorec", "testdisk", "exiftool",
+		"steghide", "stegseek", "cewl", "hashcat", "john", "hydra", "medusa", "ncrack", "sqlmap", "nikto", "nuclei", "gobuster",
+		"dirsearch", "ffuf", "wfuzz", "arjun", "lynis", "rkhunter", "chrootkit", "whatweb", "wafw00f", "theharvester", "recon-ng",
+		"maltego", "shodan", "censys", "onyphe", "intelx", "waybackurls", "urlscan", "gowitness", "httprobe", "gospider", "katana",
+		"hakrawler", "feroxbuster", "dirbyp", "wpscan", "joomscan", "drupwn", "droopescan", "wpseku", "mysql", "psql", "sqlite3",
+		"mssql-cli", "redis-cli", "mongodb", "mongo", "pg_restore", "mysqlimport", "mysqldump", "pg_dump", "mssql-scripter",
+		"curl", "wget", "python3", "python", "perl", "ruby", "java", "node", "npm", "yarn", "go", "rustc", "git", "docker",
+		"kubectl", "ansible", "terraform", "vagrant", "pip3", "pip", "ssh", "scp", "rsync", "tar", "gzip", "zip", "unzip",
+		"find", "grep", "awk", "sed", "cut", "sort", "uniq", "ftp", "rdp", "smbclient", "rpcclient", "nfsstat", "mount", "umount",
+		"whoami", "id", "ps", "top", "netstat", "ss", "lsof", "kill", "chmod", "chown", "passwd", "sudo", "su", "iptables", "ufw",
+		// 额外的Web工具
+		"sqlmap", "nikto", "nuclei", "gobuster", "dirsearch", "ffuf", "wfuzz", "arjun", "wpscan", "joomscan", "drupwn",
+		"droopescan", "wpseku", "whatweb", "wafw00f", "gospider", "katana", "hakrawler", "feroxbuster", "dirbyp", "httpx",
+		"httprobe", "waybackurls", "urlscan", "gowitness", "subfinder", "amass", "assetfinder", "findomain", "dnsrecon",
+		"dnsenum", "dnsx", "puredns", "dnsgen", "dnscan", "altdns", "sublist3r", "lbd", "fierce", "dnswalk", "dnsmap",
+		// 额外的系统工具
+		"lynis", "rkhunter", "chrootkit", "lsof", "kill", "chmod", "chown", "passwd", "sudo", "su", "iptables", "ufw",
+		"systemctl", "service", "init", "reboot", "shutdown", "halt", "poweroff", "uname", "lsb_release", "cat", "echo",
+		"mkdir", "rmdir", "rm", "cp", "mv", "touch", "chmod", "chown", "chgrp", "find", "grep", "awk", "sed", "cut",
+		"sort", "uniq", "head", "tail", "wc", "du", "df", "ls", "cd", "pwd", "which", "whereis", "locate", "updatedb",
+		// 额外的密码破解工具
+		"hashcat", "john", "hydra", "medusa", "ncrack", "ophcrack", "rainbowcrack", "crunch", "hashid", "wordlistctl", "cewl",
+		"pwdump7", "fgdump", "samdump2", "bkhive", "hash-identifier", "johnny", "hashcat-utils",
+		// 额外的无线工具
+		"aircrack-ng", "reaver", "wifite", "kismet", "airmon-ng", "airodump-ng", "airespay", "aircrack-ng", "airdecap-ng",
+		"bully", "fluxion", "airbase-ng", "airdecloak-ng", "aireplay-ng", "airtun-ng", "airolib-ng", "packetforge-ng",
+		// 额外的漏洞工具
+		"metasploit-framework", "msfconsole", "exploitdb", "searchsploit", "msfvenom", "shellter", "veil-evasion", "backdoor-factory",
+		"linux-exploit-suggester", "windows-exploit-suggester", "suggester", "exploitdb-downloader",
+		// 额外的取证工具
+		"volatility", "autopsy", "sleuthkit", "binwalk", "foremost", "scalpel", "photorec", "testdisk", "exiftool",
+		"steghide", "stegseek", "stegcracker", "outguess", "steghide", "zsteg", "foremost", "scalpel", "photorec",
+		// 额外的后渗透工具
+		"weevely", "php-reverse-shell", "meterpreter", "empire", "cobaltstrike", "pupy", "powersploit", "sliver", "merlin",
+		"koadic", "nishang", "invoke-pssession", "powershell-empire", "psexec", "wmiexec", "smbexec", "atexec", "dcomexec",
+		// 额外的网络工具
+		"nmap", "masscan", "zmap", "unicornscan", "hping3", "netdiscover", "arp-scan", "p0f", "xprobe2", "nbtscan",
+		"wireshark", "tcpdump", "tshark", "ettercap", "driftnet", "nc", "netcat", "ncat", "socat", "tcpflow", "tcpick",
+		"tcpreplay", "p0f", "xplico", "lsof", "netstat", "ss", "ifconfig", "ip", "route", "arp", "ping", "traceroute",
+		"mtr", "dig", "host", "nslookup", "whois", "nmap", "masscan", "zmap", "unicornscan", "hping3",
 	}
 
-	// 并行扫描工具以提高效率
+	// 1. 并行扫描预定义工具列表
+	utils.InfoPrint("正在扫描预定义工具列表...")
 	toolChan := make(chan struct {
 		name      string
 		path      string
@@ -191,7 +246,7 @@ func ScanSystemTools(aiClient AIClientInterface) *ToolManager {
 		close(toolChan)
 	}()
 
-	// 收集结果
+	// 收集预定义工具结果
 	for result := range toolChan {
 		tool := &BaseTool{
 			NameValue: result.name,
@@ -206,7 +261,29 @@ func ScanSystemTools(aiClient AIClientInterface) *ToolManager {
 		if result.available {
 			utils.SuccessPrint("✓ 检测到工具: %s -> %s", result.name, result.path)
 		} else {
-			utils.WarningPrint("✗ 未检测到工具: %s", result.name)
+			// 不再输出未检测到的工具，减少日志干扰
+			// utils.WarningPrint("✗ 未检测到工具: %s", result.name)
+		}
+	}
+
+	// 2. 自动发现系统工具 - 不依赖预定义列表
+	utils.InfoPrint("正在自动发现系统中的渗透测试工具...")
+	autoDiscoveredTools := autoDiscoverTools()
+
+	// 合并自动发现的工具
+	for _, toolName := range autoDiscoveredTools {
+		// 跳过已经在预定义列表中的工具
+		if _, exists := toolManager.Tools[toolName]; !exists {
+			path, available := findToolPath(toolName)
+			if available {
+				tool := &BaseTool{
+					NameValue: toolName,
+					Path:      path,
+					Available: available,
+				}
+				toolManager.Tools[toolName] = tool
+				utils.SuccessPrint("✓ 自动发现工具: %s -> %s", toolName, path)
+			}
 		}
 	}
 
@@ -222,6 +299,216 @@ func ScanSystemTools(aiClient AIClientInterface) *ToolManager {
 	generateToolScanReport(toolManager)
 
 	return toolManager
+}
+
+// autoDiscoverTools 自动发现系统中的渗透测试工具
+func autoDiscoverTools() []string {
+	discoveredTools := make([]string, 0)
+
+	// 根据操作系统选择不同的自动发现策略
+	currentOS := runtime.GOOS
+
+	if currentOS == "linux" {
+		// Linux系统自动发现策略
+		// 1. 从PATH环境变量中的目录扫描可执行文件
+		pathEnv := os.Getenv("PATH")
+		dirs := strings.Split(pathEnv, ":")
+
+		for _, dir := range dirs {
+			if dir == "" {
+				continue
+			}
+
+			// 打开目录
+			d, err := os.Open(dir)
+			if err != nil {
+				continue
+			}
+			defer d.Close()
+
+			// 读取目录内容
+			files, err := d.Readdir(-1)
+			if err != nil {
+				continue
+			}
+
+			// 检查每个文件
+			for _, file := range files {
+				if !file.IsDir() {
+					// 检查是否为可执行文件
+					if mode := file.Mode(); mode&0111 != 0 {
+						// 检查文件名是否符合渗透测试工具的特征
+						name := file.Name()
+						if isPotentialSecurityTool(name) {
+							discoveredTools = append(discoveredTools, name)
+						}
+					}
+				}
+			}
+		}
+
+		// 2. 扫描渗透测试系统常见目录
+		commonDirs := []string{
+			"/opt", "/usr/share", "/usr/lib", "/usr/local/share",
+			"/usr/share/metasploit-framework", "/usr/share/sqlmap",
+			"/usr/share/nmap", "/usr/share/wordlists",
+			// ParrotOS特有目录
+			"/usr/share/parrot", "/usr/share/parrot-core", "/usr/share/parrot-security",
+			"/usr/share/parrot-tools", "/opt/parrot",
+		}
+
+		for _, dir := range commonDirs {
+			if _, err := os.Stat(dir); err == nil {
+				// 扫描目录中的可执行文件
+				scanDirectoryForTools(dir, &discoveredTools)
+			}
+		}
+
+	} else if currentOS == "windows" {
+		// Windows系统自动发现策略
+		// 1. 从PATH环境变量中的目录扫描可执行文件
+		pathEnv := os.Getenv("PATH")
+		dirs := strings.Split(pathEnv, ";")
+
+		for _, dir := range dirs {
+			if dir == "" {
+				continue
+			}
+
+			// 扫描目录中的可执行文件
+			matches, err := filepath.Glob(filepath.Join(dir, "*.exe"))
+			if err != nil {
+				continue
+			}
+
+			for _, match := range matches {
+				name := filepath.Base(match)
+				// 移除.exe扩展名
+				name = strings.TrimSuffix(name, ".exe")
+				if isPotentialSecurityTool(name) {
+					discoveredTools = append(discoveredTools, name)
+				}
+			}
+		}
+
+		// 2. 扫描常见工具目录
+		commonDirs := []string{
+			"C:\\Program Files", "C:\\Program Files (x86)",
+			"C:\\Tools", "C:\\Pentest", "C:\\ProgramData\\chocolatey\\bin",
+		}
+
+		for _, dir := range commonDirs {
+			if _, err := os.Stat(dir); err == nil {
+				// 扫描目录中的可执行文件
+				matches, err := filepath.Glob(filepath.Join(dir, "*.exe"))
+				if err != nil {
+					continue
+				}
+
+				for _, match := range matches {
+					name := filepath.Base(match)
+					name = strings.TrimSuffix(name, ".exe")
+					if isPotentialSecurityTool(name) {
+						discoveredTools = append(discoveredTools, name)
+					}
+				}
+			}
+		}
+	}
+
+	// 去重
+	uniqueTools := make([]string, 0)
+	seen := make(map[string]bool)
+	for _, tool := range discoveredTools {
+		if !seen[tool] {
+			seen[tool] = true
+			uniqueTools = append(uniqueTools, tool)
+		}
+	}
+
+	return uniqueTools
+}
+
+// scanDirectoryForTools 扫描目录中的可执行文件，将符合条件的添加到发现列表
+func scanDirectoryForTools(dir string, discoveredTools *[]string) {
+	// 限制扫描深度，避免性能问题
+	maxDepth := 3
+	scanDirectoryRecursive(dir, 0, maxDepth, discoveredTools)
+}
+
+// scanDirectoryRecursive 递归扫描目录
+func scanDirectoryRecursive(dir string, depth int, maxDepth int, discoveredTools *[]string) {
+	if depth > maxDepth {
+		return
+	}
+
+	// 打开目录
+	d, err := os.Open(dir)
+	if err != nil {
+		return
+	}
+	defer d.Close()
+
+	// 读取目录内容
+	files, err := d.Readdir(-1)
+	if err != nil {
+		return
+	}
+
+	// 检查每个文件
+	for _, file := range files {
+		if file.IsDir() {
+			// 递归扫描子目录
+			scanDirectoryRecursive(filepath.Join(dir, file.Name()), depth+1, maxDepth, discoveredTools)
+		} else {
+			// 检查是否为可执行文件
+			if mode := file.Mode(); mode&0111 != 0 {
+				// 检查文件名是否符合渗透测试工具的特征
+				name := file.Name()
+				if isPotentialSecurityTool(name) {
+					*discoveredTools = append(*discoveredTools, name)
+				}
+			}
+		}
+	}
+}
+
+// isPotentialSecurityTool 判断文件名是否可能是渗透测试工具
+func isPotentialSecurityTool(name string) bool {
+	// 安全工具关键词列表
+	securityKeywords := []string{
+		"nmap", "masscan", "zmap", "unicornscan", "hping", "netdiscover", "arp-scan",
+		"amass", "subfinder", "assetfinder", "findomain", "dnsrecon", "dnsenum", "sublist3r",
+		"nikto", "dirb", "gobuster", "dirsearch", "ffuf", "wfuzz", "arjun", "nuclei",
+		"sqlmap", "sqlninja", "sqlsus", "bbqsql",
+		"nessus", "openvas", "exploitdb", "wpscan", "joomscan", "drupwn", "droopescan",
+		"whatweb", "wafw00f", "theharvester", "recon-ng", "maltego", "shodan", "censys",
+		"hydra", "medusa", "ncrack", "john", "hashcat", "ophcrack", "rainbowcrack", "crunch",
+		"aircrack", "reaver", "wifite", "kismet", "airmon", "airodump",
+		"wireshark", "tcpdump", "tshark", "ettercap", "driftnet", "nc", "netcat", "ncat", "socat",
+		"setoolkit", "beef", "phishing", "gophish", "evilginx",
+		"meterpreter", "empire", "cobaltstrike", "pupy", "powersploit", "sliver", "merlin", "koadic",
+		"weevely", "php-reverse-shell",
+		"burpsuite", "zap", "gdb", "radare2", "ida", "ollydbg", "immunitydebugger",
+		"volatility", "autopsy", "sleuthkit", "binwalk", "foremost", "scalpel", "photorec", "testdisk", "exiftool", "steghide", "stegseek",
+		"lynis", "rkhunter", "chrootkit",
+		"msf", "exploit", "payload", "vulnerability", "scan", "crack", "brute",
+		"fuzz", "enumerate", "recon", "osint", "forensic", "malware", "payload",
+		"rootkit", "backdoor", "trojan", "virus", "worm", "exploit", "vuln",
+		"parrot", "kali", "security", "hack", "pentest", "ethical",
+	}
+
+	// 转换为小写进行比较
+	nameLower := strings.ToLower(name)
+
+	// 检查是否包含安全工具关键词
+	for _, keyword := range securityKeywords {
+		if strings.Contains(nameLower, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // generateToolScanReport 生成工具扫描报告
@@ -575,7 +862,7 @@ func findToolBySystemCommand(toolName string, osType string) (string, bool) {
 
 // findToolByCommonPaths 在常见路径中查找工具
 func findToolByCommonPaths(toolName string, osType string) (string, bool) {
-	// 构建系统特定的工具路径映射（扩展版）
+	// 构建系统特定的工具路径映射（扩展版，包含ParrotOS特有路径）
 	toolPaths := map[string][]string{
 		"linux": {
 			// 标准系统路径
@@ -590,22 +877,37 @@ func findToolByCommonPaths(toolName string, osType string) (string, bool) {
 			"$HOME/bin/%s",
 			"$HOME/.cargo/bin/%s",
 			"$HOME/go/bin/%s",
+			"$HOME/.npm/bin/%s",
+			"$HOME/.yarn/bin/%s",
 			// 渗透测试系统常见路径（Kali、ParrotOS等）
 			"/opt/%s/%s",
 			"/opt/tools/%s",
+			"/opt/parrot/%s/%s",
+			"/opt/parrot/tools/%s",
 			"/usr/share/%s/%s",
 			"/usr/lib/%s/%s",
+			"/usr/share/parrot/%s/%s",
+			"/usr/lib/parrot/%s/%s",
 			// 特定工具常见路径
 			"/usr/share/nmap/scripts/%s.nse",
 			"/usr/share/metasploit-framework/tools/%s",
 			"/usr/share/sqlmap/%s.py",
 			"/usr/share/wordlists/%s",
+			"/usr/share/parrot/scripts/%s",
+			"/usr/share/parrot/tools/%s",
 			// 容器化工具路径
 			"/snap/bin/%s",
 			"/var/lib/snapd/snap/bin/%s",
 			// 包管理器路径
 			"/usr/libexec/%s",
 			"/usr/lib/%s/bin/%s",
+			// ParrotOS特有路径
+			"/usr/bin/parrot-%s",
+			"/usr/sbin/parrot-%s",
+			"/usr/local/bin/parrot-%s",
+			"/usr/share/parrot-core/%s",
+			"/usr/share/parrot-security/%s",
+			"/usr/share/parrot-tools/%s",
 		},
 		"windows": {
 			// 系统路径
@@ -629,6 +931,8 @@ func findToolByCommonPaths(toolName string, osType string) (string, bool) {
 			"C:\\Users\\%s\\AppData\\Local\\Microsoft\\WindowsApps\\%s.exe",
 			// Chocolatey路径
 			"C:\\ProgramData\\chocolatey\\bin\\%s.exe",
+			// Scoop路径
+			"$USERPROFILE\\scoop\\shims\\%s.exe",
 		},
 	}
 
@@ -636,6 +940,30 @@ func findToolByCommonPaths(toolName string, osType string) (string, bool) {
 	paths, exists := toolPaths[osType]
 	if !exists {
 		return "", false
+	}
+
+	// 扩展环境变量路径 - 检查PATH环境变量中的所有目录
+	pathEnv := os.Getenv("PATH")
+	var envDirs []string
+	if osType == "windows" {
+		envDirs = strings.Split(pathEnv, ";")
+	} else {
+		envDirs = strings.Split(pathEnv, ":")
+	}
+
+	// 为每个环境变量目录添加工具路径
+	for _, dir := range envDirs {
+		if dir != "" {
+			fullPath := filepath.Join(dir, toolName)
+			if osType == "windows" {
+				// Windows需要检查.exe扩展名
+				paths = append(paths, fullPath+".exe")
+				paths = append(paths, fullPath+".bat")
+				paths = append(paths, fullPath+".cmd")
+			} else {
+				paths = append(paths, fullPath)
+			}
+		}
 	}
 
 	// 查找工具路径

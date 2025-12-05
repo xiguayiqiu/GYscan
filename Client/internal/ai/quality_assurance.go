@@ -136,7 +136,7 @@ func (q *QualityAssurance) ValidateTask(task types.Task) (*QualityReport, error)
 }
 
 // ValidateFindings 验证发现结果
-func (q *QualityAssurance) ValidateFindings(findings []Finding, task types.Task) (*QualityReport, error) {
+func (q *QualityAssurance) ValidateFindings(findings []types.Finding, task types.Task) (*QualityReport, error) {
 	utils.InfoPrint("开始验证发现结果质量...")
 
 	report := &QualityReport{
@@ -262,7 +262,7 @@ func (q *QualityAssurance) executeValidationRules(task types.Task) []ValidationR
 	return results
 }
 
-func (q *QualityAssurance) executeFindingValidationRules(findings []Finding, task types.Task) []ValidationResult {
+func (q *QualityAssurance) executeFindingValidationRules(findings []types.Finding, task types.Task) []ValidationResult {
 	var results []ValidationResult
 
 	for _, rule := range q.validationRules {
@@ -317,7 +317,7 @@ func (q *QualityAssurance) executeRule(rule ValidationRule, task types.Task) Val
 	return result
 }
 
-func (q *QualityAssurance) executeFindingRule(rule ValidationRule, findings []Finding, task types.Task) ValidationResult {
+func (q *QualityAssurance) executeFindingRule(rule ValidationRule, findings []types.Finding, task types.Task) ValidationResult {
 	result := ValidationResult{
 		RuleID:    rule.ID,
 		RuleName:  rule.Name,
@@ -428,7 +428,7 @@ func (q *QualityAssurance) validateTaskSteps(task types.Task, rule ValidationRul
 	return result
 }
 
-func (q *QualityAssurance) validateFindingSeverity(findings []Finding, rule ValidationRule) ValidationResult {
+func (q *QualityAssurance) validateFindingSeverity(findings []types.Finding, rule ValidationRule) ValidationResult {
 	result := ValidationResult{
 		RuleID:    rule.ID,
 		RuleName:  rule.Name,
@@ -505,7 +505,7 @@ func (q *QualityAssurance) calculateQualityMetrics(task types.Task, validationRe
 	return metrics
 }
 
-func (q *QualityAssurance) calculateFindingQualityMetrics(findings []Finding, validationResults []ValidationResult) map[string]QualityMetric {
+func (q *QualityAssurance) calculateFindingQualityMetrics(findings []types.Finding, validationResults []ValidationResult) map[string]QualityMetric {
 	metrics := make(map[string]QualityMetric)
 
 	// 计算发现结果完整性指标
@@ -863,7 +863,7 @@ func (q *QualityAssurance) generateSummary(report *QualityReport) string {
 	return fmt.Sprintf("质量验证完成，总体评分: %.2f", report.OverallScore)
 }
 
-func (q *QualityAssurance) generateFindingSummary(report *QualityReport, findings []Finding) string {
+func (q *QualityAssurance) generateFindingSummary(report *QualityReport, findings []types.Finding) string {
 	return fmt.Sprintf("发现结果验证完成，评分: %.2f", report.OverallScore)
 }
 
@@ -909,7 +909,7 @@ func (q *QualityAssurance) calculateReportStructureScore(reportData types.Report
 	if reportData.RiskAssessment.OverallRisk != "" {
 		score += 0.3
 	}
-	if reportData.Metadata != nil && len(reportData.Metadata) > 0 {
+	if len(reportData.Metadata) > 0 {
 		score += 0.3
 	}
 

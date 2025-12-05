@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"GYscan/internal/ai/types"
 	"GYscan/internal/utils"
 
 	"github.com/looplab/fsm"
@@ -16,7 +17,7 @@ type PenetrationStateMachine struct {
 	ToolManager                 *ToolManager
 	ScanResult                  string
 	InformationGatheringResults map[string]string
-	Findings                    []Finding
+	Findings                    []types.Finding
 }
 
 // NewPenetrationStateMachine 创建新的渗透测试状态机
@@ -25,7 +26,7 @@ func NewPenetrationStateMachine(target string, toolManager *ToolManager) *Penetr
 		Target:                      target,
 		ToolManager:                 toolManager,
 		InformationGatheringResults: make(map[string]string),
-		Findings:                    []Finding{},
+		Findings:                    []types.Finding{},
 	}
 
 	// 初始化状态机
@@ -133,7 +134,7 @@ func (psm *PenetrationStateMachine) GetInformationGatheringResults() map[string]
 }
 
 // VulnScanComplete 漏洞扫描完成
-func (psm *PenetrationStateMachine) VulnScanComplete(findings []Finding) error {
+func (psm *PenetrationStateMachine) VulnScanComplete(findings []types.Finding) error {
 	psm.Findings = findings
 	return psm.FSM.Event(context.Background(), "vuln_scan_complete")
 }

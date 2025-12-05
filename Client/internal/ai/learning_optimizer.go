@@ -99,7 +99,7 @@ func (l *LearningOptimizer) RecordPerformance(metric PerformanceMetric) error {
 }
 
 // AnalyzePatterns 分析模式
-func (l *LearningOptimizer) AnalyzePatterns(taskData types.Task, findings []Finding) error {
+func (l *LearningOptimizer) AnalyzePatterns(taskData types.Task, findings []types.Finding) error {
 	utils.InfoPrint("分析安全模式...")
 
 	// 分析目标类型模式
@@ -206,7 +206,7 @@ func (l *LearningOptimizer) GetPerformanceReport() (*PerformanceReport, error) {
 
 // 模式分析函数
 
-func (l *LearningOptimizer) analyzeTargetPatterns(taskData types.Task, findings []Finding) []Pattern {
+func (l *LearningOptimizer) analyzeTargetPatterns(taskData types.Task, findings []types.Finding) []Pattern {
 	var patterns []Pattern
 
 	// 分析目标类型与漏洞关联
@@ -235,7 +235,7 @@ func (l *LearningOptimizer) analyzeTargetPatterns(taskData types.Task, findings 
 	return patterns
 }
 
-func (l *LearningOptimizer) analyzeVulnerabilityPatterns(findings []Finding) []Pattern {
+func (l *LearningOptimizer) analyzeVulnerabilityPatterns(findings []types.Finding) []Pattern {
 	var patterns []Pattern
 
 	// 分析漏洞组合模式

@@ -811,6 +811,9 @@ func (c *AIClient) parseResponse(respBody []byte, provider string) (string, erro
 	case "cohere":
 		// Cohere使用不同的响应格式
 		return c.parseCohereResponse(respBody)
+	case "deepseek", "openai", "azure", "mistral", "togetherai", "openrouter", "moonshot", "zhipu", "qwen", "doubao", "dashscope", "perplexity", "fireworks", "inflection", "siliconflow":
+		// 这些提供商使用OpenAI兼容格式
+		return c.parseOpenAIResponse(respBody)
 	default:
 		// 其他提供商使用OpenAI兼容格式
 		return c.parseOpenAIResponse(respBody)
@@ -869,18 +872,73 @@ func (c *AIClient) parseOllamaResponse(respBody []byte) (string, error) {
 
 // parseOpenAIResponse 解析OpenAI兼容的响应格式
 func (c *AIClient) parseOpenAIResponse(respBody []byte) (string, error) {
+	// 首先尝试标准的OpenAI格式
 	var aiResp AIResponse
-	if err := json.Unmarshal(respBody, &aiResp); err != nil {
-		return "", fmt.Errorf("解析OpenAI响应失败: %v", err)
+	if err := json.Unmarshal(respBody, &aiResp); err == nil {
+		if len(aiResp.Choices) > 0 && aiResp.Choices[0].Message.Content != "" {
+			utils.InfoPrint("OpenAI标准格式解析成功，内容长度: %d 字符", len(aiResp.Choices[0].Message.Content))
+			return aiResp.Choices[0].Message.Content, nil
+		}
 	}
 
-	// 检查是否有响应内容
-	if len(aiResp.Choices) == 0 || aiResp.Choices[0].Message.Content == "" {
-		return "", fmt.Errorf("OpenAI未返回有效响应")
+	// 如果标准格式失败，尝试更通用的格式
+	var genericResp struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+		Text string `json:"text"`
+		Data struct {
+			Text string `json:"text"`
+		} `json:"data"`
+		Result   string `json:"result"`
+		Output   string `json:"output"`
+		Response string `json:"response"`
+		Message  string `json:"message"`
 	}
 
-	utils.InfoPrint("OpenAI响应解析成功，内容长度: %d 字符", len(aiResp.Choices[0].Message.Content))
-	return aiResp.Choices[0].Message.Content, nil
+	if err := json.Unmarshal(respBody, &genericResp); err != nil {
+		return "", fmt.Errorf("解析OpenAI兼容响应失败: %v", err)
+	}
+
+	// 尝试不同的字段获取内容
+	if len(genericResp.Choices) > 0 && genericResp.Choices[0].Message.Content != "" {
+		utils.InfoPrint("OpenAI兼容格式解析成功，内容长度: %d 字符", len(genericResp.Choices[0].Message.Content))
+		return genericResp.Choices[0].Message.Content, nil
+	}
+
+	if genericResp.Text != "" {
+		utils.InfoPrint("文本字段解析成功，内容长度: %d 字符", len(genericResp.Text))
+		return genericResp.Text, nil
+	}
+
+	if genericResp.Data.Text != "" {
+		utils.InfoPrint("数据文本字段解析成功，内容长度: %d 字符", len(genericResp.Data.Text))
+		return genericResp.Data.Text, nil
+	}
+
+	if genericResp.Result != "" {
+		utils.InfoPrint("结果字段解析成功，内容长度: %d 字符", len(genericResp.Result))
+		return genericResp.Result, nil
+	}
+
+	if genericResp.Output != "" {
+		utils.InfoPrint("输出字段解析成功，内容长度: %d 字符", len(genericResp.Output))
+		return genericResp.Output, nil
+	}
+
+	if genericResp.Response != "" {
+		utils.InfoPrint("响应字段解析成功，内容长度: %d 字符", len(genericResp.Response))
+		return genericResp.Response, nil
+	}
+
+	if genericResp.Message != "" {
+		utils.InfoPrint("消息字段解析成功，内容长度: %d 字符", len(genericResp.Message))
+		return genericResp.Message, nil
+	}
+
+	return "", fmt.Errorf("OpenAI兼容响应未包含有效内容")
 }
 
 // parseAnthropicResponse 解析Anthropic的响应格式

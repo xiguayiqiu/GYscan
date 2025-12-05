@@ -113,7 +113,10 @@ func (to *TestOrchestrator) ExecuteFullTest(target string) (*TestResults, error)
 	// 4. 漏洞利用阶段（基于风险评估决定是否执行）
 	if targetAnalysis.RiskLevel == types.RiskLevelHigh || targetAnalysis.RiskLevel == types.RiskLevelMedium {
 		utils.InfoPrint("阶段4: 漏洞利用")
-		exploitResult, err := to.executeExploitationPhase(target, targetAnalysis, vulnScanResult)
+		exploitResult, err2 := to.executeExploitationPhase(target, targetAnalysis, vulnScanResult)
+		if err2 != nil {
+			utils.WarningPrint("漏洞利用阶段部分失败: %v", err2)
+		}
 
 		if err != nil {
 			utils.WarningPrint("漏洞利用阶段部分失败: %v", err)

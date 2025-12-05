@@ -58,7 +58,7 @@ func generateConfigWithComments(config AIConfig) string {
 
 	// 服务提供商配置
 	yamlStr += "# 服务提供商配置\n"
-	yamlStr += "# 支持的提供商: ollama, openai, azure, anthropic, deepseek\n"
+	yamlStr += "# 支持的提供商: ollama, openai, azure, anthropic, deepseek, google, cohere, huggingface, mistral, togetherai, replicate, openrouter, moonshot, zhipu, qwen, doubao, dashscope, perplexity, fireworks, inflection, siliconflow\n"
 	yamlStr += fmt.Sprintf("provider: %s\n", config.Provider)
 
 	// 模型配置
@@ -135,7 +135,7 @@ func TestConfig(config AIConfig) (time.Duration, error) {
 			return 0, fmt.Errorf("Ollama服务测试失败: %v", err)
 		}
 		return 0, nil // 本地服务延迟忽略
-	case "openai", "azure", "anthropic", "deepseek":
+	case "openai", "azure", "anthropic", "deepseek", "google", "cohere", "huggingface", "mistral", "togetherai", "replicate", "openrouter", "moonshot", "zhipu", "qwen", "doubao", "dashscope", "perplexity", "fireworks", "inflection", "siliconflow":
 		// 云服务测试
 		if config.APIKey == "" || config.APIKey == "false" {
 			return 0, fmt.Errorf("云服务需要提供API密钥")

@@ -105,13 +105,13 @@ func (r *ReportAnalyzer) CompareReports(reports []types.ReportData) (*types.AIAn
 }
 
 // analyzeFindings 分析发现结果
-func (r *ReportAnalyzer) analyzeFindings(findings []Finding) *FindingAnalysis {
+func (r *ReportAnalyzer) analyzeFindings(findings []types.Finding) *FindingAnalysis {
 	analysis := &FindingAnalysis{
 		TotalFindings:     len(findings),
 		SeverityBreakdown: make(map[string]int),
 		TypeBreakdown:     make(map[string]int),
 		CommonPatterns:    []string{},
-		TopRisks:          []Finding{},
+		TopRisks:          []types.Finding{},
 	}
 
 	// 统计严重程度分布
@@ -723,8 +723,8 @@ type TrendMetric struct {
 
 type ComparisonAnalysis struct {
 	ReportCount      int
-	CommonFindings   []Finding
-	UniqueFindings   map[string][]Finding
+	CommonFindings   []types.Finding
+	UniqueFindings   map[string][]types.Finding
 	RiskComparison   map[string]string
 	ImprovementTrend string
 }
@@ -768,8 +768,8 @@ func calculateTimeRange(reports []types.ReportData) string {
 		latest.Format("2006-01-02"))
 }
 
-func filterFindingsByType(findings []Finding, findingType string) []Finding {
-	var result []Finding
+func filterFindingsByType(findings []types.Finding, findingType string) []types.Finding {
+	var result []types.Finding
 
 	for _, finding := range findings {
 		if strings.Contains(strings.ToLower(finding.Type), strings.ToLower(findingType)) {

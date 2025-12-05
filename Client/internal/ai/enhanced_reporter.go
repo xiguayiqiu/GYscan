@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -85,14 +86,14 @@ func (r *EnhancedReporter) buildReportData(
 	phases []types.WorkflowPhase,
 	findings []types.Finding,
 	riskAssessment *types.RiskAssessment,
-) ReportData {
+) types.ReportData {
 	// 按严重程度排序发现结果
 	sort.Slice(findings, func(i, j int) bool {
 		return getSeverityWeight(findings[i].Severity) > getSeverityWeight(findings[j].Severity)
 	})
 
 	// 构建报告数据
-	data := ReportData{
+	data := types.ReportData{
 		ID:              task.ID,
 		TaskID:          task.ID,
 		Title:           fmt.Sprintf("增强安全扫描报告 - %s", task.Target),
@@ -154,11 +155,11 @@ func (r *EnhancedReporter) generateSummary(
 }
 
 // convertFindings 转换发现结果
-func (r *EnhancedReporter) convertFindings(findings []types.Finding) []Finding {
-	var result []Finding
+func (r *EnhancedReporter) convertFindings(findings []types.Finding) []types.Finding {
+	var result []types.Finding
 
 	for _, f := range findings {
-		finding := Finding{
+		finding := types.Finding{
 			Type:           f.Type,
 			Severity:       f.Severity,
 			Title:          f.Title,
@@ -222,7 +223,7 @@ func (r *EnhancedReporter) extractLogs(phases []types.WorkflowPhase) []string {
 }
 
 // generateMarkdownReport 生成Markdown格式报告
-func (r *EnhancedReporter) generateMarkdownReport(data ReportData, baseName string) error {
+func (r *EnhancedReporter) generateMarkdownReport(data types.ReportData, baseName string) error {
 	reportPath := filepath.Join(r.reportDir, baseName+"_enhanced.md")
 
 	// 生成增强的Markdown内容
@@ -237,7 +238,7 @@ func (r *EnhancedReporter) generateMarkdownReport(data ReportData, baseName stri
 }
 
 // generateHTMLReport 生成HTML格式报告
-func (r *EnhancedReporter) generateHTMLReport(data ReportData, baseName string) error {
+func (r *EnhancedReporter) generateHTMLReport(data types.ReportData, baseName string) error {
 	reportPath := filepath.Join(r.reportDir, baseName+"_enhanced.html")
 
 	// 首先生成Markdown内容
@@ -255,7 +256,7 @@ func (r *EnhancedReporter) generateHTMLReport(data ReportData, baseName string) 
 }
 
 // generatePDFReport 生成PDF格式报告
-func (r *EnhancedReporter) generatePDFReport(data ReportData, baseName string) error {
+func (r *EnhancedReporter) generatePDFReport(data types.ReportData, baseName string) error {
 	reportPath := filepath.Join(r.reportDir, baseName+"_enhanced.pdf")
 
 	// 首先生成HTML内容
@@ -275,7 +276,7 @@ func (r *EnhancedReporter) generatePDFReport(data ReportData, baseName string) e
 }
 
 // generateEnhancedMarkdown 生成增强的Markdown内容
-func (r *EnhancedReporter) generateEnhancedMarkdown(data ReportData) string {
+func (r *EnhancedReporter) generateEnhancedMarkdown(data types.ReportData) string {
 	var md strings.Builder
 
 	// 报告标题
@@ -494,11 +495,11 @@ func (r *EnhancedReporter) generateEnhancedHTML(markdown string) string {
     </div>
     
     <div class="report-section">
-        %s
+        <!--REPORT_CONTENT-->
     </div>
     
     <div class="footer">
-        <p>报告生成时间: %s</p>
+        <p>报告生成时间: <!--REPORT_TIME--></p>
         <p>生成工具: GYscan AI 增强报告模块</p>
     </div>
 </body>
@@ -506,7 +507,11 @@ func (r *EnhancedReporter) generateEnhancedHTML(markdown string) string {
 
 	// 转换Markdown为HTML
 	htmlContent := markdownToHTML(markdown)
-	fullHTML := fmt.Sprintf(htmlTemplate, htmlContent, time.Now().Format("2006-01-02 15:04:05"))
+	reportTime := time.Now().Format("2006-01-02 15:04:05")
+
+	// 使用更安全的字符串替换方式，避免%字符导致的问题
+	fullHTML := strings.Replace(htmlTemplate, "<!--REPORT_CONTENT-->", htmlContent, 1)
+	fullHTML = strings.Replace(fullHTML, "<!--REPORT_TIME-->", reportTime, 1)
 	return fullHTML
 }
 
@@ -545,11 +550,98 @@ func filterFindingsBySeverity(findings []types.Finding, severity string) []types
 
 // markdownToHTML 将Markdown转换为HTML
 func markdownToHTML(markdown string) string {
-	// 使用更简单的HTML转换，避免复杂的字符串替换导致的乱码
-	// 将Markdown内容直接放入pre标签中，保持原始格式
-	html := fmt.Sprintf(`<div class="markdown-content">
-<pre style="white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; background-color: #f8f9fa; padding: 20px; border-radius: 5px; border: 1px solid #e0e0e0;">%s</pre>
-</div>`, markdown)
-	
-	return html
+	// 实现基本的Markdown到HTML转换
+	html := markdown
+
+	// 转换代码块（先转换代码块，避免与其他转换冲突）
+	html = regexp.MustCompile("(?m)^```([\\s\\S]*?)^```$").ReplaceAllString(html, "<pre><code>$1</code></pre>")
+
+	// 转换行内代码
+	html = regexp.MustCompile("`([^`]+)`").ReplaceAllString(html, "<code>$1</code>")
+
+	// 转换标题
+	html = regexp.MustCompile("(?m)^# (.*)$").ReplaceAllString(html, "<h1>$1</h1>")
+	html = regexp.MustCompile("(?m)^## (.*)$").ReplaceAllString(html, "<h2>$1</h2>")
+	html = regexp.MustCompile("(?m)^### (.*)$").ReplaceAllString(html, "<h3>$1</h3>")
+	html = regexp.MustCompile("(?m)^#### (.*)$").ReplaceAllString(html, "<h4>$1</h4>")
+	html = regexp.MustCompile("(?m)^##### (.*)$").ReplaceAllString(html, "<h5>$1</h5>")
+	html = regexp.MustCompile("(?m)^###### (.*)$").ReplaceAllString(html, "<h6>$1</h6>")
+
+	// 转换粗体
+	html = regexp.MustCompile("\\*\\*(.*?)\\*\\*").ReplaceAllString(html, "<strong>$1</strong>")
+
+	// 转换表格
+	// 简单的表格转换，支持基本的Markdown表格语法
+	html = regexp.MustCompile("(?m)(\\|.*?\\|\\n\\|.*?\\|)(\\n(?:\\|.*?\\|\\n)*)").ReplaceAllStringFunc(html, func(table string) string {
+		lines := strings.Split(strings.TrimSpace(table), "\n")
+		if len(lines) < 2 {
+			return table
+		}
+
+		result := "<table>\n"
+
+		// 表头
+		headerCells := regexp.MustCompile("\\|").Split(strings.TrimSpace(lines[0]), -1)
+		result += "<thead>\n<tr>\n"
+		for _, cell := range headerCells[1 : len(headerCells)-1] { // 去掉首尾空元素
+			result += fmt.Sprintf("<th>%s</th>\n", strings.TrimSpace(cell))
+		}
+		result += "</tr>\n</thead>\n"
+
+		// 表格内容
+		result += "<tbody>\n"
+		for i := 2; i < len(lines); i++ { // 从第三行开始（跳过表头和分隔线）
+			rowCells := regexp.MustCompile("\\|").Split(strings.TrimSpace(lines[i]), -1)
+			result += "<tr>\n"
+			for _, cell := range rowCells[1 : len(rowCells)-1] { // 去掉首尾空元素
+				result += fmt.Sprintf("<td>%s</td>\n", strings.TrimSpace(cell))
+			}
+			result += "</tr>\n"
+		}
+		result += "</tbody>\n"
+
+		result += "</table>\n"
+		return result
+	})
+
+	// 转换列表
+	html = regexp.MustCompile("(?m)^- (.*)$").ReplaceAllString(html, "<ul><li>$1</li></ul>")
+	html = regexp.MustCompile("(?m)^(\\d+)\\. (.*)$").ReplaceAllString(html, "<ol><li>$2</li></ol>")
+
+	// 合并相邻的列表项
+	html = regexp.MustCompile("</ul>\\s*<ul>").ReplaceAllString(html, "")
+	html = regexp.MustCompile("</ol>\\s*<ol>").ReplaceAllString(html, "")
+
+	// 转换水平线
+	html = regexp.MustCompile("(?m)^---$").ReplaceAllString(html, "<hr>")
+
+	// 转换段落 - 使用更简单的方式，避免使用负向前瞻断言
+	lines := strings.Split(html, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		// 检查是否已经是HTML标签
+		if strings.HasPrefix(trimmed, "<") && strings.HasSuffix(trimmed, ">") {
+			continue
+		}
+		// 检查是否以特定标签开头
+		if strings.HasPrefix(trimmed, "<h") || strings.HasPrefix(trimmed, "</h") ||
+			strings.HasPrefix(trimmed, "<table") || strings.HasPrefix(trimmed, "<tr") ||
+			strings.HasPrefix(trimmed, "<td") || strings.HasPrefix(trimmed, "<th") ||
+			strings.HasPrefix(trimmed, "<ul") || strings.HasPrefix(trimmed, "<ol") ||
+			strings.HasPrefix(trimmed, "<li") || strings.HasPrefix(trimmed, "<pre") ||
+			strings.HasPrefix(trimmed, "<code") || strings.HasPrefix(trimmed, "<hr") {
+			continue
+		}
+		// 转换为段落
+		lines[i] = "<p>" + line + "</p>"
+	}
+	html = strings.Join(lines, "\n")
+
+	// 清理多余的空行
+	html = regexp.MustCompile("\\n\\s*\\n").ReplaceAllString(html, "\n")
+
+	return fmt.Sprintf("<div class=\"markdown-content\">%s</div>", html)
 }
