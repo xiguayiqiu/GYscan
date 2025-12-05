@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"GYscan/internal/ai"
 	"GYscan/internal/csrf"
 	"GYscan/internal/nmap"
 	"GYscan/internal/utils"
@@ -177,9 +176,6 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
 
-	// 注册AI命令
-	ai.RegisterCommands()
-
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)      // 查看工具信息
 	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
@@ -202,7 +198,6 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(whoisCmd)      // Whois查询工具
 
 	// ===== 测试阶段命令 =====
-	cmd.AddCommand(ai.AICmd)      // AI模型驱动的渗透测试与安全探测功能 [测试阶段]
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
 	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
 	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]
