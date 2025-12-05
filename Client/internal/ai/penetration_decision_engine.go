@@ -530,6 +530,109 @@ func (pde *PenetrationDecisionEngine) ExecuteDecision(decision *PenetrationDecis
 	return output, err
 }
 
+// MakeNextDecision 根据执行结果制定下一步决策
+func (pde *PenetrationDecisionEngine) MakeNextDecision(target string, currentPhase string, lastResult string, lastDecision *PenetrationDecision) (*PenetrationDecision, string, error) {
+	// 构建AI提示，让AI判断下一步行动
+	systemPrompt := `你是一名专业的渗透测试工程师。请根据目标信息、当前阶段、上一次执行结果和历史决策，判断下一步行动。`
+
+	userContent := fmt.Sprintf(`目标: %s
+当前阶段: %s
+上一次执行结果: %s
+上一次决策: %v
+
+历史决策记录:
+%s
+
+请判断:
+1. 是否继续当前阶段
+2. 是否进入下一阶段
+3. 如果继续当前阶段，选择最合适的工具和参数
+4. 如果进入下一阶段，说明下一阶段的目标和策略
+
+返回JSON格式:
+{
+  "action": "continue_phase|next_phase|finish",
+  "next_phase": "下一阶段名称",
+  "tool": "工具名称",
+  "parameters": ["参数1", "参数2"],
+  "reasoning": "决策理由",
+  "expected_impact": "预期影响"
+}`,
+		target, currentPhase, lastResult, lastDecision, pde.formatDecisionHistoryForAI())
+
+	messages := []Message{
+		{
+			Role:    "system",
+			Content: systemPrompt,
+		},
+		{
+			Role:    "user",
+			Content: userContent,
+		},
+	}
+
+	// 调用AI生成下一步决策
+	response, err := pde.AIClient.Chat(messages)
+	if err != nil {
+		utils.WarningPrint("AI生成下一步决策失败: %v", err)
+		// 生成默认下一步决策
+		nextDecision := pde.generateDefaultDecision(target, currentPhase, lastResult, "low", pde.selectStrategy(target, currentPhase, lastResult))
+		return nextDecision, currentPhase, nil
+	}
+
+	// 解析AI返回的下一步决策
+	var nextAction struct {
+		Action         string   `json:"action"`
+		NextPhase      string   `json:"next_phase"`
+		Tool           string   `json:"tool"`
+		Parameters     []string `json:"parameters"`
+		Reasoning      string   `json:"reasoning"`
+		ExpectedImpact string   `json:"expected_impact"`
+	}
+
+	if err := json.Unmarshal([]byte(response), &nextAction); err != nil {
+		utils.WarningPrint("AI下一步决策解析失败: %v", err)
+		// 生成默认下一步决策
+		nextDecision := pde.generateDefaultDecision(target, currentPhase, lastResult, "low", pde.selectStrategy(target, currentPhase, lastResult))
+		return nextDecision, currentPhase, nil
+	}
+
+	// 确定下一步的阶段
+	nextPhase := currentPhase
+	if nextAction.Action == "next_phase" && nextAction.NextPhase != "" {
+		nextPhase = nextAction.NextPhase
+	}
+
+	// 如果AI决定结束，返回nil
+	if nextAction.Action == "finish" {
+		return nil, nextPhase, nil
+	}
+
+	// 生成下一步决策
+	decision := &PenetrationDecision{
+		ID:             fmt.Sprintf("decision_%d", time.Now().Unix()),
+		Target:         target,
+		Phase:          nextPhase,
+		DecisionType:   "ai_generated",
+		Tool:           nextAction.Tool,
+		Parameters:     nextAction.Parameters,
+		Reasoning:      nextAction.Reasoning,
+		RiskLevel:      pde.assessRisk(target, lastResult),
+		ExpectedImpact: nextAction.ExpectedImpact,
+		Timestamp:      time.Now(),
+		Executed:       false,
+		Success:        false,
+	}
+
+	// 记录决策
+	pde.recordDecision(decision)
+
+	utils.InfoPrint("AI生成下一步决策: 动作=%s, 阶段=%s, 工具=%s",
+		nextAction.Action, nextPhase, nextAction.Tool)
+
+	return decision, nextPhase, nil
+}
+
 // LearnFromDecision 从决策中学习
 func (pde *PenetrationDecisionEngine) LearnFromDecision(decision *PenetrationDecision, actualResult string) {
 	// 分析执行结果并更新策略库

@@ -20,7 +20,7 @@ var (
 // AICmd 定义AI主命令
 var AICmd = &cobra.Command{
 	Use:   "ai",
-	Short: "AI模型驱动的渗透测试与安全探测功能",
+	Short: "AI模型驱动的渗透测试与安全探测功能 [测试阶段]",
 	Long:  `基于AI Agent的自动化网络安全操作，包括渗透测试、安全探测和报告生成。`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()

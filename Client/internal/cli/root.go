@@ -200,9 +200,9 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(xss.XssCmd)    // XSS漏洞检测工具
 	cmd.AddCommand(wafCmd)        // WAF识别工具
 	cmd.AddCommand(whoisCmd)      // Whois查询工具
-	cmd.AddCommand(ai.AICmd)      // AI模型驱动的渗透测试与安全探测功能
 
 	// ===== 测试阶段命令 =====
+	cmd.AddCommand(ai.AICmd)      // AI模型驱动的渗透测试与安全探测功能 [测试阶段]
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
 	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
 	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]

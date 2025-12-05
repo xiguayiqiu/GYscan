@@ -1,6 +1,7 @@
 package ai
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"GYscan/internal/ai/config"
 	"GYscan/internal/utils"
@@ -34,6 +36,7 @@ type BaseTool struct {
 	NameValue string
 	Path      string
 	Available bool
+	Timeout   time.Duration // 工具执行超时
 }
 
 // Name 返回工具名称
@@ -51,14 +54,34 @@ func (t *BaseTool) GetPath() string {
 	return t.Path
 }
 
-// Run 执行工具命令
+// Run 执行工具命令，使用更安全的参数解析和超时控制
 func (t *BaseTool) Run(args ...string) (string, error) {
 	if !t.Available {
 		return "", fmt.Errorf("工具 %s 不可用", t.Name())
 	}
 
+	// 使用安全的参数解析，防止命令注入
+	safeArgs := make([]string, len(args))
+	for i, arg := range args {
+		// 移除或转义危险字符，防止命令注入
+		safeArgs[i] = strings.ReplaceAll(arg, ";", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], "|", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], ">", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], "<", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], "`", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], "$", "")
+		safeArgs[i] = strings.ReplaceAll(safeArgs[i], "&", "")
+	}
+
 	// 构建命令
-	cmd := exec.Command(t.Path, args...)
+	cmd := exec.Command(t.Path, safeArgs...)
+
+	// 设置超时
+	if t.Timeout > 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), t.Timeout)
+		defer cancel()
+		cmd = exec.CommandContext(ctx, t.Path, safeArgs...)
+	}
 
 	// 捕获命令输出
 	output, err := cmd.CombinedOutput()
@@ -81,6 +104,12 @@ func (t *BaseTool) ParseResult(output string) (string, error) {
 type ToolManager struct {
 	Tools        map[string]ToolInterface
 	SmartManager *SmartToolManager
+	Timeout      time.Duration // 默认工具执行超时
+}
+
+// AsyncToolManager 异步工具管理器
+type AsyncToolManager struct {
+	ToolManager *ToolManager
 }
 
 // NewToolManager 创建工具管理器
@@ -88,6 +117,14 @@ func NewToolManager() *ToolManager {
 	return &ToolManager{
 		Tools:        make(map[string]ToolInterface),
 		SmartManager: nil,
+		Timeout:      5 * time.Minute, // 默认工具执行超时5分钟
+	}
+}
+
+// NewAsyncToolManager 创建异步工具管理器
+func NewAsyncToolManager(toolManager *ToolManager) *AsyncToolManager {
+	return &AsyncToolManager{
+		ToolManager: toolManager,
 	}
 }
 
@@ -1116,6 +1153,84 @@ func RunCommand(cmdName string, args ...string) (string, error) {
 	fmt.Println(string(output))
 
 	return string(output), nil
+}
+
+// ExecuteToolsAsync 异步执行多个工具
+func (atm *AsyncToolManager) ExecuteToolsAsync(target string, toolNames []string, context string) map[string]string {
+	results := make(map[string]string)
+	var mu sync.Mutex
+
+	// 创建结果通道和错误通道
+	resultCh := make(chan struct {
+		toolName string
+		output   string
+	}, len(toolNames))
+	errCh := make(chan error, len(toolNames))
+
+	var wg sync.WaitGroup
+
+	// 执行每个工具
+	for _, toolName := range toolNames {
+		toolName := toolName
+		tool, exists := atm.ToolManager.GetTool(toolName)
+		if !exists || !tool.IsAvailable() {
+			utils.WarningPrint("工具 %s 不可用，跳过", toolName)
+			continue
+		}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			var output string
+			var err error
+
+			// 使用智能工具管理器执行工具
+			if atm.ToolManager.SmartManager != nil {
+				output, err = atm.ToolManager.SmartManager.ExecuteToolWithAI(
+					toolName, target, context)
+			} else {
+				// 使用默认参数执行
+				output, err = tool.Run(target)
+			}
+
+			if err != nil {
+				errCh <- fmt.Errorf("工具 %s 执行失败: %v", toolName, err)
+				return
+			}
+
+			// 发送结果到通道
+			resultCh <- struct {
+				toolName string
+				output   string
+			}{toolName: toolName, output: output}
+		}()
+	}
+
+	// 收集结果的goroutine
+	go func() {
+		for result := range resultCh {
+			mu.Lock()
+			results[result.toolName] = result.output
+			mu.Unlock()
+		}
+	}()
+
+	// 收集错误的goroutine
+	go func() {
+		for err := range errCh {
+			utils.ErrorPrint("%v", err)
+		}
+	}()
+
+	// 等待所有工具执行完成
+	wg.Wait()
+
+	// 关闭通道
+	close(resultCh)
+	close(errCh)
+
+	return results
 }
 
 // initResourceDir 初始化资源目录

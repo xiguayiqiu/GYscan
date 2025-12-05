@@ -84,11 +84,24 @@ func (f *ClientFactory) TestConnection(cfg config.AIConfig) (bool, error) {
 // GetSupportedProviders 获取支持的AI提供商列表
 func (f *ClientFactory) GetSupportedProviders() []string {
 	return []string{
-		"openai",   // OpenAI官方API
-		"azure",    // Azure OpenAI服务
-		"deepseek", // DeepSeek API
-		"ollama",   // 本地Ollama服务
-		"custom",   // 自定义HTTP服务
+		"openai",     // OpenAI官方API
+		"azure",      // Azure OpenAI服务
+		"deepseek",   // DeepSeek API
+		"ollama",     // 本地Ollama服务
+		"llama",      // 本地Llama.cpp服务
+		"go-ollama",  // go-ollama客户端
+		"langchain",  // LangChain AI框架
+		"custom",     // 自定义HTTP服务
+		"google",     // Google Gemini API
+		"cohere",     // Cohere API
+		"anthropic",  // Anthropic Claude API
+		"mistral",    // Mistral AI API
+		"togetherai", // Together AI API
+		"openrouter", // OpenRouter AI API
+		"moonshot",   // 月之暗面API
+		"zhipu",      // 智谱AI API
+		"qwen",       // 通义千问API
+		"doubao",     // 豆包API
 	}
 }
 

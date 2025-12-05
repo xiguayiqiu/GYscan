@@ -389,13 +389,24 @@ func intelligentPenetrationTest(target string) (string, error) {
 		return "", fmt.Errorf("创建AI客户端失败: %v", err)
 	}
 
-	// 阶段1: 智能信息收集
+	// 阶段1: 智能信息收集（基于专业框架）
 	results.WriteString("\n=== 阶段1: 智能信息收集 ===\n")
-	infoGatheringResult, err := intelligentInformationGathering(target, availableTools, aiClient)
+	infoGatheringResults, err := performIntelligentInformationGathering(target, availableTools)
 	if err != nil {
-		return "", fmt.Errorf("信息收集失败: %v", err)
+		utils.WarningPrint("智能信息收集失败，回退到传统信息收集: %v", err)
+		// 回退到传统信息收集
+		infoGatheringResult, err := intelligentInformationGathering(target, availableTools, aiClient)
+		if err != nil {
+			return "", fmt.Errorf("信息收集失败: %v", err)
+		}
+		results.WriteString(infoGatheringResult)
+	} else {
+		// 整合信息收集结果
+		for key, value := range infoGatheringResults {
+			results.WriteString(fmt.Sprintf("\n--- %s 结果 ---\n", key))
+			results.WriteString(value)
+		}
 	}
-	results.WriteString(infoGatheringResult)
 
 	// 阶段2: 智能漏洞利用
 	results.WriteString("\n=== 阶段2: 智能漏洞利用 ===\n")
@@ -410,7 +421,7 @@ func intelligentPenetrationTest(target string) (string, error) {
 			Available: true,
 		}
 	}
-	vulnExploitResult, err := intelligentVulnerabilityExploitation(target, aiClient, tempToolManager, infoGatheringResult)
+	vulnExploitResult, err := intelligentVulnerabilityExploitation(target, aiClient, tempToolManager, results.String())
 	if err != nil {
 		return "", fmt.Errorf("漏洞利用失败: %v", err)
 	}
@@ -548,6 +559,222 @@ func intelligentInformationGathering(target string, availableTools map[string]bo
 	}
 
 	return results, nil
+}
+
+// performIntelligentInformationGathering 执行智能信息收集（基于专业信息收集框架）
+func performIntelligentInformationGathering(target string, availableTools map[string]bool) (map[string]string, error) {
+	var rawResults map[string]string = make(map[string]string)
+
+	utils.InfoPrint("=== 开始智能信息收集 ===")
+	utils.InfoPrint("目标: %s", target)
+
+	// 1. 被动信息收集
+	utils.InfoPrint("\n--- 执行被动信息收集 ---")
+	passiveResults, err := performPassiveInformationGathering(target, availableTools)
+	if err != nil {
+		utils.ErrorPrint("被动信息收集失败: %v", err)
+	} else {
+		rawResults["passive_info"] = passiveResults
+	}
+
+	// 2. 主动信息收集
+	utils.InfoPrint("\n--- 执行主动信息收集 ---")
+	activeResults, err := performActiveInformationGathering(target, availableTools)
+	if err != nil {
+		utils.ErrorPrint("主动信息收集失败: %v", err)
+	} else {
+		rawResults["active_info"] = activeResults
+	}
+
+	// 3. 技术情报收集
+	utils.InfoPrint("\n--- 执行技术情报收集 ---")
+	techResults, err := performTechnicalInformationGathering(target, availableTools)
+	if err != nil {
+		utils.ErrorPrint("技术情报收集失败: %v", err)
+	} else {
+		rawResults["tech_info"] = techResults
+	}
+
+	// 4. 信息处理与验证
+	processedResults, confidenceScores := processAndValidateInformation(rawResults)
+
+	// 5. 输出信息收集摘要
+	utils.InfoPrint("\n=== 信息收集摘要 ===")
+	for infoType, content := range processedResults {
+		utils.InfoPrint("%s 结果摘要:", infoType)
+		utils.InfoPrint("%s", content)
+		utils.InfoPrint("可信度: %.2f", confidenceScores[infoType])
+	}
+
+	utils.SuccessPrint("=== 智能信息收集完成 ===")
+	return processedResults, nil
+}
+
+// performPassiveInformationGathering 执行被动信息收集
+func performPassiveInformationGathering(target string, availableTools map[string]bool) (string, error) {
+	var results strings.Builder
+	results.WriteString("被动信息收集结果:\n")
+
+	utils.InfoPrint("执行被动信息收集...")
+
+	// 1. 域名信息收集
+	if availableTools["whois"] {
+		utils.InfoPrint("使用whois查询域名信息...")
+		output, err := runCommand("whois", []string{target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("whois查询失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("whois查询结果:\n%s\n", output))
+		}
+	}
+
+	// 2. DNS信息收集
+	if availableTools["dig"] {
+		utils.InfoPrint("使用dig查询DNS信息...")
+		output, err := runCommand("dig", []string{target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("dig查询失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("dig查询结果:\n%s\n", output))
+		}
+	}
+
+	// 3. 子域名发现
+	if availableTools["subfinder"] {
+		utils.InfoPrint("使用subfinder发现子域名...")
+		output, err := runCommand("subfinder", []string{"-d", target, "-silent"}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("subfinder子域名发现失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("子域名发现结果:\n%s\n", output))
+		}
+	}
+
+	// 4. 证书透明度查询
+	if availableTools["curl"] {
+		utils.InfoPrint("使用crt.sh查询证书信息...")
+		crtsURL := fmt.Sprintf("https://crt.sh/?q=%s&output=json", target)
+		output, err := runCommand("curl", []string{crtsURL}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("crt.sh证书查询失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("证书查询结果:\n%s\n", output))
+		}
+	}
+
+	return results.String(), nil
+}
+
+// performActiveInformationGathering 执行主动信息收集
+func performActiveInformationGathering(target string, availableTools map[string]bool) (string, error) {
+	var results strings.Builder
+	results.WriteString("主动信息收集结果:\n")
+
+	utils.InfoPrint("执行主动信息收集...")
+
+	// 1. 端口扫描
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap进行端口扫描...")
+		output, err := runCommand("nmap", []string{"-sS", "-sV", "-T4", "--open", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nmap端口扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("端口扫描结果:\n%s\n", output))
+		}
+	}
+
+	// 2. Web服务探测
+	if availableTools["curl"] {
+		utils.InfoPrint("使用curl探测Web服务...")
+		// 检查HTTP和HTTPS
+		for _, proto := range []string{"http", "https"} {
+			url := fmt.Sprintf("%s://%s", proto, target)
+			output, err := runCommand("curl", []string{"-I", "--connect-timeout", "5", url}...)
+			if err != nil {
+				results.WriteString(fmt.Sprintf("%s服务探测失败: %v\n", proto, err))
+			} else {
+				results.WriteString(fmt.Sprintf("%s服务探测结果:\n%s\n", proto, output))
+			}
+		}
+	}
+
+	// 3. WAF检测
+	if availableTools["wafw00f"] {
+		utils.InfoPrint("使用wafw00f检测WAF...")
+		output, err := runCommand("wafw00f", []string{target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("WAF检测失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("WAF检测结果:\n%s\n", output))
+		}
+	}
+
+	// 4. 指纹识别
+	if availableTools["whatweb"] {
+		utils.InfoPrint("使用whatweb进行指纹识别...")
+		output, err := runCommand("whatweb", []string{target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("指纹识别失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("指纹识别结果:\n%s\n", output))
+		}
+	}
+
+	return results.String(), nil
+}
+
+// performTechnicalInformationGathering 执行技术情报收集
+func performTechnicalInformationGathering(target string, availableTools map[string]bool) (string, error) {
+	var results strings.Builder
+	results.WriteString("技术情报收集结果:\n")
+
+	utils.InfoPrint("执行技术情报收集...")
+
+	// 1. 服务版本扫描
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap进行服务版本扫描...")
+		output, err := runCommand("nmap", []string{"-sV", "-p", "1-1000", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("服务版本扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("服务版本扫描结果:\n%s\n", output))
+		}
+	}
+
+	// 2. 漏洞扫描
+	if availableTools["nuclei"] {
+		utils.InfoPrint("使用nuclei进行漏洞扫描...")
+		output, err := runCommand("nuclei", []string{"-u", fmt.Sprintf("http://%s", target), "-silent"}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nuclei漏洞扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("nuclei漏洞扫描结果:\n%s\n", output))
+		}
+	}
+
+	// 3. 目录枚举
+	if availableTools["gobuster"] {
+		utils.InfoPrint("使用gobuster进行目录枚举...")
+		output, err := runCommand("gobuster", []string{"dir", "-u", fmt.Sprintf("http://%s", target), "-w", "/usr/share/wordlists/dirb/common.txt", "-q", "-n", "-t", "10"}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("目录枚举失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("目录枚举结果:\n%s\n", output))
+		}
+	}
+
+	// 4. API端点发现
+	if availableTools["ffuf"] {
+		utils.InfoPrint("使用ffuf进行API端点发现...")
+		output, err := runCommand("ffuf", []string{"-u", fmt.Sprintf("http://%s/FUZZ", target), "-w", "/usr/share/wordlists/dirb/common.txt", "-fs", "0", "-t", "10", "-s"}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("API端点发现失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("API端点发现结果:\n%s\n", output))
+		}
+	}
+
+	return results.String(), nil
 }
 
 // executeExploitationSteps 执行漏洞利用步骤
@@ -1069,6 +1296,9 @@ func executeSmartTextStrategy(strategy, target string, availableTools map[string
 	extractedCommands := extractCommandsFromText(strategy, mergedTools)
 	utils.InfoPrint("从AI响应中提取到 %d 个命令", len(extractedCommands))
 
+	// 保存基础扫描结果，用于后续分析
+	var baseScanOutput string
+
 	if len(extractedCommands) > 0 {
 		results.WriteString("提取的命令执行结果:\n")
 
@@ -1108,23 +1338,500 @@ func executeSmartTextStrategy(strategy, target string, availableTools map[string
 				} else {
 					utils.SuccessPrint("命令 %d 执行成功", i+1)
 					results.WriteString(fmt.Sprintf("命令 %d: %s - 执行成功\n输出:\n%s\n", i+1, command, output))
+					// 保存nmap扫描结果，用于后续分析
+					if tool == "nmap" {
+						baseScanOutput = output
+					}
 				}
 			}
 		}
-	}
-
-	// 如果没有提取到命令，执行默认的基础扫描
-	if len(extractedCommands) == 0 {
+	} else {
 		utils.InfoPrint("未提取到有效命令，执行基础扫描")
 		results.WriteString("\n执行基础扫描:\n")
 
 		// 根据目标类型执行基础扫描
 		baseScanResults := executeBaseScan(target, targetType, availableTools)
 		results.WriteString(baseScanResults)
+		baseScanOutput = baseScanResults
+	}
+
+	// 根据基础扫描结果执行针对性渗透测试
+	if baseScanOutput != "" {
+		utils.InfoPrint("\n=== 基于扫描结果执行针对性渗透测试 ===")
+		results.WriteString("\n=== 基于扫描结果执行针对性渗透测试 ===\n")
+		targetedResults := executeTargetedPenetrationTest(target, baseScanOutput, availableTools)
+		results.WriteString(targetedResults)
 	}
 
 	utils.SuccessPrint("智能文本策略执行完成")
 	return results.String(), nil
+}
+
+// executeTargetedPenetrationTest 根据扫描结果执行针对性渗透测试
+func executeTargetedPenetrationTest(target, scanOutput string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString("执行针对性渗透测试:\n")
+
+	// 分析扫描结果，提取开放端口和服务
+	openPorts := extractOpenPortsFromNmap(scanOutput)
+	if len(openPorts) == 0 {
+		utils.InfoPrint("未发现开放端口，跳过针对性渗透测试")
+		return results.String()
+	}
+
+	utils.InfoPrint("发现开放端口: %v", openPorts)
+	results.WriteString(fmt.Sprintf("发现开放端口: %v\n", openPorts))
+
+	// 根据开放端口和服务执行针对性测试
+	for port, service := range openPorts {
+		utils.InfoPrint("\n--- 针对端口 %s/%s 执行渗透测试 ---", port, service)
+		results.WriteString(fmt.Sprintf("\n--- 针对端口 %s/%s 执行渗透测试 ---\n", port, service))
+
+		// 根据服务类型执行不同的渗透测试
+		switch service {
+		case "ftp":
+			// FTP服务渗透测试
+			ftpResults := executeFTPPenetrationTest(target, port, availableTools)
+			results.WriteString(ftpResults)
+		case "ssh":
+			// SSH服务渗透测试
+			sshResults := executeSSHPenetrationTest(target, port, availableTools)
+			results.WriteString(sshResults)
+		case "mysql":
+			// MySQL服务渗透测试
+			mysqlResults := executeMySQLPenetrationTest(target, port, availableTools)
+			results.WriteString(mysqlResults)
+		case "http", "https":
+			// Web服务渗透测试
+			webResults := executeWebPenetrationTest(target, port, availableTools)
+			results.WriteString(webResults)
+		default:
+			// 其他服务的默认测试
+			defaultResults := executeDefaultServiceTest(target, port, service, availableTools)
+			results.WriteString(defaultResults)
+		}
+	}
+
+	return results.String()
+}
+
+// processAndValidateInformation 处理和验证收集到的信息
+func processAndValidateInformation(rawInfo map[string]string) (map[string]string, map[string]float64) {
+	utils.InfoPrint("\n--- 执行信息处理与验证 ---")
+	processedInfo := make(map[string]string)
+	confidenceScores := make(map[string]float64)
+
+	// 处理和验证每种类型的信息
+	for infoType, content := range rawInfo {
+		utils.InfoPrint("处理信息类型: %s", infoType)
+
+		// 1. 数据清洗
+		cleanedContent := cleanInformation(content)
+
+		// 2. 信息验证
+		confidence := validateInformation(infoType, cleanedContent)
+
+		// 3. 结构化处理
+		structuredContent := structureInformation(infoType, cleanedContent)
+
+		// 4. 存储处理结果
+		processedInfo[infoType] = structuredContent
+		confidenceScores[infoType] = confidence
+
+		utils.InfoPrint("信息处理完成，可信度: %.2f", confidence)
+	}
+
+	return processedInfo, confidenceScores
+}
+
+// cleanInformation 清洗信息
+func cleanInformation(content string) string {
+	// 移除多余空行和空格
+	content = regexp.MustCompile(`\n\s*\n`).ReplaceAllString(content, `\n\n`)
+	content = regexp.MustCompile(`\s{2,}`).ReplaceAllString(content, ` `)
+	return strings.TrimSpace(content)
+}
+
+// validateInformation 验证信息可信度
+func validateInformation(infoType, content string) float64 {
+	// 基于信息类型和内容计算可信度分数
+	confidence := 0.5 // 默认可信度
+
+	// 根据信息类型调整可信度
+	switch infoType {
+	case "passive_info":
+		// 被动信息收集结果可信度较高
+		confidence = 0.8
+	case "active_info":
+		// 主动信息收集结果可信度高
+		confidence = 0.9
+	case "tech_info":
+		// 技术情报可信度高
+		confidence = 0.95
+	default:
+		confidence = 0.6
+	}
+
+	// 根据内容质量调整可信度
+	if content == "" {
+		confidence = 0.0
+	} else if len(content) < 100 {
+		confidence *= 0.7
+	} else if len(content) > 1000 {
+		confidence *= 1.1
+	}
+
+	// 确保可信度在0-1之间
+	if confidence > 1.0 {
+		confidence = 1.0
+	} else if confidence < 0.0 {
+		confidence = 0.0
+	}
+
+	return confidence
+}
+
+// structureInformation 结构化信息
+func structureInformation(infoType, content string) string {
+	// 根据信息类型进行结构化处理
+	switch infoType {
+	case "passive_info":
+		// 结构化被动信息
+		return structurePassiveInformation(content)
+	case "active_info":
+		// 结构化主动信息
+		return structureActiveInformation(content)
+	case "tech_info":
+		// 结构化技术情报
+		return structureTechnicalInformation(content)
+	default:
+		// 默认结构化
+		return content
+	}
+}
+
+// structurePassiveInformation 结构化被动信息
+func structurePassiveInformation(content string) string {
+	// 提取关键信息：域名、IP、联系人等
+	var structured strings.Builder
+
+	// 提取域名信息
+	if matches := regexp.MustCompile(`Domain Name:\s*(\S+)`).FindStringSubmatch(content); len(matches) > 1 {
+		structured.WriteString(fmt.Sprintf("域名: %s\n", matches[1]))
+	}
+
+	// 提取注册人信息
+	if matches := regexp.MustCompile(`Registrant Name:\s*(.*)`).FindStringSubmatch(content); len(matches) > 1 {
+		structured.WriteString(fmt.Sprintf("注册人: %s\n", strings.TrimSpace(matches[1])))
+	}
+
+	// 提取注册邮箱
+	if matches := regexp.MustCompile(`Registrant Email:\s*(\S+)`).FindStringSubmatch(content); len(matches) > 1 {
+		structured.WriteString(fmt.Sprintf("注册邮箱: %s\n", matches[1]))
+	}
+
+	// 提取子域名信息
+	subdomainPattern := regexp.MustCompile(`(\S+\.\S+)\s*$`)
+	lines := strings.Split(content, "\n")
+	var subdomains []string
+	for _, line := range lines {
+		if matches := subdomainPattern.FindStringSubmatch(strings.TrimSpace(line)); len(matches) > 1 {
+			subdomains = append(subdomains, matches[1])
+		}
+	}
+	if len(subdomains) > 0 {
+		structured.WriteString(fmt.Sprintf("子域名发现: %d个\n", len(subdomains)))
+		// 限制显示前10个子域名
+		displayCount := len(subdomains)
+		if displayCount > 10 {
+			displayCount = 10
+		}
+		for i, subdomain := range subdomains[:displayCount] {
+			structured.WriteString(fmt.Sprintf("  %d. %s\n", i+1, subdomain))
+		}
+		if len(subdomains) > 10 {
+			structured.WriteString(fmt.Sprintf("  ... 还有 %d 个子域名\n", len(subdomains)-10))
+		}
+	}
+
+	return structured.String()
+}
+
+// structureActiveInformation 结构化主动信息
+func structureActiveInformation(content string) string {
+	var structured strings.Builder
+
+	// 提取开放端口信息
+	openPorts := extractOpenPortsFromNmap(content)
+	if len(openPorts) > 0 {
+		structured.WriteString(fmt.Sprintf("开放端口: %d个\n", len(openPorts)))
+		for port, service := range openPorts {
+			structured.WriteString(fmt.Sprintf("  %s/%s\n", port, service))
+		}
+	}
+
+	// 提取WAF信息
+	if strings.Contains(content, "WAF") {
+		structured.WriteString("检测到WAF保护\n")
+	}
+
+	// 提取指纹信息
+	if matches := regexp.MustCompile(`(Apache|Nginx|IIS|Microsoft-IIS|PHP|MySQL|WordPress|Drupal|Joomla)\s*(\d+\.\d+(\.\d+)*)?`).FindAllStringSubmatch(content, -1); len(matches) > 0 {
+		structured.WriteString("服务指纹发现:\n")
+		seen := make(map[string]bool)
+		for _, match := range matches {
+			if !seen[match[1]] {
+				version := ""
+				if len(match) > 2 {
+					version = match[2]
+				}
+				structured.WriteString(fmt.Sprintf("  %s %s\n", match[1], version))
+				seen[match[1]] = true
+			}
+		}
+	}
+
+	return structured.String()
+}
+
+// structureTechnicalInformation 结构化技术情报
+func structureTechnicalInformation(content string) string {
+	var structured strings.Builder
+
+	// 提取漏洞信息
+	if strings.Contains(content, "vulnerable") || strings.Contains(content, "CVE-") {
+		structured.WriteString("发现潜在漏洞:\n")
+		lines := strings.Split(content, "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "CVE-") || strings.Contains(strings.ToLower(line), "vulnerable") {
+				structured.WriteString(fmt.Sprintf("  %s\n", strings.TrimSpace(line)))
+			}
+		}
+	}
+
+	// 提取目录信息
+	if matches := regexp.MustCompile(`(?:DIRECTORY|FOUND):\s*(\S+)`).FindAllStringSubmatch(content, -1); len(matches) > 0 {
+		structured.WriteString(fmt.Sprintf("发现敏感目录/文件: %d个\n", len(matches)))
+		// 限制显示前10个结果
+		displayCount := len(matches)
+		if displayCount > 10 {
+			displayCount = 10
+		}
+		for i, match := range matches[:displayCount] {
+			structured.WriteString(fmt.Sprintf("  %d. %s\n", i+1, match[1]))
+		}
+		if len(matches) > 10 {
+			structured.WriteString(fmt.Sprintf("  ... 还有 %d 个结果\n", len(matches)-10))
+		}
+	}
+
+	return structured.String()
+}
+
+// extractOpenPortsFromNmap 从nmap扫描结果中提取开放端口
+func extractOpenPortsFromNmap(scanOutput string) map[string]string {
+	openPorts := make(map[string]string)
+
+	// 使用正则表达式提取开放端口
+	portRegex := regexp.MustCompile(`^(\d+)/tcp\s+open\s+(\w+)\s*`)
+	lines := strings.Split(scanOutput, "\n")
+
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		matches := portRegex.FindStringSubmatch(trimmedLine)
+		if len(matches) == 3 {
+			port := matches[1]
+			service := matches[2]
+			openPorts[port] = service
+		}
+	}
+
+	return openPorts
+}
+
+// executeFTPPenetrationTest 执行FTP服务渗透测试
+func executeFTPPenetrationTest(target, port string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString("执行FTP服务渗透测试:\n")
+
+	// 检查匿名FTP访问
+	if availableTools["ftp"] {
+		utils.InfoPrint("检查匿名FTP访问...")
+		// 执行FTP匿名访问测试
+		ftpCmd := fmt.Sprintf("echo -e 'USER anonymous\\nPASS anonymous@example.com\\nQUIT' | ftp -n %s %s", target, port)
+		output, err := runCommand("bash", []string{"-c", ftpCmd}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("FTP匿名访问测试失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("FTP匿名访问测试结果:\n%s\n", output))
+			// 检查是否成功登录
+			if strings.Contains(output, "230") || strings.Contains(output, "Login successful") {
+				utils.SuccessPrint("发现可匿名访问的FTP服务！")
+				results.WriteString("发现可匿名访问的FTP服务！\n")
+			}
+		}
+	}
+
+	// 使用nmap脚本扫描FTP漏洞
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap脚本扫描FTP漏洞...")
+		output, err := runCommand("nmap", []string{"-p", port, "--script=ftp-*", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nmap FTP脚本扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("nmap FTP脚本扫描结果:\n%s\n", output))
+		}
+	}
+
+	return results.String()
+}
+
+// executeSSHPenetrationTest 执行SSH服务渗透测试
+func executeSSHPenetrationTest(target, port string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString("执行SSH服务渗透测试:\n")
+
+	// 使用nmap脚本扫描SSH漏洞
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap脚本扫描SSH漏洞...")
+		output, err := runCommand("nmap", []string{"-p", port, "--script=ssh-*", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nmap SSH脚本扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("nmap SSH脚本扫描结果:\n%s\n", output))
+		}
+	}
+
+	// 检查SSH版本信息
+	if availableTools["ssh"] {
+		utils.InfoPrint("检查SSH版本信息...")
+		sshCmd := fmt.Sprintf("echo 'exit' | ssh -v -p %s %s 2>&1 | grep -i 'protocol version'", port, target)
+		output, err := runCommand("bash", []string{"-c", sshCmd}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("SSH版本检查失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("SSH版本信息: %s\n", output))
+		}
+	}
+
+	return results.String()
+}
+
+// executeMySQLPenetrationTest 执行MySQL服务渗透测试
+func executeMySQLPenetrationTest(target, port string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString("执行MySQL服务渗透测试:\n")
+
+	// 使用nmap脚本扫描MySQL漏洞
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap脚本扫描MySQL漏洞...")
+		output, err := runCommand("nmap", []string{"-p", port, "--script=mysql-*", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nmap MySQL脚本扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("nmap MySQL脚本扫描结果:\n%s\n", output))
+		}
+	}
+
+	// 测试MySQL连接
+	if availableTools["mysql"] {
+		utils.InfoPrint("测试MySQL连接...")
+		mysqlCmd := fmt.Sprintf("mysql -h %s -P %s -u root -e 'exit' 2>&1", target, port)
+		output, err := runCommand("bash", []string{"-c", mysqlCmd}...)
+		if err == nil {
+			results.WriteString(fmt.Sprintf("MySQL连接测试成功: %s\n", output))
+		} else {
+			results.WriteString(fmt.Sprintf("MySQL连接测试失败: %v\n", err))
+			// 检查是否是访问被拒绝还是连接失败
+			if strings.Contains(output, "Access denied") {
+				results.WriteString("MySQL服务运行中，但访问被拒绝\n")
+			} else if strings.Contains(output, "Connection refused") {
+				results.WriteString("MySQL连接被拒绝\n")
+			}
+		}
+	}
+
+	return results.String()
+}
+
+// executeWebPenetrationTest 执行Web服务渗透测试
+func executeWebPenetrationTest(target, port string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString("执行Web服务渗透测试:\n")
+
+	// 构建完整URL
+	proto := "http"
+	if port == "443" {
+		proto = "https"
+	}
+	url := fmt.Sprintf("%s://%s:%s", proto, target, port)
+
+	// 使用curl检查Web服务
+	if availableTools["curl"] {
+		utils.InfoPrint("使用curl检查Web服务...")
+		output, err := runCommand("curl", []string{"-I", url}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("Web服务检查失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("Web服务检查结果:\n%s\n", output))
+		}
+	}
+
+	// 使用nikto扫描Web漏洞（如果可用）
+	if availableTools["nikto"] {
+		utils.InfoPrint("使用nikto扫描Web漏洞...")
+		output, err := runCommand("nikto", []string{"-h", url}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nikto扫描失败: %v\n", err))
+		} else {
+			// 只保存前50行结果，避免输出过长
+			lines := strings.Split(output, "\n")
+			if len(lines) > 50 {
+				lines = lines[:50]
+			}
+			results.WriteString(fmt.Sprintf("nikto扫描结果（前50行）:\n%s\n", strings.Join(lines, "\n")))
+		}
+	}
+
+	// 使用dirb进行目录枚举（如果可用）
+	if availableTools["dirb"] {
+		utils.InfoPrint("使用dirb进行目录枚举...")
+		output, err := runCommand("dirb", []string{url, "/usr/share/wordlists/dirb/common.txt", "-o", "/dev/null"}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("dirb目录枚举失败: %v\n", err))
+		} else {
+			// 只保存包含发现目录的行
+			lines := strings.Split(output, "\n")
+			var relevantLines []string
+			for _, line := range lines {
+				if strings.HasPrefix(line, "==>") || strings.Contains(line, "DIRECTORY") || strings.Contains(line, "FOUND") {
+					relevantLines = append(relevantLines, line)
+				}
+			}
+			results.WriteString(fmt.Sprintf("dirb目录枚举结果:\n%s\n", strings.Join(relevantLines, "\n")))
+		}
+	}
+
+	return results.String()
+}
+
+// executeDefaultServiceTest 执行默认服务测试
+func executeDefaultServiceTest(target, port, service string, availableTools map[string]bool) string {
+	var results strings.Builder
+	results.WriteString(fmt.Sprintf("执行%s服务默认测试:\n", service))
+
+	// 使用nmap脚本扫描服务漏洞
+	if availableTools["nmap"] {
+		utils.InfoPrint("使用nmap脚本扫描%s服务漏洞...", service)
+		output, err := runCommand("nmap", []string{"-p", port, "--script=default", target}...)
+		if err != nil {
+			results.WriteString(fmt.Sprintf("nmap脚本扫描失败: %v\n", err))
+		} else {
+			results.WriteString(fmt.Sprintf("nmap脚本扫描结果:\n%s\n", output))
+		}
+	}
+
+	return results.String()
 }
 
 // extractCommandsFromText 从文本中提取命令
