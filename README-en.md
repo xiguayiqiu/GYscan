@@ -93,7 +93,6 @@ chmod +x build_linux.sh
 | Command | Function Description | Status |
 |---------|---------------------|--------|
 | about | View tool information | ✅ Stable |
-| ai | AI model-driven penetration testing and security detection | ✅ Stable |
 | crunch | Password dictionary generation tool | ✅ Stable |
 | database | Database password cracking tool | ✅ Stable |
 | dirscan | Website directory scanning tool | ✅ Stable |
@@ -116,9 +115,14 @@ chmod +x build_linux.sh
 
 | Command | Function Description | Status |
 |---------|---------------------|--------|
+| ai | AI model-driven penetration testing and security detection [Testing phase] | ⚠️ Testing phase |
 | csrf | CSRF vulnerability detection [Testing phase] | ⚠️ Testing phase |
 | dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
 | ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
+
+- ***Due to the different Ai models used in AI-driven, the expected penetration effect cannot be achieved. Eventually, it was decided to place the AI-driven penetration function in the testing stage!***
+
+- ***Ai functions will constantly update and even restructure the entire functionality, with brand-new AI-driven designs***
 
 ## 💡 Common Function Usage Examples
 
@@ -503,9 +507,9 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 - **Standard Interface** - Unified interface specifications, convenient for secondary development
 
 ### Recent Optimizations
-- Minor change: scan perfectly supports short domain names, full domain names, IP addresses, and IP network segments
-
-- Change the app mascot and the app icon to the official app icon
+- **Important Change**: AI command has been moved from official commands to testing phase commands, status updated to "⚠️ Testing phase"
+- **Function Optimization**: scan perfectly supports short domain names, full domain names, IP addresses, and IP network segments
+- **UI Optimization**: Change the app mascot and the app icon to the official app icon
 
 ### Planned Features
 - ⏳ Advanced vulnerability detection plugins
