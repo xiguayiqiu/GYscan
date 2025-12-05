@@ -115,7 +115,6 @@ chmod +x build_linux.sh
 
 | Command | Function Description | Status |
 |---------|---------------------|--------|
-| ai | AI model-driven penetration testing and security detection [Testing phase] | ⚠️ Testing phase |
 | csrf | CSRF vulnerability detection [Testing phase] | ⚠️ Testing phase |
 | dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
 | ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
