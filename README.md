@@ -112,6 +112,7 @@ chmod +x build_linux.sh
 | waf | WAF检测工具，支持主流WAF识别和检测 | ✅ 稳定 |
 | xss | XSS漏洞检测工具，支持反射型、存储型、DOM型XSS检测 | ✅ 稳定 |
 | winlog | Windows日志查看工具，支持本地和远程日志查询 | ✅ 稳定 |
+| clean | 高级黑客攻击痕迹检测与清理工具 | ✅ 稳定 |
 
 ### 测试阶段命令
 
@@ -310,7 +311,6 @@ GYscan/
 │   ├── app.manifest       # 应用程序清单文件
 │   ├── app.png            # 应用程序图片
 │   ├── config/            # 配置文件目录
-│   │   ├── ai_config.yml  # AI功能配置文件
 │   │   └── logging.json   # 日志配置文件
 │   ├── dirmap/            # 目录扫描字典文件
 │   │   ├── dicc.txt       # 目录扫描字典
@@ -318,7 +318,6 @@ GYscan/
 │   ├── go.mod             # Go模块依赖配置
 │   ├── go.sum             # Go模块校验文件
 │   ├── internal/          # 内部功能模块
-│   │   ├── ai/            # AI模型驱动渗透测试模块
 │   │   ├── cli/           # 命令行界面和命令注册
 │   │   ├── config/        # 配置管理模块
 │   │   ├── csrf/          # CSRF漏洞检测模块
@@ -382,9 +381,6 @@ GYscan/
 │   ├── Eula.txt           # 最终用户许可协议
 │   └── psversion.txt      # 版本信息文件
 ├── app.ico                # 应用程序图标文件
-├── config/                # 配置文件目录
-│   ├── ai_config.yaml     # AI功能配置文件（YAML格式）
-│   └── ai_config.yml      # AI功能配置文件
 ├── go.mod                 # Go模块依赖配置
 ├── LICENSE                # 项目许可证文件
 ├── README-en.md           # 英文项目说明文档
@@ -409,13 +405,11 @@ GYscan/
 
 #### Client/ - 渗透测试客户端
 - **config/** - 配置文件目录
-  - **ai_config.yml** - AI功能配置文件，支持多种AI模型参数配置
   - **logging.json** - 日志配置文件，定义日志级别和输出格式
 - **dirmap/** - 目录扫描字典文件
   - **dicc.txt** - 常用目录扫描字典
   - **medium.txt** - 中等规模目录字典
 - **internal/** - 核心功能模块
-  - **ai/** - AI模型驱动渗透测试模块，支持多模型集成和智能漏洞利用
   - **cli/** - 命令行界面和命令注册系统，支持命令分组显示，包含winlog等命令实现
   - **config/** - 配置管理模块，统一管理应用程序配置
   - **csrf/** - CSRF漏洞检测模块，支持POST请求检测
@@ -468,7 +462,6 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 | 类别 | 技术/库 | 版本 | 用途 |
 |------|---------|------|------|
 | **核心语言** | Go | 1.24+ | 主要开发语言 |
-| **AI集成** | go-openai | v1.24.0 | OpenAI API客户端，支持AI功能 |
 | **命令行框架** | cobra | v1.9.1 | 命令行界面和命令注册系统 |
 | **HTTP客户端** | resty/v2 | v2.16.5 | API请求和网络通信 |
 | **HTML解析** | goquery | v1.11.0 | 网页内容解析和处理 |

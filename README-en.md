@@ -93,6 +93,7 @@ chmod +x build_linux.sh
 | Command | Function Description | Status |
 |---------|---------------------|--------|
 | about | View tool information | ✅ Stable |
+| clean | Advanced hacker attack trace detection and cleanup tool | ✅ Stable |
 | crunch | Password dictionary generation tool | ✅ Stable |
 | database | Database password cracking tool | ✅ Stable |
 | dirscan | Website directory scanning tool | ✅ Stable |
@@ -110,6 +111,7 @@ chmod +x build_linux.sh
 | waf | WAF detection tool, supporting mainstream WAF identification and detection | ✅ Stable |
 | xss | XSS vulnerability detection tool, supporting reflected, stored, DOM-based XSS detection | ✅ Stable |
 | winlog | Windows log viewing tool, supporting local and remote log query | ✅ Stable |
+| clean | Advanced hacker attack trace detection and cleanup tool | ✅ Stable |
 
 ### Testing Phase Commands
 
@@ -119,9 +121,7 @@ chmod +x build_linux.sh
 | dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
 | ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
 
-- ***Due to the different Ai models used in AI-driven, the expected penetration effect cannot be achieved. Eventually, it was decided to place the AI-driven penetration function in the testing stage!***
 
-- ***Ai functions will constantly update and even restructure the entire functionality, with brand-new AI-driven designs***
 
 ## 💡 Common Function Usage Examples
 
@@ -313,7 +313,6 @@ GYscan/
 │   ├── app.manifest       # Application manifest file
 │   ├── app.png            # Application image
 │   ├── config/            # Configuration file directory
-│   │   ├── ai_config.yml  # AI function configuration file
 │   │   └── logging.json   # Log configuration file
 │   ├── dirmap/            # Directory scanning dictionary files
 │   │   ├── dicc.txt       # Directory scanning dictionary
@@ -321,7 +320,6 @@ GYscan/
 │   ├── go.mod             # Go module dependency configuration
 │   ├── go.sum             # Go module verification file
 │   ├── internal/          # Internal function modules
-│   │   ├── ai/            # AI model-driven penetration testing module
 │   │   ├── cli/           # Command line interface and command registration
 │   │   ├── config/        # Configuration management module
 │   │   ├── csrf/          # CSRF vulnerability detection module
@@ -385,9 +383,6 @@ GYscan/
 │   ├── Eula.txt           # End User License Agreement
 │   └── psversion.txt      # Version information file
 ├── app.ico                # Application icon file
-├── config/                # Configuration file directory
-│   ├── ai_config.yaml     # AI function configuration file (YAML format)
-│   └── ai_config.yml      # AI function configuration file
 ├── go.mod                 # Go module dependency configuration
 ├── LICENSE                # Project license file
 ├── README-en.md           # English project description documentation

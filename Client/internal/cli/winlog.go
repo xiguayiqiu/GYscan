@@ -1071,11 +1071,11 @@ func executeRemoteQuery(target string, port int, username, password, domain, log
 	if err != nil {
 		// 优先使用result中的详细错误信息
 		if result != nil && result.Error != "" {
-			return "", classifyAndFormatError(target, fmt.Errorf(result.Error), result)
+			return "", classifyAndFormatError(target, fmt.Errorf("%s", result.Error), result)
 		}
 		// 如果result.Error为空，但result.Output包含错误信息，使用result.Output
 		if result != nil && result.Output != "" {
-			return "", classifyAndFormatError(target, fmt.Errorf(result.Output), result)
+			return "", classifyAndFormatError(target, fmt.Errorf("%s", result.Output), result)
 		}
 		// 最后使用err参数
 		return "", classifyAndFormatError(target, err, result)
@@ -1114,7 +1114,7 @@ func executeRemoteQuery(target string, port int, username, password, domain, log
 		// 创建错误对象，优先使用result.Error中的详细信息
 		var queryErr error
 		if result.Error != "" {
-			queryErr = fmt.Errorf(result.Error)
+			queryErr = fmt.Errorf("%s", result.Error)
 		} else {
 			queryErr = fmt.Errorf("WMI查询失败")
 		}
@@ -1225,7 +1225,7 @@ func classifyAndFormatError(target string, err error, result *wmi.WMIResult) err
 	}
 	finalError += fmt.Sprintf("\n建议: %s", suggestion)
 
-	return fmt.Errorf(finalError)
+	return fmt.Errorf("%s", finalError)
 }
 
 // addColorToLogOutput 为日志输出添加颜色

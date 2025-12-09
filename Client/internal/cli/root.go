@@ -121,39 +121,71 @@ func printCustomHelp() {
 	fmt.Println()
 
 	// 定义命令分组
-	var normalCommands []*cobra.Command
-	var testCommands []*cobra.Command
+	commandGroups := make(map[string][]*cobra.Command)
+
+	// 初始化命令分组
+	commandGroups["综合工具"] = []*cobra.Command{}
+	commandGroups["密码学工具"] = []*cobra.Command{}
+	commandGroups["网络扫描工具"] = []*cobra.Command{}
+	commandGroups["远程管理工具"] = []*cobra.Command{}
+	commandGroups["信息收集工具"] = []*cobra.Command{}
+	commandGroups["Web安全工具"] = []*cobra.Command{}
+	commandGroups["测试阶段命令"] = []*cobra.Command{}
 
 	// 将命令分组
 	for _, cmd := range rootCmd.Commands() {
 		if cmd.Name() == "help" {
 			continue
 		}
+
+		// 检查是否为测试阶段命令
 		if strings.Contains(cmd.Short, "测试阶段") || strings.Contains(cmd.Long, "测试阶段") {
-			testCommands = append(testCommands, cmd)
-		} else {
-			normalCommands = append(normalCommands, cmd)
+			commandGroups["测试阶段命令"] = append(commandGroups["测试阶段命令"], cmd)
+			continue
+		}
+
+		// 根据命令名称进行分类
+		switch cmd.Name() {
+		case "about":
+			commandGroups["综合工具"] = append(commandGroups["综合工具"], cmd)
+		case "crunch", "database", "ftp", "ssh":
+			commandGroups["密码学工具"] = append(commandGroups["密码学工具"], cmd)
+		case "scan", "dirscan", "route", "whois":
+			commandGroups["网络扫描工具"] = append(commandGroups["网络扫描工具"], cmd)
+		case "powershell", "rdp", "smb", "wmi":
+			commandGroups["远程管理工具"] = append(commandGroups["远程管理工具"], cmd)
+		case "process", "userinfo", "winlog":
+			commandGroups["信息收集工具"] = append(commandGroups["信息收集工具"], cmd)
+		case "webshell", "waf", "xss":
+			commandGroups["Web安全工具"] = append(commandGroups["Web安全工具"], cmd)
+		default:
+			// 未分类的命令添加到综合工具
+			commandGroups["综合工具"] = append(commandGroups["综合工具"], cmd)
 		}
 	}
 
-	// 显示正常命令
+	// 显示命令分组
 	fmt.Println("Available Commands:")
 	fmt.Println()
-	for _, cmd := range normalCommands {
-		fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
-	}
 
-	// 显示测试阶段命令
-	if len(testCommands) > 0 {
-		fmt.Println()
-		fmt.Println("  ==== 测试阶段命令 ====")
-		for _, cmd := range testCommands {
+	// 定义分组显示顺序
+	groupOrder := []string{"综合工具", "密码学工具", "网络扫描工具", "远程管理工具", "信息收集工具", "Web安全工具", "测试阶段命令"}
+
+	for _, group := range groupOrder {
+		commands := commandGroups[group]
+		if len(commands) == 0 {
+			continue
+		}
+
+		// 显示分组名称
+		fmt.Printf("  ==== %s ====\n", group)
+		for _, cmd := range commands {
 			fmt.Printf("  %-15s %s\n", cmd.Name(), cmd.Short)
 		}
+		fmt.Println()
 	}
 
 	// 显示全局参数
-	fmt.Println()
 	fmt.Println("Flags:")
 	fmt.Println("      --key string     流量加密密钥 (AES-256)")
 	fmt.Println("      --proxy string   代理服务器 (支持 HTTP/SOCKS5)")
@@ -178,6 +210,7 @@ func RegisterCommands(cmd *cobra.Command) {
 
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)      // 查看工具信息
+	cmd.AddCommand(cleanCmd)      // 高级黑客攻击痕迹检测和清理工具
 	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
 	cmd.AddCommand(databaseCmd)   // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)    // 网站目录扫描工具
