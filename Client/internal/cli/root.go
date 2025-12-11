@@ -210,7 +210,6 @@ func RegisterCommands(cmd *cobra.Command) {
 
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)      // 查看工具信息
-	cmd.AddCommand(cleanCmd)      // 高级黑客攻击痕迹检测和清理工具
 	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
 	cmd.AddCommand(databaseCmd)   // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)    // 网站目录扫描工具

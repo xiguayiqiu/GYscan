@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	
+
 	"GYscan-linux-C2/internal/userinfo"
 	"GYscan-linux-C2/pkg/scanners"
 	"GYscan-linux-C2/tools/lynis"
@@ -25,14 +25,14 @@ type Config struct {
 	LocalScan bool
 
 	UserinfoOutput string // Userinfo子命令的输出文件
-	SSHOutput string // SSH子命令的输出文件
-	LynisOutput string // Lynis子命令的输出文件
-	
+	SSHOutput      string // SSH子命令的输出文件
+	LynisOutput    string // Lynis子命令的输出文件
+
 	// Lynis子命令专用字段
 	QuickScan    bool   // 快速扫描模式
 	FullScan     bool   // 完整扫描模式
 	ReportFormat string // 报告格式
-	
+
 	// Getroot子命令专用字段
 	GetrootOutput string // Getroot子命令的输出文件
 }
@@ -53,12 +53,10 @@ func main() {
 	flag.StringVar(&config.Type, "type", "all", "扫描类型: all|kernel|services|programs|middleware|distro")
 	flag.StringVar(&config.Output, "output", "GYscan-Linux-C2_report.txt", "输出文件路径")
 	flag.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
-	
+
 	// 版本信息参数
 	versionFlag := flag.Bool("version", false, "显示版本信息")
 	flag.BoolVar(versionFlag, "v", false, "显示版本信息 (简写)")
-
-
 
 	// userinfo子命令参数
 	userinfoCmd.StringVar(&config.UserinfoOutput, "o", "linux_userinfo_report.txt", "输出文件路径")
@@ -70,8 +68,6 @@ func main() {
 	trivyCmd.StringVar(&config.Output, "output", "trivy_report.html", "输出文件路径")
 	trivyCmd.StringVar(&config.Target, "target", "", "扫描目标 (镜像、文件或目录)")
 	trivyCmd.BoolVar(&config.Verbose, "verbose", false, "详细输出模式")
-
-
 
 	// ssh子命令参数
 	sshCmd.StringVar(&config.SSHOutput, "o", "ssh_audit_report.html", "输出文件路径")
@@ -221,9 +217,9 @@ func main() {
 
 	// 根据子命令执行不同的操作
 	var scanType string
-	
+
 	startTime := time.Now()
-	
+
 	// 检查当前执行的子命令
 	subcommand := ""
 	if len(os.Args) > 1 {
@@ -249,7 +245,7 @@ func main() {
 		// 检查哪些操作需要root权限
 		needsRoot := false
 		reason := ""
-		
+
 		if subcommand == "" {
 			needsRoot = true
 			reason = "漏洞扫描需要访问系统敏感信息"
@@ -260,7 +256,7 @@ func main() {
 			needsRoot = true
 			reason = "Lynis安全审计需要访问系统敏感信息"
 		}
-		
+
 		if needsRoot {
 			fmt.Printf("错误: %s需要root权限 (%s)\n", subcommand, reason)
 			fmt.Println("请使用sudo运行此程序:")
@@ -268,7 +264,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	
+
 	// 调试信息：显示当前配置
 	var outputFile string
 	outputFile = config.Output
@@ -281,7 +277,7 @@ func main() {
 	} else if subcommand == "lynis" {
 		outputFile = config.LynisOutput
 	}
-	
+
 	if subcommand == "userinfo" {
 		// 执行用户信息分析
 		scanType = "用户信息分析"
@@ -289,7 +285,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("用户信息分析失败: %v", err)
 		}
-		
+
 		// 生成用户信息报告
 		err = GenerateUserInfoReport(userResult, config.UserinfoOutput)
 		if err != nil {
@@ -298,12 +294,12 @@ func main() {
 	} else if subcommand == "trivy" {
 		// 执行Trivy扫描
 		scanType = "Trivy漏洞扫描"
-		
+
 		// 检查目标是否为空
 		if config.Target == "" {
 			log.Fatalf("错误: Trivy扫描需要指定目标，请使用 -target 参数")
 		}
-		
+
 		// 创建Trivy配置
 		trivyConfig := trivy.NewConfig()
 		trivyConfig.SetTarget(config.Target)
@@ -312,7 +308,7 @@ func main() {
 		trivyConfig.SetDebug(config.Verbose)
 		// 创建Trivy扫描器
 		trivyScanner := trivy.NewScanner(trivyConfig, config.Verbose)
-		
+
 		// 根据输出文件扩展名确定报告格式
 		if strings.HasSuffix(strings.ToLower(config.Output), ".html") {
 			// 生成HTML报告
@@ -327,28 +323,28 @@ func main() {
 				log.Fatalf("生成Trivy报告失败: %v", err)
 			}
 		}
-		
+
 		// 打印摘要
 		fmt.Printf("Trivy扫描完成，报告已保存到: %s\n", config.Output)
 
 	} else if subcommand == "ssh" {
 		// 执行SSH配置安全审计
 		scanType = "SSH配置安全审计"
-		
+
 		// 检查目标是否为空
 		if config.Target == "" {
 			log.Fatalf("错误: SSH扫描需要指定目标，请使用 -target 参数")
 		}
-		
+
 		// 创建SSH配置
 		sshConfig := ssh.NewConfig()
 		sshConfig.Target = config.Target
 		sshConfig.OutputFile = config.SSHOutput
 		sshConfig.Verbose = config.Verbose
-		
+
 		// 创建SSH扫描器
 		sshScanner := ssh.NewScanner(sshConfig, config.Verbose)
-		
+
 		// 执行扫描
 		result, err := sshScanner.Scan()
 		if err != nil {
@@ -356,30 +352,30 @@ func main() {
 		}
 		// 打印扫描结果
 		sshScanner.PrintResult(result)
-		
+
 		// 保存扫描结果
 		err = sshScanner.SaveResult(result)
 		if err != nil {
 			log.Fatalf("保存SSH扫描结果失败: %v", err)
 		}
-		
+
 		fmt.Printf("SSH配置安全审计完成，报告已保存到: %s\n", config.SSHOutput)
 	} else if subcommand == "lynis" {
 		// 检查是否有show子命令
 		if len(os.Args) > 2 && os.Args[2] == "show" {
 			// 处理lynis show命令
 			scanType = "Lynis信息显示"
-			
+
 			// 创建show命令处理器
 			showHandler := lynis.NewShowHandler(config.Verbose)
-			
+
 			// 检查show命令的具体参数
 			if len(os.Args) < 4 {
 				// 如果没有指定具体show命令，显示帮助
 				showHandler.ShowHelp()
 				os.Exit(0)
 			}
-			
+
 			// 根据show命令类型执行相应的功能
 			switch os.Args[3] {
 			case "categories":
@@ -444,7 +440,7 @@ func main() {
 		} else {
 			// 执行Lynis安全审计
 			scanType = "Lynis安全审计"
-			
+
 			// 创建Lynis配置
 			lynisConfig := lynis.NewConfig()
 			lynisConfig.OutputFile = config.LynisOutput
@@ -452,16 +448,16 @@ func main() {
 			lynisConfig.QuickScan = config.QuickScan
 			lynisConfig.FullScan = config.FullScan
 			lynisConfig.ReportFormat = config.ReportFormat
-			
+
 			// 创建Lynis扫描器
 			lynisScanner := lynis.NewScanner(lynisConfig, config.Verbose)
-			
+
 			// 执行安全审计
 			auditResult, err := lynisScanner.RunAudit()
 			if err != nil {
 				log.Fatalf("Lynis安全审计失败: %v", err)
 			}
-			
+
 			// 如果输出文件路径为空，则直接输出到终端
 			if config.LynisOutput == "" {
 				// 打印详细审计结果到终端
@@ -473,27 +469,27 @@ func main() {
 				if err != nil {
 					log.Fatalf("生成Lynis报告失败: %v", err)
 				}
-				
+
 				// 打印摘要
 				lynisScanner.PrintSummary(auditResult)
-				
+
 				fmt.Printf("Lynis安全审计完成，报告已保存到: %s\n", config.LynisOutput)
 			}
 		}
 	} else if subcommand == "show" {
 		// 处理show命令
 		scanType = "信息显示"
-		
+
 		// 创建show命令处理器
 		showHandler := lynis.NewShowHandler(config.Verbose)
-		
+
 		// 检查show命令的具体参数
 		if len(os.Args) < 3 {
 			// 如果没有指定具体show命令，显示帮助
 			showHandler.ShowHelp()
 			os.Exit(0)
 		}
-		
+
 		// 根据show命令类型执行相应的功能
 		switch os.Args[2] {
 		case "categories":
@@ -558,18 +554,18 @@ func main() {
 	} else if subcommand == "getroot" {
 		// 处理getroot命令 - 执行权限提升检测
 		scanType = "权限提升检测"
-		
+
 		fmt.Println("开始权限提升检测...")
-		
+
 		// 根据扫描模式执行检测
 		var success bool
 		var result string
 		var err error
-		
+
 		if err != nil {
 			log.Fatalf("权限提升检测失败: %v", err)
 		}
-		
+
 		// 显示结果
 		if success {
 			fmt.Printf("权限提升攻击成功! %s\n", result)
@@ -586,10 +582,10 @@ func main() {
 		}
 		// 生成报告
 		reportGen := scanners.NewReportGenerator(scanResult)
-		
+
 		// 根据子命令选择正确的输出文件
 		outputFile = config.Output
-		
+
 		// 根据输出文件扩展名确定报告格式
 		outputFormat := "text"
 		if strings.HasSuffix(strings.ToLower(outputFile), ".html") {
@@ -597,12 +593,12 @@ func main() {
 		} else if strings.HasSuffix(strings.ToLower(outputFile), ".json") {
 			outputFormat = "json"
 		}
-		
+
 		err = reportGen.GenerateReport(outputFormat, outputFile)
 		if err != nil {
 			log.Fatalf("生成报告失败: %v", err)
 		}
-		
+
 		// 打印摘要
 		reportGen.PrintSummary()
 	}
@@ -623,22 +619,22 @@ func GenerateUserInfoReport(users interface{}, outputPath string) error {
 	if !ok {
 		return fmt.Errorf("无效的用户信息类型")
 	}
-	
+
 	// 生成报告内容
 	reportContent := userinfo.FormatUserInfo(userList)
-	
+
 	// 写入文件
 	file, err := os.Create(outputPath)
 	if err != nil {
 		return fmt.Errorf("创建报告文件失败: %v", err)
 	}
 	defer file.Close()
-	
+
 	_, err = file.WriteString(reportContent)
 	if err != nil {
 		return fmt.Errorf("写入报告文件失败: %v", err)
 	}
-	
+
 	return nil
 }
 
@@ -648,7 +644,7 @@ func isRoot() bool {
 	if runtime.GOOS == "windows" {
 		return true
 	}
-	
+
 	// 在Linux系统上检查当前用户ID
 	return os.Geteuid() == 0
 }

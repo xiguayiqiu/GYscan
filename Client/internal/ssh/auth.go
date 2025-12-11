@@ -122,27 +122,28 @@ func (a *SSHAuthenticator) TestCredentials(target string, port int, username str
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         a.timeout,
-		// 使用更兼容的算法配置，特别针对OpenSSH 10.2
+		BannerCallback:  ssh.BannerDisplayStderr(),
+		// 优化算法配置，优先使用快速安全的算法
 		Config: ssh.Config{
 			Ciphers: []string{
-				"aes128-ctr", "aes192-ctr", "aes256-ctr",
-				"aes128-gcm@openssh.com", "aes256-gcm@openssh.com",
-				"chacha20-poly1305@openssh.com",
-				"3des-cbc", // 添加传统算法支持
+				"chacha20-poly1305@openssh.com", // 最快的现代算法
+				"aes128-gcm@openssh.com",
+				"aes256-gcm@openssh.com",
+				"aes128-ctr",
+				"aes192-ctr",
+				"aes256-ctr",
 			},
 			KeyExchanges: []string{
-				"curve25519-sha256",
+				"curve25519-sha256", // 最快的现代密钥交换算法
 				"curve25519-sha256@libssh.org",
 				"ecdh-sha2-nistp256",
-				"ecdh-sha2-nistp384",
-				"ecdh-sha2-nistp521",
 				"diffie-hellman-group14-sha256",
-				"diffie-hellman-group14-sha1",
-				"diffie-hellman-group-exchange-sha1",
-				"diffie-hellman-group18-sha512",
-				"diffie-hellman-group16-sha512",
-				"diffie-hellman-group-exchange-sha256",
-				"diffie-hellman-group1-sha1", // 添加传统算法支持
+			},
+			MACs: []string{
+				"hmac-sha2-256-etm@openssh.com",
+				"hmac-sha2-512-etm@openssh.com",
+				"hmac-sha2-256",
+				"hmac-sha2-512",
 			},
 		},
 	}
@@ -154,35 +155,29 @@ func (a *SSHAuthenticator) TestCredentials(target string, port int, username str
 		utils.Debug("[尝试] %s@%s:%d - 密码: %s", username, target, port, password)
 	}
 
-	// 采用改进的连接策略：添加重试机制和更好的错误处理
+	// 优化连接策略：快速连接机制，减少不必要的重试
 	var client *ssh.Client
 	var err error
 	
-	// 重试机制：最多重试2次
-	for attempt := 0; attempt < 3; attempt++ {
-		if attempt > 0 {
-			// 重试前等待一段时间
-			time.Sleep(time.Duration(attempt) * time.Second)
+	// 第一次连接尝试
+	client, err = ssh.Dial("tcp", address, config)
+	
+	// 只在特定情况下重试
+	if err != nil {
+		// 检查是否是连接被强制关闭错误，这是最常见的OpenSSH安全机制触发错误
+		if strings.Contains(err.Error(), "forcibly closed") || strings.Contains(err.Error(), "EOF") {
 			if a.verbose >= 2 {
-				utils.Debug("[重试] 第%d次重试连接", attempt)
+				utils.Debug("[重试] 连接被强制关闭，调整策略后重试一次")
 			}
-		}
-		
-		client, err = ssh.Dial("tcp", address, config)
-		if err == nil {
-			break
+			// 重试前短暂等待，给服务器足够时间处理
+			time.Sleep(1500 * time.Millisecond)
+			// 重试连接
+			client, err = ssh.Dial("tcp", address, config)
 		}
 		
 		// 在详细模式下显示详细的错误信息
 		if a.verbose >= 1 {
-			utils.Debug("[详细错误] 连接失败 - 尝试 %d: %v (类型: %T)", attempt+1, err, err)
-		}
-		
-		// 如果是连接重置或拒绝等错误，直接返回，不重试
-		if strings.Contains(err.Error(), "connection reset") || 
-		   strings.Contains(err.Error(), "connection refused") ||
-		   strings.Contains(err.Error(), "too many authentication failures") {
-			break
+			utils.Debug("[详细错误] 连接失败: %v (类型: %T)", err, err)
 		}
 	}
 	
