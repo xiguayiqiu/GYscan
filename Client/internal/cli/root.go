@@ -16,7 +16,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.3.1"
+	Version = "v2.5.4"
 )
 
 // rootCmd 表示基础命令
@@ -209,25 +209,27 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
 
 	// ===== 非测试阶段命令 =====
-	cmd.AddCommand(aboutCmd)      // 查看工具信息
-	cmd.AddCommand(crunchCmd)     // 密码字典生成工具
-	cmd.AddCommand(databaseCmd)   // 数据库密码破解工具
-	cmd.AddCommand(dirscanCmd)    // 网站目录扫描工具
-	cmd.AddCommand(ftpCmd)        // FTP密码破解
-	cmd.AddCommand(powershellCmd) // PowerShell远程执行工具 [WinRM服务利用]
-	cmd.AddCommand(processCmd)    // 进程与服务信息收集工具
-	cmd.AddCommand(rdpCmd)        // RDP远程桌面工具
-	cmd.AddCommand(routeCmd)      // 路由跳数检测
-	cmd.AddCommand(nmap.ScanCmd)  // 网络扫描工具
-	cmd.AddCommand(smbCmd)        // SMB协议操作工具
-	cmd.AddCommand(sshCmd)        // SSH密码爆破工具（Hydra风格）
-	cmd.AddCommand(userinfoCmd)   // 本地用户和组分析
-	cmd.AddCommand(webshellCmd)   // WebShell生成工具
-	cmd.AddCommand(wmiCmd)        // WMI远程管理工具
-	cmd.AddCommand(winlogCmd)     // 远程Windows日志查看工具
-	cmd.AddCommand(xss.XssCmd)    // XSS漏洞检测工具
-	cmd.AddCommand(wafCmd)        // WAF识别工具
-	cmd.AddCommand(whoisCmd)      // Whois查询工具
+	cmd.AddCommand(aboutCmd)       // 查看工具信息
+	cmd.AddCommand(crunchCmd)      // 密码字典生成工具
+	cmd.AddCommand(databaseCmd)    // 数据库密码破解工具
+	cmd.AddCommand(dirscanCmd)     // 网站目录扫描工具
+	cmd.AddCommand(ftpCmd)         // FTP密码破解
+	cmd.AddCommand(linenumCmd)     // Linux本地信息枚举和权限提升工具
+	cmd.AddCommand(linuxKernelCmd) // Linux内核漏洞检测工具
+	cmd.AddCommand(powershellCmd)  // PowerShell远程执行工具 [WinRM服务利用]
+	cmd.AddCommand(processCmd)     // 进程与服务信息收集工具
+	cmd.AddCommand(rdpCmd)         // RDP远程桌面工具
+	cmd.AddCommand(routeCmd)       // 路由跳数检测
+	cmd.AddCommand(nmap.ScanCmd)   // 网络扫描工具
+	cmd.AddCommand(smbCmd)         // SMB协议操作工具
+	cmd.AddCommand(sshCmd)         // SSH密码爆破工具（Hydra风格）
+	cmd.AddCommand(userinfoCmd)    // 本地用户和组分析
+	cmd.AddCommand(webshellCmd)    // WebShell生成工具
+	cmd.AddCommand(wmiCmd)         // WMI远程管理工具
+	cmd.AddCommand(winlogCmd)      // 远程Windows日志查看工具
+	cmd.AddCommand(xss.XssCmd)     // XSS漏洞检测工具
+	cmd.AddCommand(wafCmd)         // WAF识别工具
+	cmd.AddCommand(whoisCmd)       // Whois查询工具
 
 	// ===== 测试阶段命令 =====
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]

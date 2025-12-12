@@ -8,21 +8,21 @@ import (
 
 // VersionInfo 版本信息结构
 type VersionInfo struct {
-	Version     string    // 主版本号
-	BuildDate   time.Time // 构建时间
-	GoVersion   string    // Go版本
-	Platform    string    // 平台信息
-	Compiler    string    // 编译器信息
+	Version   string    // 主版本号
+	BuildDate time.Time // 构建时间
+	GoVersion string    // Go版本
+	Platform  string    // 平台信息
+	Compiler  string    // 编译器信息
 }
 
 // GetVersionInfo 获取版本信息
 func GetVersionInfo() VersionInfo {
 	return VersionInfo{
-		Version:     "2.5.3.1",
-		BuildDate:   time.Now(),
-		GoVersion:   runtime.Version(),
-		Platform:    fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
-		Compiler:    runtime.Compiler,
+		Version:   "2.5.4",
+		BuildDate: time.Now(),
+		GoVersion: runtime.Version(),
+		Platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+		Compiler:  runtime.Compiler,
 	}
 }
 

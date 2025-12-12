@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.5.3.1 |
+| **Latest Version** | v2.5.4 |
 
 ### ⚠️ Legal Statement
 
@@ -511,9 +511,20 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 
 ## 📝 Changelog
 
-### v2.5.3.1
+### v2.5.4
+New features:
+- **linenum Function ** - Added linenum function, supporting local scanning of targets [including but not limited to]
+- Local file system scan
+- Local directory traversal
+- Local file content reading
+- Local system information acquisition
+- **linux-kernel Functionality ** - Added linux-kernel functionality, supporting local scanning of targets [including but not limited to]
+- Local kernel version acquisition
+- Local vulnerability detection
+Currently, only the Debain system is supported
 
-**Optimization Function**:  Optimize the issue where cracking a single target in the database module and ftp module does not immediately end when a single target is successfully cracked, and add 'ctrl+C' to organize the context and display the successfully cracked target after multiple targets are successfully cracked
+### v2.5.3.1
+-**Optimization Function**:  Optimize the issue where cracking a single target in the database module and ftp module does not immediately end when a single target is successfully cracked, and add 'ctrl+C' to organize the context and display the successfully cracked target after multiple targets are successfully cracked
 
 ### v2.5.2.1
 
