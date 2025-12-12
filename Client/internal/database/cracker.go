@@ -71,6 +71,10 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 	current := 0
 	found := 0
 	
+	// 创建可取消上下文
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	
 	// 创建结果收集器
 	results := make([]CrackResult, 0)
 	resultMutex := &sync.Mutex{}
@@ -87,6 +91,8 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 			results = append(results, result)
 			if result.Success {
 				found++
+				// 单个目标破解成功后立即停止
+				cancel()
 			}
 			current++
 			
@@ -96,6 +102,14 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 			}
 			
 			resultMutex.Unlock()
+			
+			// 检查是否已取消
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// 继续处理
+			}
 		}
 	}()
 	
@@ -122,7 +136,7 @@ func (w *CrackWorker) Run(ctx context.Context, threads int) []CrackResult {
 		go w.worker(ctx, jobs)
 	}
 	
-	// 等待所有工作完成
+	// 等待所有工作完成或上下文取消
 	w.wg.Wait()
 	close(w.results)
 	

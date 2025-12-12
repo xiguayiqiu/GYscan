@@ -255,6 +255,9 @@ func (w *CrackWorker) worker(jobs <-chan [2]string, successChan chan<- string, c
 
 	for {
 		select {
+		case <-ctx.Done():
+			// 上下文已取消，退出工作线程
+			return
 		case job, ok := <-jobs:
 			if !ok {
 				return
@@ -293,6 +296,10 @@ func (w *CrackWorker) worker(jobs <-chan [2]string, successChan chan<- string, c
 
 // Run 运行FTP破解
 func (w *CrackWorker) Run() []CrackResult {
+	// 创建可取消上下文
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	// 创建更大的工作队列，减少阻塞
 	jobs := make(chan [2]string, len(w.config.Username)*len(w.config.Password))
 	successChan := make(chan string, len(w.config.Username))
@@ -300,7 +307,7 @@ func (w *CrackWorker) Run() []CrackResult {
 	// 启动工作线程
 	for i := 0; i < w.config.Threads; i++ {
 		w.wg.Add(1)
-		go w.worker(jobs, successChan, nil)
+		go w.worker(jobs, successChan, ctx)
 	}
 
 	// 快速填充所有工作任务
@@ -308,10 +315,28 @@ func (w *CrackWorker) Run() []CrackResult {
 		// 先将所有任务发送到队列
 		for _, username := range w.config.Username {
 			for _, password := range w.config.Password {
-				jobs <- [2]string{username, password}
+				select {
+				case jobs <- [2]string{username, password}:
+				case <-ctx.Done():
+					// 如果上下文已取消，停止发送任务
+					close(jobs)
+					return
+				}
 			}
 		}
 		close(jobs)
+	}()
+
+	// 监听成功结果，第一个成功就取消上下文
+	go func() {
+		select {
+		case <-successChan:
+			// 第一个成功结果，取消上下文停止所有工作
+			cancel()
+		case <-ctx.Done():
+			// 上下文已取消，退出
+			return
+		}
 	}()
 
 	// 等待所有工作完成

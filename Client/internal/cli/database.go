@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"GYscan/internal/database"
@@ -43,6 +44,7 @@ var databaseCmd = &cobra.Command{
 
 		// 解析参数
 		target, _ := cmd.Flags().GetString("target")
+		targetFile, _ := cmd.Flags().GetString("target-file")
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
 		dbName, _ := cmd.Flags().GetString("database")
@@ -57,8 +59,8 @@ var databaseCmd = &cobra.Command{
 		}
 
 		// 验证参数
-		if target == "" {
-			utils.ErrorPrint("目标地址不能为空")
+		if target == "" && targetFile == "" {
+			utils.ErrorPrint("目标地址或目标文件不能为空")
 			cmd.Help()
 			return
 		}
@@ -75,33 +77,74 @@ var databaseCmd = &cobra.Command{
 			return
 		}
 
+		// 加载目标列表
+		var targets []string
+		if targetFile != "" {
+			// 从文件加载目标
+			var err error
+			targets, err = loadFromFile(targetFile)
+			if err != nil {
+				utils.ErrorPrint("加载目标文件失败: %v", err)
+				os.Exit(1)
+			}
+			if len(targets) == 0 {
+				utils.ErrorPrint("目标文件中没有有效的目标")
+				os.Exit(1)
+			}
+			utils.InfoPrint("从文件加载了 %d 个目标", len(targets))
+		} else {
+			// 单个目标
+			targets = []string{target}
+		}
+
 		// 执行数据库破解
-		err := runDatabaseCrack(target, username, password, dbName, threads, timeout, ssl, protocol)
-		if err != nil {
-			utils.ErrorPrint("数据库破解失败: %v", err)
-			os.Exit(1)
+		var allResults []database.CrackResult
+		var mu sync.Mutex
+		var wg sync.WaitGroup
+
+		for _, t := range targets {
+			wg.Add(1)
+			go func(target string) {
+				defer wg.Done()
+				results, err := runDatabaseCrack(target, username, password, dbName, threads, timeout, ssl, protocol)
+				if err != nil {
+					utils.ErrorPrint("目标 %s 破解失败: %v", target, err)
+					return
+				}
+				mu.Lock()
+				allResults = append(allResults, results...)
+				mu.Unlock()
+			}(t)
+		}
+
+		// 等待所有目标破解完成
+		wg.Wait()
+
+		// 显示所有结果汇总
+		if len(allResults) > 0 {
+			database.PrintResults(allResults)
 		}
 	},
 }
 
 // runDatabaseCrack 执行数据库破解
-func runDatabaseCrack(target, username, password, dbName string, threads, timeout int, ssl, protocol bool) error {
+func runDatabaseCrack(target, username, password, dbName string, threads, timeout int, ssl, protocol bool) ([]database.CrackResult, error) {
 	// 解析目标地址
 	dbType, host, port, err := parseDatabaseTarget(target)
 	if err != nil {
-		return fmt.Errorf("解析目标地址失败: %v", err)
+		return nil, fmt.Errorf("解析目标地址失败: %v", err)
 	}
 
 	// 加载用户名列表
 	usernames, err := loadCredentials(username)
 	if err != nil {
-		return fmt.Errorf("加载用户名列表失败: %v", err)
+		return nil, fmt.Errorf("加载用户名列表失败: %v", err)
 	}
 
 	// 加载密码列表
 	passwords, err := loadCredentials(password)
 	if err != nil {
-		return fmt.Errorf("加载密码列表失败: %v", err)
+		return nil, fmt.Errorf("加载密码列表失败: %v", err)
 	}
 
 	// 创建数据库配置
@@ -115,7 +158,7 @@ func runDatabaseCrack(target, username, password, dbName string, threads, timeou
 
 	// 创建破解管理器
 	manager := database.NewCrackManager()
-	
+
 	// 注册破解器
 	manager.RegisterCracker(database.MySQL, database.MySQLCrackerFactory(protocol))
 	manager.RegisterCracker(database.PostgreSQL, database.PostgreSQLCrackerFactory(protocol))
@@ -131,8 +174,12 @@ func runDatabaseCrack(target, username, password, dbName string, threads, timeou
 	utils.InfoPrint("超时时间: %d秒", timeout)
 	utils.InfoPrint("")
 
-	// 创建上下文
-	ctx := context.Background()
+	// 创建可取消上下文
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// 处理Ctrl+C信号
+	utils.InfoPrint("按 Ctrl+C 可以停止破解并显示已成功的结果")
 
 	// 进度回调函数
 	progress := func(current, total, found int) {
@@ -146,17 +193,17 @@ func runDatabaseCrack(target, username, password, dbName string, threads, timeou
 	startTime := time.Now()
 	results, err := manager.Crack(ctx, config, usernames, passwords, progress)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// 显示结果
 	duration := time.Since(startTime)
 	utils.InfoPrint("")
 	utils.InfoPrint("破解完成! 耗时: %v", duration)
-	
+
 	database.PrintResults(results)
 
-	return nil
+	return results, nil
 }
 
 // parseDatabaseTarget 解析数据库目标地址
@@ -268,6 +315,7 @@ func loadFromFile(filename string) ([]string, error) {
 func init() {
 	// 添加命令参数
 	databaseCmd.Flags().StringP("target", "t", "", "目标数据库地址 (格式: mysql://host:port)")
+	databaseCmd.Flags().StringP("target-file", "L", "", "包含多个目标的文件 (每行一个目标，格式: 协议://目标:端口)")
 	databaseCmd.Flags().StringP("username", "u", "", "用户名或用户字典文件")
 	databaseCmd.Flags().StringP("password", "p", "", "密码或密码字典文件")
 	databaseCmd.Flags().StringP("database", "d", "", "数据库名 (可选)")

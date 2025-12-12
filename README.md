@@ -23,7 +23,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v3.0.0 |
+| **最新版本** | v2.5.3.1 |
 
 ### ⚠️ 法律声明
 
@@ -515,38 +515,8 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 
 ## 📝 更新日志
 
-### v3.0.0 (最新更新)
-
-
-
-#### AI模型驱动渗透测试功能
-
-- 新增AI模型驱动的渗透测试功能，集成Ollama本地AI模型和云Ai提供商的支持，支持智能漏洞扫描、利用和报告生成
-
-- 提供两个核心AI子命令：
-  - `ai exp`- AI驱动渗透测试，自动执行信息收集、漏洞扫描和利用
-  - `ai aux` - AI辅助探测，基于目标系统特点制定个性化探测策略
-  - `ai config` - AI配置管理，支持默认配置、测试配置和配置查看
-
-  - 配置示例
-  [**点击此处查看**](Client/config/ai_config.yml)
-  
-  ```
-  # AI驱动渗透测试示例
-  GYscan ai exp example.com
-  
-  # AI辅助探测示例
-  GYscan ai aux example.com
-  
-  # AI配置管理
-  GYscan ai config default
-  GYscan ai config test
-  GYscan ai config show
-  ```
-
-  - 支持`--config`参数指定AI配置文件
-  - 支持`--resource`参数指定资源目录
-  - 支持`--scan`参数强制进行全盘扫描
+### v2.5.3.1
+- **优化功能**: 优化database模块、ftp模块破解时单个目标破解成功时不会立马结束的问题，并添加多目标破解成功之后`ctrl+C`整理上下文显示破解成功的目标
 
 ### v2.5.2.1
 

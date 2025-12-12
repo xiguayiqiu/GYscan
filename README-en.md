@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v3.0.0 |
+| **Latest Version** | v2.5.3.1 |
 
 ### ⚠️ Legal Statement
 
@@ -511,35 +511,9 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 
 ## 📝 Changelog
 
-### v3.0.0 (Latest Update)
+### v2.5.3.1
 
-#### AI Model-Driven Penetration Testing Function
-
-- Added AI model-driven penetration testing function, integrated with Ollama local AI model, supporting intelligent vulnerability scanning, exploitation, and report generation
-- Provides two core AI subcommands:
-  - `ai exp` - AI-driven penetration testing, automatically performing information gathering, vulnerability scanning, and exploitation
-  - `ai aux` - AI-assisted detection, formulating personalized detection strategies based on target system characteristics
-  - `ai config` - AI configuration management, supporting default configuration, test configuration, and configuration viewing
-
-  - Configuration example
-    [**Click here to view** ](Client/config/ai_config.yml)
-  
-  ```
-  # AI-driven penetration testing example
-  GYscan ai exp example.com
-  
-  # AI-assisted detection example
-  GYscan ai aux example.com
-  
-  # AI configuration management
-  GYscan ai config default
-  GYscan ai config test
-  GYscan ai config show
-  ```
-  
-  - Support `--config` parameter to specify AI configuration file
-  - Support `--resource` parameter to specify resource directory
-  - Support `--scan` parameter to force full disk scanning
+**Optimization Function**:  Optimize the issue where cracking a single target in the database module and ftp module does not immediately end when a single target is successfully cracked, and add 'ctrl+C' to organize the context and display the successfully cracked target after multiple targets are successfully cracked
 
 ### v2.5.2.1
 
