@@ -3,10 +3,14 @@ package sendrecv
 import (
 	"fmt"
 	"net"
+	"runtime"
+	"strings"
 	"time"
 
 	"GYscan/internal/scapy/core"
 	"GYscan/internal/scapy/layers"
+	"GYscan/internal/scapy/platform"
+	"GYscan/internal/utils"
 
 	"golang.org/x/net/ipv4"
 )
@@ -21,10 +25,30 @@ type Sender struct {
 
 // NewSender 创建新的包发送器
 func NewSender(ifaceName string) (*Sender, error) {
-	// 获取网络接口
-	iface, err := net.InterfaceByName(ifaceName)
+	// 获取所有网络接口
+	allInterfaces, err := net.Interfaces()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get interface %s: %v", ifaceName, err)
+		return nil, fmt.Errorf("failed to get all interfaces: %v", err)
+	}
+
+	// 精确匹配接口名称（不区分大小写）
+	var iface *net.Interface
+	for i := range allInterfaces {
+		if strings.EqualFold(allInterfaces[i].Name, ifaceName) {
+			iface = &allInterfaces[i]
+			utils.InfoPrint("找到接口: %s (名称: %s, 索引: %d)", ifaceName, iface.Name, iface.Index)
+			break
+		}
+	}
+
+	if iface == nil {
+		utils.WarningPrint("未找到精确匹配的接口 %s，尝试使用默认查找", ifaceName)
+		// 如果没有找到精确匹配，尝试使用默认接口查找
+		iface, err = net.InterfaceByName(ifaceName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get interface %s: %v", ifaceName, err)
+		}
+		utils.InfoPrint("使用默认查找找到接口: %s (名称: %s, 索引: %d)", ifaceName, iface.Name, iface.Index)
 	}
 
 	// 获取接口的IP地址
@@ -38,6 +62,7 @@ func NewSender(ifaceName string) (*Sender, error) {
 		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
 				localAddr = ipnet.IP
+				utils.InfoPrint("接口 %s 使用IP地址: %s", ifaceName, localAddr.String())
 				break
 			}
 		}
@@ -47,31 +72,59 @@ func NewSender(ifaceName string) (*Sender, error) {
 		return nil, fmt.Errorf("no IPv4 address found on interface %s", ifaceName)
 	}
 
-	// Windows兼容性：尝试使用原始套接字，如果失败则使用兼容模式
+	// 跨平台兼容性：根据平台选择合适的发送方式
 	var rawConn *ipv4.RawConn
 	var conn net.PacketConn
 
-	// 首先尝试创建原始套接字
-	conn, err = net.ListenPacket("ip4:tcp", "0.0.0.0")
-	if err != nil {
-		// 如果原始套接字创建失败，使用兼容模式
+	// Linux系统需要特殊处理
+	if platform.IsLinux() {
+		// Linux系统使用兼容模式，因为原始套接字需要root权限
+		utils.InfoPrint("Linux系统: 使用兼容模式发送数据包")
 		return &Sender{
 			iface:      iface,
 			conn:       nil, // 使用兼容模式
 			localAddr:  localAddr,
-			bufferSize: 65536,
+			bufferSize: platform.GetDefaultBufferSize(),
 		}, nil
 	}
 
-	rawConn, err = ipv4.NewRawConn(conn)
-	if err != nil {
-		conn.Close()
-		// 如果原始连接创建失败，使用兼容模式
+	// Windows系统尝试使用原始套接字
+	if platform.IsWindows() {
+		// 首先尝试创建原始套接字
+		conn, err = net.ListenPacket("ip4:tcp", "0.0.0.0")
+		if err != nil {
+			// 如果原始套接字创建失败，使用兼容模式
+			utils.WarningPrint("Windows原始套接字创建失败，使用兼容模式")
+			return &Sender{
+				iface:      iface,
+				conn:       nil, // 使用兼容模式
+				localAddr:  localAddr,
+				bufferSize: platform.GetDefaultBufferSize(),
+			}, nil
+		}
+
+		rawConn, err = ipv4.NewRawConn(conn)
+		if err != nil {
+			conn.Close()
+			// 如果原始连接创建失败，使用兼容模式
+			utils.WarningPrint("Windows原始连接创建失败，使用兼容模式")
+			return &Sender{
+				iface:      iface,
+				conn:       nil, // 使用兼容模式
+				localAddr:  localAddr,
+				bufferSize: platform.GetDefaultBufferSize(),
+			}, nil
+		}
+
+		utils.InfoPrint("Windows系统: 使用原始套接字模式")
+	} else {
+		// 其他Unix系统（macOS、FreeBSD等）使用兼容模式
+		utils.InfoPrint("Unix系统 (%s): 使用兼容模式", runtime.GOOS)
 		return &Sender{
 			iface:      iface,
 			conn:       nil, // 使用兼容模式
 			localAddr:  localAddr,
-			bufferSize: 65536,
+			bufferSize: platform.GetDefaultBufferSize(),
 		}, nil
 	}
 
@@ -79,7 +132,7 @@ func NewSender(ifaceName string) (*Sender, error) {
 		iface:      iface,
 		conn:       rawConn,
 		localAddr:  localAddr,
-		bufferSize: 65536,
+		bufferSize: platform.GetDefaultBufferSize(),
 	}, nil
 }
 
@@ -89,6 +142,11 @@ func (s *Sender) Close() error {
 		return s.conn.Close()
 	}
 	return nil
+}
+
+// GetLocalIP 获取发送器使用的本地IP地址
+func (s *Sender) GetLocalIP() net.IP {
+	return s.localAddr
 }
 
 // SendPacket 发送单个数据包

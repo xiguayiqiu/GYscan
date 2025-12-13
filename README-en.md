@@ -88,6 +88,30 @@ chmod +x build_linux.sh
 
 ### Linux Platform Dependency Installation
 
+### Linux/Unix Platform Adaptation
+
+GYscan v2.6.0 adds comprehensive support for Linux/Unix systems, including Linux, macOS, FreeBSD and other mainstream Unix systems.
+
+#### Cross-Platform Features
+
+- **Automatic Platform Detection**: Automatically identifies the current operating system and optimizes configuration parameters
+- **Smart Interface Selection**: Selects default network interfaces based on different systems (Linux: eth0, Windows: WLAN, macOS: en0)
+- **Performance Optimization**: Adjusts buffer size and snapshot length according to platform characteristics
+- **Permission Management**: Automatically handles permission requirements for different systems
+- **Error Handling**: Provides detailed platform-specific error information
+
+#### Supported Platforms
+
+| Platform | Status | Default Interface | Notes |
+|----------|--------|-------------------|-------|
+| Windows | ✅ Full Support | WLAN | Supports raw sockets and compatibility mode |
+| Linux | ✅ Full Support | eth0 | Requires root privileges for raw packet operations |
+| macOS | ✅ Full Support | en0 | Requires Xcode command line tools installation |
+| FreeBSD | ✅ Full Support | em0 | Requires root privileges |
+| Other Unix | 🔄 Basic Support | eth0 | Uses compatibility mode |
+
+#### Linux Platform Dependency Installation
+
 GYscan requires system dependency packages to be installed on Linux platforms. The installation commands for different distributions are as follows:
 
 #### Debian/Ubuntu/Kali Linux/Parrot Security

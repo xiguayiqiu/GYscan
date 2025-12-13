@@ -426,14 +426,21 @@ func sendCustomTCPSynPacket(target string, sport, dport int, flags, payload stri
 		return fmt.Errorf("构造TCP层失败: %v", err)
 	}
 
-	// 获取本机IP地址
-	localIP, err := getLocalIPString()
+	// 创建发送器并获取接口的IP地址
+	sender, err := sendrecv.NewSender(iface)
 	if err != nil {
-		return fmt.Errorf("获取本地IP失败: %v", err)
+		return fmt.Errorf("创建发送器失败: %v", err)
+	}
+	defer sender.Close()
+
+	// 获取发送器使用的本地IP地址
+	localIP := sender.GetLocalIP()
+	if localIP == nil {
+		return fmt.Errorf("无法获取接口 %s 的IP地址", iface)
 	}
 
 	// 构造自定义IP包
-	ipLayer, err := builder.BuildCustomIPPacket(localIP, target, 6, tcpLayer, ttl)
+	ipLayer, err := builder.BuildCustomIPPacket(localIP.String(), target, 6, tcpLayer, ttl)
 	if err != nil {
 		return fmt.Errorf("构造IP层失败: %v", err)
 	}
@@ -442,14 +449,7 @@ func sendCustomTCPSynPacket(target string, sport, dport int, flags, payload stri
 	utils.InfoPrint("源端口: %d, 目标端口: %d", sport, dport)
 	utils.InfoPrint("TCP标志: 0x%02x, 窗口大小: %d", tcpFlags, window)
 	utils.InfoPrint("TTL: %d, 载荷长度: %d", ttl, len(payload))
-	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP, target)
-
-	// 创建发送器并发送包
-	sender, err := sendrecv.NewSender(iface)
-	if err != nil {
-		return fmt.Errorf("创建发送器失败: %v", err)
-	}
-	defer sender.Close()
+	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP.String(), target)
 
 	// 发送TCP SYN包
 	err = sender.SendPacket(ipLayer)
@@ -479,14 +479,21 @@ func sendCustomTCPAckPacket(target string, sport, dport int, flags, payload stri
 		return fmt.Errorf("构造TCP层失败: %v", err)
 	}
 
-	// 获取本机IP地址
-	localIP, err := getLocalIPString()
+	// 创建发送器并获取接口的IP地址
+	sender, err := sendrecv.NewSender(iface)
 	if err != nil {
-		return fmt.Errorf("获取本地IP失败: %v", err)
+		return fmt.Errorf("创建发送器失败: %v", err)
+	}
+	defer sender.Close()
+
+	// 获取发送器使用的本地IP地址
+	localIP := sender.GetLocalIP()
+	if localIP == nil {
+		return fmt.Errorf("无法获取接口 %s 的IP地址", iface)
 	}
 
 	// 构造自定义IP包
-	ipLayer, err := builder.BuildCustomIPPacket(localIP, target, 6, tcpLayer, ttl)
+	ipLayer, err := builder.BuildCustomIPPacket(localIP.String(), target, 6, tcpLayer, ttl)
 	if err != nil {
 		return fmt.Errorf("构造IP层失败: %v", err)
 	}
@@ -496,14 +503,7 @@ func sendCustomTCPAckPacket(target string, sport, dport int, flags, payload stri
 	utils.InfoPrint("TCP标志: 0x%02x, 窗口大小: %d", tcpFlags, window)
 	utils.InfoPrint("序列号: %d, 确认号: %d", seqNum, ackNum)
 	utils.InfoPrint("TTL: %d, 载荷长度: %d", ttl, len(payload))
-	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP, target)
-
-	// 创建发送器并发送包
-	sender, err := sendrecv.NewSender(iface)
-	if err != nil {
-		return fmt.Errorf("创建发送器失败: %v", err)
-	}
-	defer sender.Close()
+	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP.String(), target)
 
 	// 发送TCP ACK包
 	err = sender.SendPacket(ipLayer)
@@ -534,14 +534,21 @@ func sendCustomUDPPacket(target string, sport, dport int, payload string, ttl in
 		return fmt.Errorf("构建UDP层失败: %v", err)
 	}
 
-	// 获取本机IP地址
-	localIP, err := getLocalIPString()
+	// 创建发送器并获取接口的IP地址
+	sender, err := sendrecv.NewSender(iface)
 	if err != nil {
-		return fmt.Errorf("获取本地IP失败: %v", err)
+		return fmt.Errorf("创建发送器失败: %v", err)
+	}
+	defer sender.Close()
+
+	// 获取发送器使用的本地IP地址
+	localIP := sender.GetLocalIP()
+	if localIP == nil {
+		return fmt.Errorf("无法获取接口 %s 的IP地址", iface)
 	}
 
 	// 构造自定义IP包
-	ipLayer, err := builder.BuildCustomIPPacket(localIP, target, 17, udpData, ttl)
+	ipLayer, err := builder.BuildCustomIPPacket(localIP.String(), target, 17, udpData, ttl)
 	if err != nil {
 		return fmt.Errorf("构造IP层失败: %v", err)
 	}
@@ -549,14 +556,7 @@ func sendCustomUDPPacket(target string, sport, dport int, payload string, ttl in
 	utils.InfoPrint("自定义UDP包构造完成")
 	utils.InfoPrint("源端口: %d, 目标端口: %d", sport, dport)
 	utils.InfoPrint("TTL: %d, 载荷长度: %d", ttl, len(data))
-	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP, target)
-
-	// 创建发送器并发送包
-	sender, err := sendrecv.NewSender(iface)
-	if err != nil {
-		return fmt.Errorf("创建发送器失败: %v", err)
-	}
-	defer sender.Close()
+	utils.InfoPrint("源IP: %s, 目标IP: %s", localIP.String(), target)
 
 	// 发送IP包（包含UDP负载）
 	err = sender.SendPacket(ipLayer)

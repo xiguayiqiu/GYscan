@@ -3,9 +3,11 @@ package sendrecv
 import (
 	"fmt"
 	"net"
+	"runtime"
 	"time"
 
 	"GYscan/internal/scapy/core"
+	"GYscan/internal/scapy/platform"
 
 	"github.com/google/gopacket"
 	gplayers "github.com/google/gopacket/layers"
@@ -48,28 +50,54 @@ func NewSniffer(ifaceName string, config SnifferConfig) (*Sniffer, error) {
 		return nil, fmt.Errorf("failed to get interface %s: %v", ifaceName, err)
 	}
 
+	// 跨平台兼容性：调整配置参数
+	adjustedConfig := config
+
+	// Linux系统需要特殊处理
+	if platform.IsLinux() {
+		// Linux系统支持更大的快照长度和缓冲区
+		if adjustedConfig.Snaplen == 0 {
+			adjustedConfig.Snaplen = platform.GetDefaultSnapLength()
+		}
+		if adjustedConfig.BufferSize == 0 {
+			adjustedConfig.BufferSize = platform.GetDefaultBufferSize()
+		}
+		fmt.Printf("Linux系统: 使用快照长度 %d, 缓冲区大小 %d\n", adjustedConfig.Snaplen, adjustedConfig.BufferSize)
+	}
+
 	// 打开pcap句柄
-	handle, err := pcap.OpenLive(ifaceName, int32(config.Snaplen), config.Promisc, config.Timeout)
+	handle, err := pcap.OpenLive(ifaceName, int32(adjustedConfig.Snaplen), adjustedConfig.Promisc, adjustedConfig.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open pcap handle: %v", err)
+		// 如果pcap打开失败，提供更详细的错误信息
+		if platform.IsLinux() {
+			return nil, fmt.Errorf("failed to open pcap handle on Linux (可能需要root权限或libpcap安装): %v", err)
+		} else if platform.IsDarwin() {
+			return nil, fmt.Errorf("failed to open pcap handle on macOS (可能需要安装Xcode命令行工具): %v", err)
+		} else {
+			return nil, fmt.Errorf("failed to open pcap handle: %v", err)
+		}
 	}
 
 	// 设置BPF过滤器
-	if config.Filter != "" {
-		err = handle.SetBPFFilter(config.Filter)
+	if adjustedConfig.Filter != "" {
+		err = handle.SetBPFFilter(adjustedConfig.Filter)
 		if err != nil {
 			handle.Close()
 			return nil, fmt.Errorf("failed to set BPF filter: %v", err)
 		}
 	}
 
+	// 记录平台信息
+	fmt.Printf("包捕获器创建成功 - 平台: %s, 接口: %s, 快照长度: %d\n",
+		runtime.GOOS, ifaceName, adjustedConfig.Snaplen)
+
 	return &Sniffer{
 		iface:      iface,
 		handle:     handle,
-		filter:     config.Filter,
-		bufferSize: config.BufferSize,
-		timeout:    config.Timeout,
-		promisc:    config.Promisc,
+		filter:     adjustedConfig.Filter,
+		bufferSize: adjustedConfig.BufferSize,
+		timeout:    adjustedConfig.Timeout,
+		promisc:    adjustedConfig.Promisc,
 	}, nil
 }
 
