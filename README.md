@@ -23,7 +23,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v2.5.4 |
+| **最新版本** | v2.6.0 |
 
 ### ⚠️ 法律声明
 
@@ -105,6 +105,7 @@ chmod +x build_linux.sh
 | rdp | RDP远程桌面工具 | ✅ 稳定 |
 | route | 路由跳数检测 | ✅ 稳定 |
 | scan | 网络扫描工具，支持主机发现、端口扫描、服务识别等功能 | ✅ 稳定 |
+| scapy | 高级网络包操作工具，支持原始包构造、接口检测和功能演示 | ✅ 稳定 |
 | ssh | SSH密码爆破工具（Hydra风格） | ✅ 稳定 |
 | userinfo | 本地用户和组分析 | ✅ 稳定 |
 | webshell | WebShell生成工具 | ✅ 稳定 |
@@ -253,6 +254,25 @@ chmod +x build_linux.sh
 
 # 启用详细输出和颜色显示
 ./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --verbose --color
+```
+
+### 9. Scapy网络包操作
+
+```bash
+# 查看scapy模块帮助
+./GYscan.exe scapy --help
+
+# 网络包构造和发送
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 80 --syn
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 443 --ack --ttl 128
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 53 --udp --payload "test payload"
+
+# 网络接口检测
+./GYscan.exe scapy interface
+./GYscan.exe scapy interface --verbose
+
+# 功能演示和示例
+./GYscan.exe scapy example
 ```
 
 ## ⚙️ 高级配置
@@ -514,6 +534,27 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 - ⏳ 分布式扫描架构
 
 ## 📝 更新日志
+
+### v2.6.0
+功能更新：
+- **新增scapy模块** - 集成高级网络包操作工具，提供类似Python Scapy的底层网络包操作能力
+  - **packet子命令** - 原始网络包构造和发送功能
+    - 支持TCP SYN/ACK/FIN包构造
+    - 支持UDP包构造和发送
+    - 支持自定义载荷、TTL、窗口大小等参数
+    - 支持多协议包构造（Ethernet/IP/TCP/UDP）
+  - **interface子命令** - 网络接口检测和状态分析
+    - 检测所有可用网络接口
+    - 显示接口详细信息（MAC地址、IP地址、MTU等）
+    - 支持接口状态分类（启用/禁用、有线/无线）
+    - 支持详细输出模式
+  - **example子命令** - 功能演示和示例代码
+    - 提供网络包构造示例
+    - 展示接口检测功能
+    - 包含实用代码示例和最佳实践
+- **移除scan功能** - 删除scapy模块中的网络扫描功能，专注于包构造和接口检测
+- **优化代码结构** - 清理scan相关代码和参数，提升模块稳定性
+- **保持核心功能** - 保留packet构造发送、interface检测和example演示等核心功能
 
 ### v2.5.4
 新增功能：

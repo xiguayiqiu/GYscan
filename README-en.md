@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.5.4 |
+| **Latest Version** | v2.6.0 |
 
 ### ⚠️ Legal Statement
 
@@ -104,6 +104,7 @@ chmod +x build_linux.sh
 | rdp | RDP remote desktop tool | ✅ Stable |
 | route | Route hop detection | ✅ Stable |
 | scan | Network scanning tool, supporting host discovery, port scanning, service identification, etc. | ✅ Stable |
+| scapy | Advanced network packet manipulation tool, supporting raw packet construction, interface detection and function demonstration | ✅ Stable |
 | ssh | SSH password brute force tool (Hydra style) | ✅ Stable |
 | userinfo | Local user and group analysis | ✅ Stable |
 | webshell | WebShell generation tool | ✅ Stable |
@@ -255,6 +256,25 @@ chmod +x build_linux.sh
 
 # Enable verbose output and color display
 ./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --verbose --color
+```
+
+### 9. Scapy Network Packet Operations
+
+```bash
+# View scapy module help
+./GYscan.exe scapy --help
+
+# Network packet construction and sending
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 80 --syn
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 443 --ack --ttl 128
+./GYscan.exe scapy packet --target 192.168.1.100 --dport 53 --udp --payload "test payload"
+
+# Network interface detection
+./GYscan.exe scapy interface
+./GYscan.exe scapy interface --verbose
+
+# Function demonstration and examples
+./GYscan.exe scapy example
 ```
 
 ## ⚙️ Advanced Configuration
@@ -510,6 +530,27 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 - ⏳ Distributed scanning architecture
 
 ## 📝 Changelog
+
+### v2.6.0
+Feature Updates:
+- **Added scapy module** - Integrated advanced network packet manipulation tool, providing Python Scapy-like low-level network packet operation capabilities
+  - **packet subcommand** - Raw network packet construction and sending functionality
+    - Support for TCP SYN/ACK/FIN packet construction
+    - Support for UDP packet construction and sending
+    - Support for custom payload, TTL, window size and other parameters
+    - Support for multi-protocol packet construction (Ethernet/IP/TCP/UDP)
+  - **interface subcommand** - Network interface detection and status analysis
+    - Detect all available network interfaces
+    - Display interface detailed information (MAC address, IP address, MTU, etc.)
+    - Support interface status classification (enabled/disabled, wired/wireless)
+    - Support verbose output mode
+  - **example subcommand** - Function demonstration and example code
+    - Provide network packet construction examples
+    - Showcase interface detection functionality
+    - Include practical code examples and best practices
+- **Removed scan functionality** - Deleted network scanning functionality in scapy module, focusing on packet construction and interface detection
+- **Optimized code structure** - Cleaned up scan-related code and parameters, improving module stability
+- **Maintained core functionality** - Preserved packet construction/sending, interface detection, and example demonstration core functions
 
 ### v2.5.4
 New features:

@@ -7,6 +7,7 @@ import (
 
 	"GYscan/internal/csrf"
 	"GYscan/internal/nmap"
+	"GYscan/internal/scapy"
 	"GYscan/internal/utils"
 	"GYscan/internal/xss"
 
@@ -16,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.5.4"
+	Version = "v2.6.0"
 )
 
 // rootCmd 表示基础命令
@@ -150,7 +151,7 @@ func printCustomHelp() {
 			commandGroups["综合工具"] = append(commandGroups["综合工具"], cmd)
 		case "crunch", "database", "ftp", "ssh":
 			commandGroups["密码学工具"] = append(commandGroups["密码学工具"], cmd)
-		case "scan", "dirscan", "route", "whois":
+		case "scan", "dirscan", "route", "whois", "scapy":
 			commandGroups["网络扫描工具"] = append(commandGroups["网络扫描工具"], cmd)
 		case "powershell", "rdp", "smb", "wmi":
 			commandGroups["远程管理工具"] = append(commandGroups["远程管理工具"], cmd)
@@ -221,6 +222,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(rdpCmd)         // RDP远程桌面工具
 	cmd.AddCommand(routeCmd)       // 路由跳数检测
 	cmd.AddCommand(nmap.ScanCmd)   // 网络扫描工具
+	cmd.AddCommand(scapy.ScapyCmd) // 高级网络包操作工具（类似Scapy）
 	cmd.AddCommand(smbCmd)         // SMB协议操作工具
 	cmd.AddCommand(sshCmd)         // SSH密码爆破工具（Hydra风格）
 	cmd.AddCommand(userinfoCmd)    // 本地用户和组分析

@@ -18,8 +18,8 @@ import (
 // linenumCmd Linux本地信息枚举和权限提升脚本
 var linenumCmd = &cobra.Command{
 	Use:   "linenum [options]",
-	Short: "Linux本地信息枚举和权限提升工具",
-	Long: `Linux本地信息枚举和权限提升工具 - 基于LinEnum.sh的Go语言实现
+	Short: "Linux本地信息枚举工具",
+	Long: `Linux本地信息枚举工具 - 基于LinEnum.sh的Go语言实现
 
 支持功能:
 - 系统信息收集 (内核、版本、主机名等)
@@ -746,7 +746,7 @@ func searchGroupWritableInDir(dir string, resultChan chan<- string) {
 		// 检查文件权限
 		if isGroupWritable(info) && !isOwnedByCurrentUser(info) {
 			if fileInfo, err := os.Stat(path); err == nil {
-				resultChan <- fmt.Sprintf("%s %s %s %s",
+				resultChan <- fmt.Sprintf("%s %s %d %s",
 					fileInfo.Mode(),
 					fileInfo.ModTime().Format("Jan 02 15:04"),
 					fileInfo.Size(),
@@ -797,7 +797,7 @@ func searchUserFilesInDir(dir string, resultChan chan<- string) {
 		// 检查文件所有者
 		if isOwnedByCurrentUser(info) {
 			if fileInfo, err := os.Stat(path); err == nil {
-				resultChan <- fmt.Sprintf("%s %s %s %s",
+				resultChan <- fmt.Sprintf("%s %s %d %s",
 					fileInfo.Mode(),
 					fileInfo.ModTime().Format("Jan 02 15:04"),
 					fileInfo.Size(),

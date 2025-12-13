@@ -18,7 +18,7 @@ type VersionInfo struct {
 // GetVersionInfo 获取版本信息
 func GetVersionInfo() VersionInfo {
 	return VersionInfo{
-		Version:   "2.5.4",
+		Version:   "2.6.0",
 		BuildDate: time.Now(),
 		GoVersion: runtime.Version(),
 		Platform:  fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
