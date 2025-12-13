@@ -88,6 +88,94 @@ chmod +x build_linux.sh
 ./build_linux.sh
 ```
 
+### Linux平台依赖安装
+
+GYscan在Linux平台构建需要安装系统依赖包，不同发行版的安装命令如下：
+
+#### Debian/Ubuntu/Kali Linux/Parrot Security
+```bash
+# 更新包管理器
+sudo apt update
+
+# 安装依赖包
+sudo apt install -y \
+    libx11-dev \
+    libxcursor-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxi-dev \
+    libxxf86vm-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    mesa-common-dev \
+    build-essential \
+    pkg-config \
+    dbus-x11 \
+    libdbus-1-dev \
+    libpcap-dev
+```
+
+#### RedHat/CentOS/Fedora/Rocky Linux
+```bash
+# 安装依赖包
+sudo yum install -y \
+    libX11-devel \
+    libXcursor-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXi-devel \
+    libXxf86vm-devel \
+    mesa-libGL-devel \
+    mesa-libGLU-devel \
+    mesa-libGLw-devel \
+    gcc-c++ \
+    pkgconfig \
+    dbus-x11 \
+    dbus-devel \
+    libpcap-devel
+```
+
+#### Arch Linux/Manjaro
+```bash
+# 安装依赖包
+sudo pacman -S --noconfirm \
+    libx11 \
+    libxcursor \
+    libxrandr \
+    libxinerama \
+    libxi \
+    libxxf86vm \
+    mesa \
+    glu \
+    base-devel \
+    pkg-config \
+    dbus \
+    dbus-glib \
+    libpcap
+```
+
+#### OpenSUSE
+```bash
+# 安装依赖包
+sudo zypper install -y \
+    libX11-devel \
+    libXcursor-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXi-devel \
+    libXxf86vm-devel \
+    Mesa-libGL-devel \
+    Mesa-libGLU-devel \
+    Mesa-dri-devel \
+    gcc-c++ \
+    pkg-config \
+    dbus-1-x11 \
+    dbus-1-devel \
+    libpcap-devel
+```
+
+> **注意**: 构建脚本 `build_linux.sh` 会自动检测系统发行版并提示安装缺失的依赖包。
+
 ## 📋 功能列表
 
 ### 正式命令

@@ -86,6 +86,94 @@ chmod +x build_linux.sh
 ./build_linux.sh
 ```
 
+### Linux Platform Dependency Installation
+
+GYscan requires system dependency packages to be installed on Linux platforms. The installation commands for different distributions are as follows:
+
+#### Debian/Ubuntu/Kali Linux/Parrot Security
+```bash
+# Update package manager
+sudo apt update
+
+# Install dependency packages
+sudo apt install -y \
+    libx11-dev \
+    libxcursor-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxi-dev \
+    libxxf86vm-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    mesa-common-dev \
+    build-essential \
+    pkg-config \
+    dbus-x11 \
+    libdbus-1-dev \
+    libpcap-dev
+```
+
+#### RedHat/CentOS/Fedora/Rocky Linux
+```bash
+# Install dependency packages
+sudo yum install -y \
+    libX11-devel \
+    libXcursor-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXi-devel \
+    libXxf86vm-devel \
+    mesa-libGL-devel \
+    mesa-libGLU-devel \
+    mesa-libGLw-devel \
+    gcc-c++ \
+    pkgconfig \
+    dbus-x11 \
+    dbus-devel \
+    libpcap-devel
+```
+
+#### Arch Linux/Manjaro
+```bash
+# Install dependency packages
+sudo pacman -S --noconfirm \
+    libx11 \
+    libxcursor \
+    libxrandr \
+    libxinerama \
+    libxi \
+    libxxf86vm \
+    mesa \
+    glu \
+    base-devel \
+    pkg-config \
+    dbus \
+    dbus-glib \
+    libpcap
+```
+
+#### OpenSUSE
+```bash
+# Install dependency packages
+sudo zypper install -y \
+    libX11-devel \
+    libXcursor-devel \
+    libXrandr-devel \
+    libXinerama-devel \
+    libXi-devel \
+    libXxf86vm-devel \
+    Mesa-libGL-devel \
+    Mesa-libGLU-devel \
+    Mesa-dri-devel \
+    gcc-c++ \
+    pkg-config \
+    dbus-1-x11 \
+    dbus-1-devel \
+    libpcap-devel
+```
+
+> **Note**: The build script `build_linux.sh` will automatically detect the system distribution and prompt to install missing dependency packages.
+
 ## 📋 Function List
 
 ### Official Commands

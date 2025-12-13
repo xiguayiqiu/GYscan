@@ -94,6 +94,7 @@ DEBIAN_PACKAGES=(
     "pkg-config"        # 包配置工具
     "dbus-x11"          # D-Bus工具（解决dbus-launch错误）
     "libdbus-1-dev"     # D-Bus开发库
+    "libpcap-dev"       # libpcap开发库（网络包捕获）
 )
 
 REDHAT_PACKAGES=(
@@ -110,6 +111,7 @@ REDHAT_PACKAGES=(
     "pkgconfig"
     "dbus-x11"          # D-Bus工具（解决dbus-launch错误）
     "dbus-devel"        # D-Bus开发库
+    "libpcap-devel"     # libpcap开发库（网络包捕获）
 )
 
 ARCH_PACKAGES=(
@@ -125,6 +127,7 @@ ARCH_PACKAGES=(
     "pkg-config"
     "dbus"               # D-Bus工具（解决dbus-launch错误）
     "dbus-glib"          # D-Bus GLib绑定
+    "libpcap"            # libpcap开发库（网络包捕获）
 )
 
 OPENSUSE_PACKAGES=(
@@ -133,14 +136,15 @@ OPENSUSE_PACKAGES=(
     "libXrandr-devel"
     "libXinerama-devel"
     "libXi-devel"
-    "libXxf86vm-devel"  # 解决libXxf86vm错误
+    "libXxf86vm-devel"
     "Mesa-libGL-devel"
     "Mesa-libGLU-devel"
     "Mesa-dri-devel"
     "gcc-c++"
     "pkg-config"
-    "dbus-1-x11"         # D-Bus工具（解决dbus-launch错误）
-    "dbus-1-devel"        # D-Bus开发库
+    "dbus-1-x11"        
+    "dbus-1-devel"        
+    "libpcap-devel"     
 )
 
 # 检查依赖包函数
