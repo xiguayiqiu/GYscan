@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"GYscan/internal/smb"
 	"GYscan/internal/utils"
+
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +21,7 @@ var smbCmd = &cobra.Command{
 - SMB版本检测
 - 远程命令执行
 - 文件上传下载
+- 文件和目录列表
 
 示例用法:
   # 列出SMB共享
@@ -26,6 +29,9 @@ var smbCmd = &cobra.Command{
   
   # 检测SMB版本
   ./GYscan smb version --target 192.168.1.100
+  
+  # 列出文件和目录
+  ./GYscan smb dir --target 192.168.1.100 --user admin --password password --path "C:\\Windows"
   
   # 执行远程命令
   ./GYscan smb exec --target 192.168.1.100 --user admin --password password --command "whoami"
@@ -62,13 +68,13 @@ var smbSharesCmd = &cobra.Command{
 
 		// 创建SMB配置
 		config := &smb.SMBConfig{
-			Target:     target,
-			Port:       port,
-			Username:   username,
-			Password:   password,
-			Domain:     domain,
-			Timeout:    timeout,
-			Verbose:    verbose,
+			Target:      target,
+			Port:        port,
+			Username:    username,
+			Password:    password,
+			Domain:      domain,
+			Timeout:     timeout,
+			Verbose:     verbose,
 			VeryVerbose: veryVerbose,
 		}
 
@@ -115,10 +121,10 @@ var smbVersionCmd = &cobra.Command{
 
 		// 创建SMB配置
 		config := &smb.SMBConfig{
-			Target:     target,
-			Port:       port,
-			Timeout:    timeout,
-			Verbose:    verbose,
+			Target:      target,
+			Port:        port,
+			Timeout:     timeout,
+			Verbose:     verbose,
 			VeryVerbose: veryVerbose,
 		}
 
@@ -171,14 +177,14 @@ var smbExecCmd = &cobra.Command{
 
 		// 创建SMB配置
 		config := &smb.SMBConfig{
-			Target:     target,
-			Port:       port,
-			Username:   username,
-			Password:   password,
-			Domain:     domain,
-			Command:    command,
-			Timeout:    timeout,
-			Verbose:    verbose,
+			Target:      target,
+			Port:        port,
+			Username:    username,
+			Password:    password,
+			Domain:      domain,
+			Command:     command,
+			Timeout:     timeout,
+			Verbose:     verbose,
 			VeryVerbose: veryVerbose,
 		}
 
@@ -201,6 +207,87 @@ var smbExecCmd = &cobra.Command{
 	},
 }
 
+// smbDirCmd 列出文件和目录
+var smbDirCmd = &cobra.Command{
+	Use:   "dir",
+	Short: "列出文件和目录",
+	Long:  `列出SMB共享中的文件和目录，类似Linux的ls命令`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// 获取参数
+		target, _ := cmd.Flags().GetString("target")
+		port, _ := cmd.Flags().GetInt("port")
+		username, _ := cmd.Flags().GetString("user")
+		password, _ := cmd.Flags().GetString("password")
+		domain, _ := cmd.Flags().GetString("domain")
+		path, _ := cmd.Flags().GetString("path")
+		timeout, _ := cmd.Flags().GetInt("timeout")
+		verbose, _ := cmd.Flags().GetBool("verbose")
+		veryVerbose, _ := cmd.Flags().GetBool("very-verbose")
+
+		// 验证参数
+		if target == "" {
+			utils.ErrorPrint("错误: 必须指定目标主机(--target)")
+			os.Exit(1)
+		}
+
+		// 创建SMB配置
+		config := &smb.SMBConfig{
+			Target:      target,
+			Port:        port,
+			Username:    username,
+			Password:    password,
+			Domain:      domain,
+			Path:        path,
+			Timeout:     timeout,
+			Verbose:     verbose,
+			VeryVerbose: veryVerbose,
+		}
+
+		// 创建SMB客户端
+		client, err := smb.NewSMBClient(config)
+		if err != nil {
+			utils.ErrorPrint("SMB客户端创建失败: %v", err)
+			os.Exit(1)
+		}
+
+		// 列出文件
+		files, err := client.ListFiles(path)
+		if err != nil {
+			utils.ErrorPrint("列出文件失败: %v", err)
+			os.Exit(1)
+		}
+
+		// 打印结果
+		utils.SuccessPrint("[+] 路径 %s 下的文件和目录:", path)
+		utils.InfoPrint("权限\t大小\t修改时间\t名称")
+		utils.InfoPrint("------\t------\t-------------------\t------")
+
+		for _, file := range files {
+			var perm string
+			var size string
+
+			if file.IsDir {
+				perm = "drwxr-xr-x"
+				size = "-"
+			} else {
+				perm = "-rw-r--r--"
+				if file.Size < 1024 {
+					size = fmt.Sprintf("%dB", file.Size)
+				} else if file.Size < 1024*1024 {
+					size = fmt.Sprintf("%.1fK", float64(file.Size)/1024)
+				} else if file.Size < 1024*1024*1024 {
+					size = fmt.Sprintf("%.1fM", float64(file.Size)/(1024*1024))
+				} else {
+					size = fmt.Sprintf("%.1fG", float64(file.Size)/(1024*1024*1024))
+				}
+			}
+
+			modTime := file.ModTime.Format("2006-01-02 15:04:05")
+			utils.InfoPrint("%s\t%s\t%s\t%s", perm, size, modTime, file.Name)
+		}
+	},
+}
+
 func init() {
 	// SMB主命令参数
 	smbCmd.PersistentFlags().String("target", "", "目标主机IP或域名")
@@ -215,10 +302,14 @@ func init() {
 	// 执行命令参数
 	smbExecCmd.Flags().StringP("command", "c", "", "要执行的命令")
 
+	// 列出文件参数
+	smbDirCmd.Flags().StringP("path", "p", "", "要列出的路径（默认为根目录）")
+
 	// 添加子命令
 	smbCmd.AddCommand(smbSharesCmd)
 	smbCmd.AddCommand(smbVersionCmd)
 	smbCmd.AddCommand(smbExecCmd)
+	smbCmd.AddCommand(smbDirCmd)
 
 	// 在根命令中注册smb命令
 	// rootCmd.AddCommand(smbCmd) // 命令注册已移至root.go的RegisterCommands函数中统一管理

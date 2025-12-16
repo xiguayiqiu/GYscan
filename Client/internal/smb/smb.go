@@ -7,29 +7,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hirochachacha/go-smb2"
 	"GYscan/internal/utils"
+
+	"github.com/hirochachacha/go-smb2"
 )
 
 // SMBConfig 定义SMB模块的配置
 type SMBConfig struct {
-	Target     string
-	Port       int
-	Username   string
-	Password   string
-	Domain     string
-	Command    string
-	Timeout    int
-	Verbose    bool
+	Target      string
+	Port        int
+	Username    string
+	Password    string
+	Domain      string
+	Command     string
+	Path        string
+	Timeout     int
+	Verbose     bool
 	VeryVerbose bool
 }
 
 // SMBResult 定义SMB操作结果
 type SMBResult struct {
-	Success    bool
-	Output     string
-	Error      string
-	Timestamp  time.Time
+	Success   bool
+	Output    string
+	Error     string
+	Timestamp time.Time
 }
 
 // NewSMBClient 创建SMB客户端实例
@@ -213,4 +215,60 @@ func (c *SMBClient) PrintResult(result *SMBResult) {
 	} else {
 		utils.ErrorPrint("[-] SMB命令执行失败: %s", result.Error)
 	}
+}
+
+// FileInfo 定义文件信息结构
+type FileInfo struct {
+	Name    string
+	Size    int64
+	IsDir   bool
+	ModTime time.Time
+}
+
+// ListFiles 列出指定路径的文件和目录
+func (c *SMBClient) ListFiles(path string) ([]FileInfo, error) {
+	if c.config.VeryVerbose {
+		utils.InfoPrint("[+] 正在列出路径: %s", path)
+	}
+
+	// 建立SMB连接
+	session, share, err := c.Connect()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Logoff()
+	defer share.Umount()
+
+	// 如果路径为空，使用根目录
+	if path == "" {
+		path = "\\"
+	}
+
+	// 确保路径格式正确
+	if !strings.HasPrefix(path, "\\") {
+		path = "\\" + path
+	}
+
+	// 列出文件和目录
+	files, err := share.ReadDir(path)
+	if err != nil {
+		return nil, fmt.Errorf("读取目录失败: %v", err)
+	}
+
+	var fileInfos []FileInfo
+	for _, file := range files {
+		fileInfo := FileInfo{
+			Name:    file.Name(),
+			Size:    file.Size(),
+			IsDir:   file.IsDir(),
+			ModTime: file.ModTime(),
+		}
+		fileInfos = append(fileInfos, fileInfo)
+	}
+
+	if c.config.VeryVerbose {
+		utils.InfoPrint("[+] 找到 %d 个文件和目录", len(fileInfos))
+	}
+
+	return fileInfos, nil
 }

@@ -232,6 +232,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(xss.XssCmd)     // XSS漏洞检测工具
 	cmd.AddCommand(wafCmd)         // WAF识别工具
 	cmd.AddCommand(whoisCmd)       // Whois查询工具
+	cmd.AddCommand(wwifiCmd)       // Windows系统WiFi破解工具
 
 	// ===== 测试阶段命令 =====
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
