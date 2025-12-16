@@ -641,6 +641,12 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 - ⏳ Advanced vulnerability detection plugins
 - ⏳ Distributed scanning architecture
 
+## Recent changes
+
+- The enhanced smb service now supports smb service file scanning
+
+- Added a WiFi cracking function for the Windows system
+
 ## 📝 Changelog
 
 ### v2.6.0

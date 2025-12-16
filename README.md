@@ -307,6 +307,9 @@ sudo zypper install -y \
 # 列出SMB共享
 ./GYscan.exe smb shares --target 192.168.1.100 --user Administrator --password "Password123"
 
+# 列出文件和目录（类似Linux ls命令）
+./GYscan.exe smb dir --target 192.168.1.100 --user Administrator --password "Password123" --path "C:\\Windows"
+
 # 执行远程命令
 ./GYscan.exe smb exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
 ```
@@ -642,6 +645,11 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 ### 计划功能
 - ⏳ 高级漏洞检测插件
 - ⏳ 分布式扫描架构
+
+## 近期变化
+
+- 强化smb服务已支持smb服务文件扫描
+- 新增Win系统WiFi破解功能
 
 ## 📝 更新日志
 
