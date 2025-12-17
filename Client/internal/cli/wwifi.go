@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,12 @@ var wwifiCmd = &cobra.Command{
 	Long: `Windows系统WiFi破解工具 - 用于WiFi网络扫描和连接
 警告：仅用于授权测试，严禁未授权使用！`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// 检查当前系统
+		if runtime.GOOS == "linux" {
+			fmt.Println("此功能仅在Windows开放")
+			fmt.Println("Linux系统推荐使用 aircrack-ng 套件")
+			return
+		}
 		// 进入wwifi交互shell
 		startWWIFIShell()
 	},
