@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.6.0"
+	Version = "v2.6.2"
 )
 
 // rootCmd 表示基础命令
@@ -157,7 +157,7 @@ func printCustomHelp() {
 			commandGroups["远程管理工具"] = append(commandGroups["远程管理工具"], cmd)
 		case "process", "userinfo", "winlog":
 			commandGroups["信息收集工具"] = append(commandGroups["信息收集工具"], cmd)
-		case "webshell", "waf", "xss":
+		case "webshell", "waf", "xss", "fu":
 			commandGroups["Web安全工具"] = append(commandGroups["Web安全工具"], cmd)
 		default:
 			// 未分类的命令添加到综合工具
@@ -215,6 +215,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(databaseCmd)    // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)     // 网站目录扫描工具
 	cmd.AddCommand(ftpCmd)         // FTP密码破解
+	cmd.AddCommand(fuCmd)          // 文件上传漏洞检查工具
 	cmd.AddCommand(linenumCmd)     // Linux本地信息枚举和权限提升工具
 	cmd.AddCommand(linuxKernelCmd) // Linux内核漏洞检测工具
 	cmd.AddCommand(powershellCmd)  // PowerShell远程执行工具 [WinRM服务利用]

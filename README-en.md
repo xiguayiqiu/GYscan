@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.6.0 |
+| **Latest Version** | v2.6.2 |
 
 ### ⚠️ Legal Statement
 
@@ -206,6 +206,8 @@ sudo zypper install -y \
 |---------|---------------------|--------|
 | about | View tool information | ✅ Stable |
 | clean | Advanced hacker attack trace detection and cleanup tool | ✅ Stable |
+| fu | File upload vulnerability checking tool | ✅ Stable |
+| wwifi | Windows system WiFi cracking feature | ✅ Stable |
 | crunch | Password dictionary generation tool | ✅ Stable |
 | database | Database password cracking tool | ✅ Stable |
 | dirscan | Website directory scanning tool | ✅ Stable |
@@ -648,6 +650,16 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 - Added a WiFi cracking function for the Windows system
 
 ## 📝 Changelog
+
+### v2.6.2
+Feature Updates:
+- **Added fu command** - File upload vulnerability checking feature, supporting multiple bypass techniques
+  - Support for file type bypass, file name bypass, path traversal bypass
+  - Support for content bypass, double extension bypass, null byte bypass
+  - Support for case mismatch bypass, variant extension bypass
+  - Real-time response parsing, detecting HTML elements and JavaScript
+  - Accuracy over 90%, strict validation logic reduces false positives
+- **Added wwifi command** - Windows system WiFi cracking feature
 
 ### v2.6.0
 Feature Updates:
