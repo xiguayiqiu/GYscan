@@ -21,7 +21,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache2.0 |
-| **Latest Version** | v2.6.3 |
+| **Latest Version** | v2.7-beta |
 
 ### ⚠️ Legal Statement
 
@@ -134,7 +134,8 @@ sudo apt install -y \
     pkg-config \
     dbus-x11 \
     libdbus-1-dev \
-    libpcap-dev
+    libpcap-dev \
+    man-db
 ```
 
 #### RedHat/CentOS/Fedora/Rocky Linux
@@ -154,7 +155,8 @@ sudo yum install -y \
     pkgconfig \
     dbus-x11 \
     dbus-devel \
-    libpcap-devel
+    libpcap-devel \
+    man-db
 ```
 
 #### Arch Linux/Manjaro
@@ -173,7 +175,8 @@ sudo pacman -S --noconfirm \
     pkg-config \
     dbus \
     dbus-glib \
-    libpcap
+    libpcap \
+    man-db
 ```
 
 #### OpenSUSE
@@ -193,10 +196,55 @@ sudo zypper install -y \
     pkg-config \
     dbus-1-x11 \
     dbus-1-devel \
-    libpcap-devel
+    libpcap-devel \
+    man-db
 ```
 
 > **Note**: The build script `build_linux.sh` will automatically detect the system distribution and prompt to install missing dependency packages.
+
+### Man Page Installation
+
+GYscan provides a Chinese man page located at `doc/man/zh_CN/gy scan.1`. Here's how to install and use it:
+
+#### Install man-db (already included in dependencies above)
+
+man-db is a toolset for viewing and managing manual pages in Linux systems, which is already included in the dependency installation above. If you haven't installed it yet, use your distribution's package manager to install it:
+
+```bash
+# Debian/Ubuntu/Kali
+apt install man-db
+
+# RedHat/CentOS/Fedora
+yum install man-db
+
+# Arch Linux/Manjaro
+pacman -S man-db
+
+# OpenSUSE
+zypper install man-db
+```
+
+#### Install GYscan Man Page
+
+Copy the GYscan man page to the system's man directory and update the man database:
+
+```bash
+# Create Chinese man directory if it doesn't exist
+sudo mkdir -p /usr/share/man/zh_CN/man1/
+
+# Copy the man page
+sudo cp doc/man/zh_CN/gyscan.1.gz /usr/share/man/zh_CN/man1/
+
+# Update man database
+sudo mandb
+```
+
+#### Use GYscan Man Page
+
+```bash
+# View GYscan Chinese manual
+man gy scan
+```
 
 ## 📋 Function List
 
@@ -235,6 +283,8 @@ sudo zypper install -y \
 | csrf | CSRF vulnerability detection [Testing phase] | ⚠️ Testing phase |
 | dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
 | ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
+| mg | Honeypot detection tool - detecting if target is a honeypot system [Testing phase] | ⚠️ Testing phase |
+| tui | Start TUI mode [Testing phase] | ⚠️ Testing phase |
 
 
 
@@ -462,6 +512,7 @@ GYscan/
 │   │   ├── dirscan/       # Website directory scanning module
 │   │   ├── ftp/           # FTP password cracking module
 │   │   ├── ldap/          # LDAP enumeration module (testing phase)
+│   │   ├── honeypot/      # Honeypot detection module (testing phase)
 │   │   ├── logging/       # Logging system module
 │   │   ├── network/       # Network scanning and host discovery
 │   │   ├── nmap/          # Nmap integration functions
@@ -645,11 +696,23 @@ GYscan is built with modern technology stack to ensure high performance, scalabi
 
 ## Recent changes
 
-- The enhanced smb service now supports smb service file scanning
-
-- Added a WiFi cracking function for the Windows system
+- **Version Update**: GYscan upgraded to v2.7-beta
+- **Command Adjustment**: Moved mg (honeypot detection tool) to testing phase commands
+- **Command Adjustment**: Moved tui (start TUI mode) to testing phase commands
+- **Enhanced SMB Service**: Now supports SMB service file scanning
+- **Added WiFi Cracking**: Added WiFi cracking function for Windows systems
 
 ## 📝 Changelog
+### v2.7-beta
+
+**Version Update and Command Adjustments**
+
+- **Version Upgrade**: GYscan upgraded from v2.6.3 to v2.7-beta
+- **Command Adjustment**: Moved mg (honeypot detection tool) from official commands to testing phase commands
+- **Command Adjustment**: Moved tui (start TUI mode) from official commands to testing phase commands
+- **Honeypot Detection Optimization**: Added HFish honeypot support to the honeypot detection tool
+- **Code Structure Optimization**: Adjusted command classification to make official commands more stable and reliable
+
 ### v2.6.3
 
 **Feature Optimization and Enhancement**

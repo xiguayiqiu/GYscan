@@ -23,7 +23,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache2.0 |
-| **最新版本** | v2.6.3 |
+| **最新版本** | v2.7-beta |
 
 ### ⚠️ 法律声明
 
@@ -134,7 +134,8 @@ sudo apt install -y \
     pkg-config \
     dbus-x11 \
     libdbus-1-dev \
-    libpcap-dev
+    libpcap-dev \
+    man-db
 ```
 
 #### RedHat/CentOS/Fedora/Rocky Linux
@@ -154,7 +155,8 @@ sudo yum install -y \
     pkgconfig \
     dbus-x11 \
     dbus-devel \
-    libpcap-devel
+    libpcap-devel \
+    man-db
 ```
 
 #### Arch Linux/Manjaro
@@ -173,7 +175,8 @@ sudo pacman -S --noconfirm \
     pkg-config \
     dbus \
     dbus-glib \
-    libpcap
+    libpcap \
+    man-db
 ```
 
 #### OpenSUSE
@@ -193,10 +196,55 @@ sudo zypper install -y \
     pkg-config \
     dbus-1-x11 \
     dbus-1-devel \
-    libpcap-devel
+    libpcap-devel \
+    man-db
 ```
 
 > **注意**: 构建脚本 `build_linux.sh` 会自动检测系统发行版并提示安装缺失的依赖包。
+
+### Man Page 安装
+
+GYscan 提供了中文 man 手册页，以下是安装和使用方法：
+
+#### 安装 man-db（已包含在上述依赖包中）
+
+man-db 是 Linux 系统中用于查看和管理手册页的工具集，已在前面的依赖安装中包含。如果您未安装，请使用对应发行版的包管理器安装：
+
+```bash
+# Debian/Ubuntu/Kali
+apt install man-db
+
+# RedHat/CentOS/Fedora
+yum install man-db
+
+# Arch Linux/Manjaro
+pacman -S man-db
+
+# OpenSUSE
+zypper install man-db
+```
+
+#### 安装 GYscan man 手册页
+
+将 GYscan 的 man 手册页复制到系统的 man 目录，并更新 man 数据库：
+
+```bash
+# 创建中文 man 目录（如果不存在）
+sudo mkdir -p /usr/share/man/zh_CN/man1/
+
+# 复制 man 手册页
+sudo cp doc/man/zh_CN/gyscan.1.gz /usr/share/man/zh_CN/man1/
+
+# 更新 man 数据库
+sudo mandb
+```
+
+#### 使用 GYscan man 手册页
+
+```bash
+# 查看 GYscan 中文手册
+man gyscan
+```
 
 ## 📋 功能列表
 
@@ -234,6 +282,8 @@ sudo zypper install -y \
 | csrf | CSRF漏洞检测 [测试阶段] | ⚠️ 测试阶段 |
 | dcom | DCOM远程执行模块 [测试阶段] | ⚠️ 测试阶段 |
 | ldap | LDAP枚举模块 [测试阶段] | ⚠️ 测试阶段 |
+| mg | 蜜罐识别工具 - 检测目标是否为蜜罐系统 [测试阶段] | ⚠️ 测试阶段 |
+| tui | 启动 TUI 模式 [测试阶段] | ⚠️ 测试阶段 |
 
 ## 💡 常用功能使用示例
 
@@ -461,6 +511,7 @@ GYscan/
 │   │   ├── dirscan/       # 网站目录扫描模块
 │   │   ├── ftp/           # FTP密码破解模块
 │   │   ├── ldap/          # LDAP枚举模块（测试阶段）
+│   │   ├── honeypot/      # 蜜罐识别模块（测试阶段）
 │   │   ├── logging/       # 日志系统模块
 │   │   ├── network/       # 网络扫描和主机发现
 │   │   ├── nmap/          # Nmap集成功能
@@ -650,10 +701,22 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 
 ## 近期变化
 
-- 强化smb服务已支持smb服务文件扫描
-- 新增Win系统WiFi破解功能
+- **版本更新**：GYscan已升级至 v2.7-beta
+- **命令调整**：将mg（蜜罐识别工具）和tui（TUI模式）移至测试阶段命令
+- **强化smb服务**：已支持smb服务文件扫描
+- **新增功能**：Windows系统WiFi破解功能
 
 ## 📝 更新日志
+### v2.7-beta
+
+**版本更新与命令调整**
+
+- **版本升级**：GYscan从 v2.6.3 升级至 v2.7-beta
+- **命令调整**：将 mg（蜜罐识别工具）从正式命令移至测试阶段命令
+- **命令调整**：将 tui（启动 TUI 模式）从正式命令移至测试阶段命令
+- **蜜罐识别优化**：蜜罐识别工具新增 HFish 蜜罐支持
+- **代码结构优化**：调整命令分类，使正式命令更加稳定可靠
+
 ### v2.6.3
 
 **功能优化与增强**
