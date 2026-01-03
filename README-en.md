@@ -1,46 +1,49 @@
+[中文文档](README.md)
+
 # GYscan - Internal Network Lateral Boundary Security Testing Tool
 
-## Project Introduction
+## Project Overview
 
-GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed based on the Go language. This tool integrates rich internal network penetration testing functions, including port scanning, service identification, vulnerability detection, remote command execution, weak password brute force cracking and other core functions, providing efficient and reliable internal network security assessment solutions for security researchers and penetration testers.
+GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed using Go language. This tool integrates rich internal network penetration testing capabilities, including port scanning, service identification, vulnerability detection, remote command execution, and weak password brute-forcing, providing security researchers and penetration testers with efficient and reliable internal network security assessment solutions.
 
 ## Core Advantages
 
-- **Focus on Internal Network Security**: Specially optimized for internal network lateral movement and boundary security testing scenarios
-- **Rich Functions**: Integrates multiple functions such as port scanning, service identification, remote command execution, weak password brute force cracking, etc.
-- **Cross-Platform Support**: Supports Windows, Linux, macOS three mainstream operating systems
-- **Modular Design**: Adopts plug-in architecture, supports function expansion and custom module development
-- **Strong Usability**: Provides a concise command-line interface and detailed help documentation
-- **Excellent Performance**: Developed based on Go language, with excellent concurrent processing capabilities
+- **Focused on Internal Network Security**: Specifically optimized for internal network lateral movement and boundary security testing scenarios
+- **Feature-Rich**: Integrates port scanning, service identification, remote command execution, weak password brute-forcing, configuration auditing, and more
+- **Cross-Platform Support**: Supports Windows, Linux, and macOS three major operating systems
+- **Modular Design**: Plugin-based architecture, supporting functional extensions and custom module development
+- **Configuration Auditing**: Based on CIS Benchmark security baseline, supporting 58 checks across five major categories
+- **Evidence Tracking**: Audit checks display specific configuration files, configuration items, current values, and remediation suggestions
+- **High Performance**: Developed with Go language, featuring excellent concurrent processing capabilities
 
-### 📋 Basic Information
+### Basic Information
 
-| Project | Information |
-|---------|-------------|
+| Item | Information |
+|------|-------------|
 | **Project Name** | GYscan |
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
-| **License** | Apache2.0 |
-| **Latest Version** | v2.7-beta |
+| **License** | Apache 2.0 |
+| **Latest Version** | v2.7 |
 
-### ⚠️ Legal Statement
+### Legal Disclaimer
 
-**Important Note**: This tool is only for authorized testing purposes. Any unauthorized use is illegal, and users shall bear corresponding legal responsibilities.
+**Important Notice**: This tool is intended for authorized security testing purposes only. Any unauthorized use is illegal, and users bear corresponding legal responsibilities.
 
-## 🚀 Quick Start
+## Quick Start
 
-### Environment Preparation
+### Environment Setup
 
-1. **Install Go Environment** (version 1.18+)
+1. **Install Go Environment** (Version 1.18+)
    ```bash
    # Download and install Go
    https://golang.org/dl/
-   
+
    # Verify installation
    go version
    ```
 
-2. **Get Project Code**
+2. **Obtain Project Code**
    ```bash
    # Github
    git clone https://github.com/xiguayiqiu/GYscan.git
@@ -49,37 +52,19 @@ GYscan is a professional tool focused on internal network lateral movement and b
    cd GYscan
    ```
 
-### Compilation and Installation
+### Build and Install
 
-#### Windows Platform Compilation
 ```bash
-# Compile client
+# Build client
 cd Client
 go build -o GYscan.exe
 ```
 
-#### Linux Platform Compilation
-```bash
-# Compile client
-cd Client
-go build -o GYscan-linux-amd64
-```
-
-#### Cross Compilation
-```bash
-# Compile Windows version (on Linux)
-cd Client
-GOOS=windows GOARCH=amd64 go build -o GYscan.exe
-
-# Compile Linux version (on Windows)
-cd Client
-GOOS=linux GOARCH=amd64 go build -o GYscan-linux-amd64
-```
-
 ### One-Click Build Script
+
 ```bash
 # Windows platform
-.build.ps1
+.\build.ps1
 
 # Linux platform
 chmod +x build_linux.sh
@@ -88,31 +73,7 @@ chmod +x build_linux.sh
 
 ### Linux Platform Dependency Installation
 
-### Linux/Unix Platform Adaptation
-
-GYscan v2.6.0 adds comprehensive support for Linux/Unix systems, including Linux, macOS, FreeBSD and other mainstream Unix systems.
-
-#### Cross-Platform Features
-
-- **Automatic Platform Detection**: Automatically identifies the current operating system and optimizes configuration parameters
-- **Smart Interface Selection**: Selects default network interfaces based on different systems (Linux: eth0, Windows: WLAN, macOS: en0)
-- **Performance Optimization**: Adjusts buffer size and snapshot length according to platform characteristics
-- **Permission Management**: Automatically handles permission requirements for different systems
-- **Error Handling**: Provides detailed platform-specific error information
-
-#### Supported Platforms
-
-| Platform | Status | Default Interface | Notes |
-|----------|--------|-------------------|-------|
-| Windows | ✅ Full Support | WLAN | Supports raw sockets and compatibility mode |
-| Linux | ✅ Full Support | eth0 | Requires root privileges for raw packet operations |
-| macOS | ✅ Full Support | en0 | Requires Xcode command line tools installation |
-| FreeBSD | ✅ Full Support | em0 | Requires root privileges |
-| Other Unix | 🔄 Basic Support | eth0 | Uses compatibility mode |
-
-#### Linux Platform Dependency Installation
-
-GYscan requires system dependency packages to be installed on Linux platforms. The installation commands for different distributions are as follows:
+GYscan requires system dependency packages for Linux platform builds. Installation commands for different distributions are as follows:
 
 #### Debian/Ubuntu/Kali Linux/Parrot Security
 ```bash
@@ -193,114 +154,153 @@ sudo zypper install -y \
     Mesa-libGLU-devel \
     Mesa-dri-devel \
     gcc-c++ \
-    pkg-config \
+    pkgconfig \
     dbus-1-x11 \
     dbus-1-devel \
     libpcap-devel \
     man-db
 ```
 
-> **Note**: The build script `build_linux.sh` will automatically detect the system distribution and prompt to install missing dependency packages.
+> **Note**: The build script `build_linux.sh` automatically detects the system distribution and prompts for missing dependencies.
 
-### Man Page Installation
+## Feature List
 
-GYscan provides a Chinese man page located at `doc/man/zh_CN/gy scan.1`. Here's how to install and use it:
+### Stable Commands
 
-#### Install man-db (already included in dependencies above)
-
-man-db is a toolset for viewing and managing manual pages in Linux systems, which is already included in the dependency installation above. If you haven't installed it yet, use your distribution's package manager to install it:
-
-```bash
-# Debian/Ubuntu/Kali
-apt install man-db
-
-# RedHat/CentOS/Fedora
-yum install man-db
-
-# Arch Linux/Manjaro
-pacman -S man-db
-
-# OpenSUSE
-zypper install man-db
-```
-
-#### Install GYscan Man Page
-
-Copy the GYscan man page to the system's man directory and update the man database:
-
-```bash
-# Create Chinese man directory if it doesn't exist
-sudo mkdir -p /usr/share/man/zh_CN/man1/
-
-# Copy the man page
-sudo cp doc/man/zh_CN/gyscan.1.gz /usr/share/man/zh_CN/man1/
-
-# Update man database
-sudo mandb
-```
-
-#### Use GYscan Man Page
-
-```bash
-# View GYscan Chinese manual
-man gy scan
-```
-
-## 📋 Function List
-
-### Official Commands
-
-| Command | Function Description | Status |
-|---------|---------------------|--------|
+| Command | Description | Status |
+|---------|-------------|--------|
 | about | View tool information | ✅ Stable |
-| clean | Advanced hacker attack trace detection and cleanup tool | ✅ Stable |
-| fu | File upload vulnerability checking tool | ✅ Stable |
-| wwifi | Windows system WiFi cracking feature | ✅ Stable |
+| ca | Configuration audit tool, system configuration security check based on CIS baseline | ✅ Stable |
 | crunch | Password dictionary generation tool | ✅ Stable |
-| database | Database password cracking tool | ✅ Stable |
+| database | Database password brute-forcing tool | ✅ Stable |
 | dirscan | Website directory scanning tool | ✅ Stable |
-| ftp | FTP password cracking | ✅ Stable |
-| passhash | Credential passing attack module | ✅ Stable |
-| powershell | PowerShell remote execution tool [WinRM service utilization] | ✅ Stable |
+| ftp | FTP password brute-forcing | ✅ Stable |
+| passhash | Credential pass-the-hash attack module | ✅ Stable |
+| powershell | PowerShell remote execution tool [WinRM service exploitation] | ✅ Stable |
 | process | Process and service information collection tool | ✅ Stable |
 | rdp | RDP remote desktop tool | ✅ Stable |
 | route | Route hop detection | ✅ Stable |
-| scan | Network scanning tool, supporting host discovery, port scanning, service identification, etc. | ✅ Stable |
-| scapy | Advanced network packet manipulation tool, supporting raw packet construction, interface detection and function demonstration | ✅ Stable |
-| ssh | SSH password brute force tool (Hydra style) | ✅ Stable |
+| scan | Network scanning tool, supporting host discovery, port scanning, service identification | ✅ Stable |
+| scapy | Advanced network packet manipulation tool, supporting raw packet construction, interface detection and demonstrations | ✅ Stable |
+| ssh | SSH password brute-forcing tool (Hydra-style) | ✅ Stable |
 | userinfo | Local user and group analysis | ✅ Stable |
 | webshell | WebShell generation tool | ✅ Stable |
 | wmi | WMI remote management tool | ✅ Stable |
 | waf | WAF detection tool, supporting mainstream WAF identification and detection | ✅ Stable |
-| xss | XSS vulnerability detection tool, supporting reflected, stored, DOM-based XSS detection | ✅ Stable |
-| winlog | Windows log viewing tool, supporting local and remote log query | ✅ Stable |
-| clean | Advanced hacker attack trace detection and cleanup tool | ✅ Stable |
+| xss | XSS vulnerability detection tool, supporting reflected, stored, DOM XSS detection | ✅ Stable |
+| winlog | Windows log viewing tool, supporting local and remote log queries | ✅ Stable |
+| clean | Advanced hacker trace detection and cleanup tool | ✅ Stable |
+| fu | File upload vulnerability check tool | ✅ Stable |
+| wwifi | Windows system WiFi cracking functionality | ✅ Stable |
 
-### Testing Phase Commands
+### Beta Commands
 
-| Command | Function Description | Status |
-|---------|---------------------|--------|
-| csrf | CSRF vulnerability detection [Testing phase] | ⚠️ Testing phase |
-| dcom | DCOM remote execution module [Testing phase] | ⚠️ Testing phase |
-| ldap | LDAP enumeration module [Testing phase] | ⚠️ Testing phase |
-| mg | Honeypot detection tool - detecting if target is a honeypot system [Testing phase] | ⚠️ Testing phase |
-| tui | Start TUI mode [Testing phase] | ⚠️ Testing phase |
+| Command | Description | Status |
+|---------|-------------|--------|
+| csrf | CSRF vulnerability detection [Beta] | ⚠️ Beta |
+| dcom | DCOM remote execution module [Beta] | ⚠️ Beta |
+| ldap | LDAP enumeration module [Beta] | ⚠️ Beta |
+| mg | Honeypot identification tool - detects if target is a honeypot system [Beta] | ⚠️ Beta |
 
+## Configuration Audit Feature
 
+GYscan v2.7 introduces the Configuration Audit module, performing configuration compliance checks on target systems based on CIS Benchmark security baseline.
 
-## 💡 Common Function Usage Examples
+### Audit Categories
 
-### 1. Network Scanning
+GYscan configuration auditing supports five categories with 58 checks:
 
-> [!NOTE]
->
->
-> If the scan parameter is a public domain name or public IP, the `-T` parameter cannot be speed level 5, otherwise it will link timeout and show the host as down state, because the connection rate is too fast to connect normally. The recommended connection speed for public networks is level 3-4, and try to keep the connection rate between 500ms and 1s!
+| Category | Check Count | Main Content |
+|----------|-------------|--------------|
+| Windows Configuration Audit | 10 checks | Account policy, service configuration, registry security, audit policy, LSA security, UAC configuration, firewall rules, SMB security |
+| Linux Configuration Audit | 10 checks | Account management, password policy, service management, kernel parameters, file permissions, SSH configuration, audit configuration, firewall |
+| Web Configuration Audit | 13 checks | HTTP security headers, CORS configuration, SSL/TLS configuration, session security, XSS protection, CSRF protection, information leakage protection |
+| SSH Configuration Audit | 15 checks | SSH protocol version, authentication method, root login permission, encryption algorithms, MAC algorithms, key exchange algorithms, login banner |
+| Middleware Configuration Audit | 10 checks | Database account permissions, network access control, encryption configuration, audit logs, password policies, application server management interface |
 
+### Configuration Evidence Feature
 
+GYscan configuration auditing provides detailed configuration evidence tracking. When configuration problems are detected, the report clearly shows:
+
+- **Configuration File Path**: Points to the specific configuration file with issues
+- **Configuration Item Name**: Indicates the specific security setting item
+- **Current Value**: Displays the current insecure configuration value
+- **Expected Value**: Explains the compliant value that should be set
+- **Risk Description**: Explains the security impact of the configuration issue
+- **Remediation Suggestions**: Provides specific remediation steps
+
+### Usage Examples
 
 ```bash
-# Scan a single IP address
+# Execute all categories of local configuration audit
+./GYscan.exe ca run --target localhost
+
+# Use SSH to connect to remote Linux system for audit (password authentication)
+./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-password yourpassword
+
+# Use SSH to connect to remote Linux system for audit (private key authentication)
+./GYscan.exe ca 192.168.1.100 --os-type linux --connection-mode ssh --ssh-user root --ssh-key ~/.ssh/id_rsa
+
+# Specify SSH port for audit
+./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user admin --ssh-password pass --ssh-port 2222
+
+# Use WMI to connect to remote Windows system for audit
+./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user administrator --wmi-password yourpassword
+
+# Use domain account to connect to Windows system for audit
+./GYscan.exe ca 192.168.1.50 --connection-mode wmi --wmi-user domain\\admin --wmi-password pass --wmi-domain CORP
+
+# Auto-detect target system type and select connection method
+./GYscan.exe ca 192.168.1.100 --detect-os --connection-mode auto --ssh-user root --ssh-password pass
+
+# Audit remote Linux system and generate HTML report
+./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-key ~/.ssh/id_rsa -o audit.html --format html
+
+# Audit remote Windows system configuration
+./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass --category os
+
+# List all check items under Linux category
+./GYscan.exe ca list --category linux
+
+# Generate security baseline report for target system
+./GYscan.exe ca baseline --target localhost -o baseline.json
+
+# Generate configuration remediation suggestion plan
+./GYscan.exe ca remediate --target localhost
+```
+
+#### Windows System Port 135 Issue Handling
+
+When the target Windows system has port 135 closed, detailed guidance will be displayed:
+
+```bash
+# Attempt to audit Windows system
+./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass
+```
+
+The output will include:
+- **Steps to enable port 135 via GUI** - Windows Firewall configuration wizard
+- **Command line method to enable port 135** - netsh advfirewall firewall commands
+- **Firewall configuration instructions** - Inbound rule settings, port exceptions
+- **RPC service startup and verification methods** - sc start rpcss, sc query rpcss
+- **Verification steps after completion** - telnet test, port scan verification
+
+### Output Formats
+
+GYscan configuration auditing supports three output formats:
+
+| Format | Description | Use Case |
+|--------|-------------|----------|
+| text | Text format, default output | Terminal direct viewing |
+| json | JSON format, suitable for program processing | Automation integration, data analysis |
+| html | HTML format, interactive report | Detailed audit reports, demonstrations |
+
+## Common Usage Examples
+
+### Network Scanning
+
+```bash
+# Scan single IP address
 ./GYscan.exe scan --target 192.168.1.100
 
 # Scan IP range
@@ -308,8 +308,9 @@ man gy scan
 
 # Scan specified port range
 ./GYscan.exe scan --target 192.168.1.100 --ports 80,443,22,21
+```
 
-### 2. PowerShell Remote Execution
+### PowerShell Remote Execution
 
 ```bash
 # Execute remote PowerShell command
@@ -317,12 +318,9 @@ man gy scan
 
 # Test WinRM port
 ./GYscan.exe powershell test --target 192.168.1.100 --port 5985
-
-# Use HTTPS connection
-./GYscan.exe powershell exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami" --https
 ```
 
-### 3. WMI Remote Management
+### WMI Remote Management
 
 ```bash
 # Get operating system information
@@ -330,15 +328,9 @@ man gy scan
 
 # Execute remote command
 ./GYscan.exe wmi exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
-
-# List remote processes
-./GYscan.exe wmi processes --target 192.168.1.100 --user Administrator --password "Password123"
-
-# Query WMI data
-./GYscan.exe wmi query --target 192.168.1.100 --user Administrator --password "Password123" --query "SELECT * FROM Win32_OperatingSystem"
 ```
 
-### 4. RDP Remote Desktop
+### RDP Remote Desktop
 
 ```bash
 # Check RDP service availability
@@ -346,15 +338,9 @@ man gy scan
 
 # Connect to RDP service
 ./GYscan.exe rdp connect --target 192.168.1.100 --user Administrator --password "Password123"
-
-# List RDP sessions
-./GYscan.exe rdp sessions --target 192.168.1.100 --user Administrator --password "Password123"
-
-# List remote processes
-./GYscan.exe rdp processes --target 192.168.1.100 --user Administrator --password "Password123"
 ```
 
-### 5. SMB Protocol Operations
+### SMB Protocol Operations
 
 ```bash
 # Detect SMB version
@@ -362,12 +348,9 @@ man gy scan
 
 # List SMB shares
 ./GYscan.exe smb shares --target 192.168.1.100 --user Administrator --password "Password123"
-
-# Execute remote command
-./GYscan.exe smb exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
 ```
 
-### 6. Vulnerability Detection
+### Vulnerability Detection
 
 ```bash
 # XSS vulnerability detection
@@ -377,7 +360,7 @@ man gy scan
 ./GYscan.exe csrf --target http://example.com/vul/csrf.php -X POST -d "action=delete&id=1"
 ```
 
-### 7. Weak Password Brute Force
+### Weak Password Brute-Forcing
 
 ```bash
 # SSH weak password detection
@@ -387,494 +370,201 @@ man gy scan
 ./GYscan.exe ftp --target 192.168.1.100 --user anonymous --wordlist passwords.txt
 
 # WAF detection
-# Detect single URL
 ./GYscan.exe waf -u "https://www.example.com/"
-
-# Detect multiple URLs
-./GYscan.exe waf -u "https://www.example.com/" -u "https://test.com/"
 ```
 
-### 8. Windows Log Viewing
-
-```bash
-# View local system logs
-./GYscan.exe winlog system
-
-# View remote system logs
-./GYscan.exe winlog system --target 192.168.1.100 --user admin --password password
-
-# View security logs (login events)
-./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --event-id 4624
-
-# View application logs
-./GYscan.exe winlog application --target 192.168.1.100 --user admin --password password --hours 24
-
-# View setup logs
-./GYscan.exe winlog setup --target 192.168.1.100 --user admin --password password --event-id 2001
-
-# View forwarded events logs
-./GYscan.exe winlog forwardedevents --target 192.168.1.100 --user admin --password password --limit 50
-
-# Use domain account authentication
-./GYscan.exe winlog system --target 192.168.1.100 --domain example.com --user admin --password password
-
-# Enable verbose output and color display
-./GYscan.exe winlog security --target 192.168.1.100 --user admin --password password --verbose --color
-```
-
-### 9. Scapy Network Packet Operations
-
-```bash
-# View scapy module help
-./GYscan.exe scapy --help
-
-# Network packet construction and sending
-./GYscan.exe scapy packet --target 192.168.1.100 --dport 80 --syn
-./GYscan.exe scapy packet --target 192.168.1.100 --dport 443 --ack --ttl 128
-./GYscan.exe scapy packet --target 192.168.1.100 --dport 53 --udp --payload "test payload"
-
-# Network interface detection
-./GYscan.exe scapy interface
-./GYscan.exe scapy interface --verbose
-
-# Function demonstration and examples
-./GYscan.exe scapy example
-```
-
-## ⚙️ Advanced Configuration
-
-### Performance Tuning
-
-```
-# Set concurrent threads
-
-./GYscan.exe scan --target 192.168.1.0/24 --threads 50
-
-# Set timeout
-
-./GYscan.exe scan --target 192.168.1.100 --timeout 3
-```
-
-
-
-### Output Control
-
-```bash
-# Silent mode (only output key results)
-./GYscan.exe scan --target 192.168.1.100 --silent
-
-# Verbose output mode
-./GYscan.exe scan --target 192.168.1.100 --verbose
-
-# More verbose output mode
-./GYscan.exe scan --target 192.168.1.100 --very-verbose
-```
-
-## 🏗️ Technical Architecture
+## Technical Architecture
 
 ### Project Structure
 
 ```
 GYscan/
-├── C2/                    # C2 server side (Command and Control)
-│   ├── Linux/             # Linux version C2 server
-│   │   ├── cmd/           # Command line entry program
-│   │   ├── go.mod         # Go module dependency configuration
-│   │   ├── go.sum         # Go module verification file
-│   │   ├── internal/      # Internal implementation modules
-│   │   ├── pkg/           # Public packages (scanners, tools, etc.)
-│   │   └── tools/         # Integrated tools (Lynis, Trivy, etc.)
-│   └── Windows/           # Windows version C2 server
-│       ├── cmd/           # Command line entry program
-│       ├── go.mod         # Go module dependency configuration
-│       ├── go.sum         # Go module verification file
-│       ├── internal/      # Internal implementation modules
-│       ├── pkg/           # Public packages (auditors, scanners, etc.)
-│       └── tools/         # Integrated tools (Goss, etc.)
-├── Client/                # Penetration testing client
-│   ├── GYscan.exe         # Compiled Windows executable file
-│   ├── app.ico            # Application icon
-│   ├── app.manifest       # Application manifest file
-│   ├── app.png            # Application image
-│   ├── config/            # Configuration file directory
-│   │   └── logging.json   # Log configuration file
-│   ├── dirmap/            # Directory scanning dictionary files
-│   │   ├── dicc.txt       # Directory scanning dictionary
-│   │   └── medium.txt     # Medium-scale dictionary
-│   ├── go.mod             # Go module dependency configuration
-│   ├── go.sum             # Go module verification file
+├── Client/                # Client main program (penetration testing tool)
 │   ├── internal/          # Internal function modules
-│   │   ├── cli/           # Command line interface and command registration
+│   │   ├── cli/           # Command-line interface and command registration
 │   │   ├── config/        # Configuration management module
+│   │   ├── configaudit/   # Configuration audit module (v2.7 new)
 │   │   ├── csrf/          # CSRF vulnerability detection module
-│   │   ├── database/      # Database password cracking tool
-│   │   ├── dcom/          # DCOM remote execution module
+│   │   ├── database/      # Database password brute-forcing tool
 │   │   ├── dirscan/       # Website directory scanning module
-│   │   ├── ftp/           # FTP password cracking module
-│   │   ├── ldap/          # LDAP enumeration module (testing phase)
-│   │   ├── honeypot/      # Honeypot detection module (testing phase)
-│   │   ├── logging/       # Logging system module
-│   │   ├── network/       # Network scanning and host discovery
-│   │   ├── nmap/          # Nmap integration functions
-│   │   ├── plugin/        # Plugin system framework
+│   │   ├── ftp/           # FTP password brute-forcing module
 │   │   ├── powershell/    # PowerShell remote execution module
 │   │   ├── process/       # Process and service information collection
 │   │   ├── rdp/           # RDP remote desktop module
-│   │   ├── reports/       # Report generation module
-│   │   ├── security/      # Security related functions
 │   │   ├── smb/           # SMB protocol operation module
-│   │   ├── ssh/           # SSH password brute force module
-│   │   ├── system/        # System operation module
-│   │   ├── userinfo/      # Local user and group analysis
-│   │   ├── utils/         # Utility functions and helper methods
+│   │   ├── ssh/           # SSH password brute-forcing module
+│   │   ├── userinfo/      # Local user and group analysis tool
 │   │   ├── waf/           # WAF detection tool
 │   │   ├── weakpass/      # Weak password detection framework
 │   │   ├── webshell/      # WebShell generation tool
-│   │   ├── whois/         # WHOIS information query module
 │   │   ├── wmi/           # WMI remote management module
 │   │   └── xss/           # XSS vulnerability detection module
-│   ├── main.go            # Main program entry file
-│   ├── reports/           # Report output directory
-│   └── rsrc.syso          # Windows system resource file
-├── PSTools/               # Microsoft PSTools suite (Windows system testing tools)
-│   ├── PsExec.exe         # Remote command execution tool
-│   ├── PsExec64.exe       # 64-bit remote command execution tool
-│   ├── PsGetsid.exe       # SID query tool
-│   ├── PsGetsid64.exe     # 64-bit SID query tool
-│   ├── PsInfo.exe         # System information collection tool
-│   ├── PsInfo64.exe       # 64-bit system information collection tool
-│   ├── PsService.exe      # Service management tool
-│   ├── PsService64.exe    # 64-bit service management tool
-│   ├── PsLoggedon.exe     # Logged-on user viewing tool
-│   ├── PsLoggedon64.exe   # 64-bit logged-on user viewing tool
-│   ├── Pstools.chm        # Help documentation
-│   ├── accesschk.exe      # Access permission checking tool
-│   ├── psfile.exe         # File share viewing tool
-│   ├── psfile64.exe       # 64-bit file share viewing tool
-│   ├── pskill.exe         # Process termination tool
-│   ├── pskill64.exe       # 64-bit process termination tool
-│   ├── pslist.exe         # Process list viewing tool
-│   ├── pslist64.exe       # 64-bit process list viewing tool
-│   ├── psloglist.exe      # Event log viewing tool
-│   ├── psloglist64.exe    # 64-bit event log viewing tool
-│   ├── pspasswd.exe       # Password modification tool
-│   ├── pspasswd64.exe     # 64-bit password modification tool
-│   ├── psping.exe         # Network connectivity testing tool
-│   ├── psping64.exe       # 64-bit network connectivity testing tool
-│   ├── psshutdown.exe     # Remote shutdown tool
-│   ├── psshutdown64.exe   # 64-bit remote shutdown tool
-│   ├── pssuspend.exe      # Process suspension tool
-│   ├── pssuspend64.exe    # 64-bit process suspension tool
-│   ├── Eula.txt           # End User License Agreement
-│   └── psversion.txt      # Version information file
-├── app.ico                # Application icon file
-├── go.mod                 # Go module dependency configuration
-├── LICENSE                # Project license file
-├── README-en.md           # English project description documentation
-├── README.md              # Chinese project description documentation
-├── build.ps1              # Windows platform build script
-└── build_linux.sh         # Linux platform build script
+│   ├── main.go            # Program main entry file
+│   └── go.mod             # Go module dependency configuration
+├── doc/                   # Documentation directory
+│   └── man/               # Man manual pages
+└── README-en.md           # English project documentation
 ```
-
-### Detailed Directory Description
-
-#### C2/ - Command and Control Server Side
-- **Linux/** - Linux version C2 server
-  - **cmd/** - Command line entry program, containing main program logic
-  - **internal/** - Internal implementation modules, including system information collection, vulnerability detection and other core functions
-  - **pkg/** - Public packages, containing reusable components such as scanners and tools
-  - **tools/** - Integrated third-party tools, such as Lynis (system security audit), Trivy (container security scanning)
-- **Windows/** - Windows version C2 server
-  - **cmd/** - Command line entry program, supporting multiple scan types
-  - **internal/** - Internal implementation modules, including Windows system audit, vulnerability detection
-  - **pkg/** - Public packages, containing audit managers, scanners, etc.
-  - **tools/** - Integrated third-party tools, such as Goss (infrastructure testing)
-
-#### Client/ - Penetration Testing Client
-- **internal/** - Core function modules
-  - **cli/** - Command line interface and command registration system, supporting command group display, including winlog and other command implementations
-  - **csrf/** - CSRF vulnerability detection module, supporting POST request detection
-  - **database/** - Database password cracking tool, supporting multiple database types
-  - **dcom/** - DCOM remote execution module (testing phase)
-  - **dirscan/** - Website directory scanning module, supporting custom dictionaries
-  - **ftp/** - FTP password cracking module, supporting anonymous login detection
-  - **kerberos/** - Kerberos protocol related function module
-  - **ldap/** - LDAP enumeration module (testing phase)
-  - **network/** - Network scanning and host discovery, supporting TCP/UDP scanning
-  - **nmap/** - Nmap integration functions, supporting full port scanning and service identification
-  - **plugin/** - Plugin system framework, supporting function expansion
-  - **powershell/** - PowerShell remote execution module, supporting WinRM service utilization
-  - **process/** - Process and service information collection tool
-  - **rdp/** - RDP remote desktop module, supporting session management and process viewing
-  - **security/** - Security related function module
-  - **smb/** - SMB protocol operation module, supporting version detection and share enumeration
-  - **ssh/** - SSH password brute force module, Hydra style implementation
-  - **userinfo/** - Local user and group analysis tool
-  - **utils/** - Utility functions and helper methods
-  - **waf/** - WAF detection tool, supporting mainstream WAF identification
-  - **weakpass/** - Weak password detection framework
-  - **webshell/** - WebShell generation tool
-  - **wmi/** - WMI remote management module, supporting remote command execution
-  - **xss/** - XSS vulnerability detection module, supporting multiple XSS type detection
-  - **winlog function** - Windows log viewing tool, supporting local and remote log query, including:
-    - System log viewing (System)
-    - Security log viewing (Security)
-    - Application log viewing (Application)
-    - Setup log viewing (Setup)
-    - Forwarded events log viewing (ForwardedEvents)
-    - Filter by event ID
-    - Filter by time range
-    - Filter by quantity limit
-    - Support for domain account authentication
-    - Automatic error recovery and alternative query
-- **dirmap/** - Directory scanning dictionary files
-  - **dicc.txt** - Common directory scanning dictionary
-  - **medium.txt** - Medium-scale directory dictionary
-
-#### PSTools/ - Microsoft PSTools Suite
-- Contains a complete set of Windows system testing tools for system management, process control, service management, etc.
-- Supports 32-bit and 64-bit systems, providing rich system management functions
 
 ### Technology Stack
 
-GYscan is built with modern technology stack to ensure high performance, scalability, and usability:
+GYscan is built using a modern technology stack to ensure high performance, scalability, and usability:
 
-| Category | Technology/Library | Version | Purpose |
-|----------|--------------------|---------|---------|
-| **Core Language** | Go | 1.24+ | Main development language |
-| **AI Integration** | go-openai | v1.24.0 | OpenAI API client, supporting AI features |
-| **CLI Framework** | cobra | v1.9.1 | Command-line interface and command registration system |
-| **HTTP Client** | resty/v2 | v2.16.5 | API requests and network communication |
-| **HTML Parsing** | goquery | v1.11.0 | Web content parsing and processing |
-| **Color Output** | color | v1.18.0 | Command-line colorized output |
-| **LDAP Client** | ldap/v3 | v3.4.12 | LDAP protocol support |
-| **Database Driver** | go-sql-driver/mysql | v1.9.3 | MySQL database support |
-| **Database Driver** | go-mssqldb | v0.12.3 | SQL Server database support |
-| **Database Driver** | lib/pq | v1.10.9 | PostgreSQL database support |
-| **Database Driver** | go-ora | v1.3.2 | Oracle database support |
-| **SMB Protocol** | go-smb2 | v1.1.0 | SMB protocol support |
-| **Network Library** | x/net | v0.47.0 | Network programming support |
-| **Crypto Library** | x/crypto | v0.44.0 | Cryptographic algorithms support |
-| **System Library** | x/sys | v0.38.0 | System calls and OS interaction |
-| **YAML Parsing** | yaml.v3 | v3.0.1 | YAML configuration file parsing |
-| **Logging Library** | logrus | v1.9.3 | Structured logging |
-| **UUID Generation** | google/uuid | v1.6.0 | UUID generation |
-| **WHOIS Query** | likexian/whois | v1.15.6 | WHOIS information query |
-| **State Machine** | looplab/fsm | v1.0.3 | Finite state machine implementation |
-| **WinRM Client** | masterzen/winrm | v0.0.0-20250927112105-5f8e6c707321 | Windows remote management |
+| Category | Technology/Library | Purpose |
+|----------|-------------------|---------|
+| **Core Language** | Go 1.24+ | Primary development language |
+| **CLI Framework** | cobra | Command-line interface and command registration system |
+| **HTTP Client** | resty/v2 | API requests and network communication |
+| **HTML Parsing** | goquery | Web content parsing and processing |
+| **Color Output** | color | Command-line color output |
+| **Database Driver** | go-sql-driver/mysql | MySQL database support |
+| **Database Driver** | go-mssqldb | SQL Server database support |
+| **Database Driver** | lib/pq | PostgreSQL database support |
+| **Database Driver** | go-ora | Oracle database support |
+| **SMB Protocol** | go-smb2 | SMB protocol support |
+| **YAML Parsing** | yaml.v3 | YAML configuration file parsing |
 
-### Technical Features
+## Changelog
 
-#### High-Performance Concurrency
-- **Go Native Concurrency** - Lightweight concurrency model based on goroutines
-- **Intelligent Thread Management** - Configurable concurrent thread count
-- **Timeout Control** - Configurable timeout mechanism to avoid infinite waiting
+### v2.7
 
-#### Security Mechanisms
-- **Error Isolation** - Modular error handling to avoid single point of failure
-- **Resource Management** - Intelligent resource release to prevent memory leaks
-- **Input Validation** - Strict parameter validation to ensure operation security
+**Version Update and Configuration Audit Feature Release**
 
-#### User Experience
-- **Real-Time Progress** - Detailed scan progress and statistics
-- **Multiple Outputs** - Support for console and file output formats
-- **Intelligent Tips** - Friendly error prompts and usage suggestions
+#### New Features
 
-#### Extensibility Design
-- **Modular Architecture** - Clear module separation, easy for function expansion
-- **Configuration Driven** - Flexible configuration system, supporting multiple scenarios
-- **Standard Interface** - Unified interface specifications, convenient for secondary development
+- **pc command** - Remote patch detection tool, remotely query target system middleware component versions and patch status without login
+  - Based on WhatWeb fingerprint recognition technology, supports 1999+ web fingerprints
+  - Supports Web servers: Nginx, Apache, Tomcat, IIS
+  - Supports databases: MySQL, SQL Server, Oracle, PostgreSQL
+  - Supports cache/messaging: Redis, Memcached, RabbitMQ
+  - Supports middleware: WebLogic, JBoss, GlassFish
+  - Supports CMS systems: WordPress, Drupal, Joomla
+  - Component version correlation analysis with official vulnerability database
+  - Supports multiple output formats and filtering options
 
-### Recent Optimizations
-- **Important Change**: AI command has been moved from official commands to testing phase commands, status updated to "⚠️ Testing phase"
-- **Function Optimization**: scan perfectly supports short domain names, full domain names, IP addresses, and IP network segments
-- **UI Optimization**: Change the app mascot and the app icon to the official app icon
+- **Configuration Audit (CA) Module** - Newly Released
+  - Configuration compliance checks based on CIS Benchmark security baseline
+  - Supports five audit categories: Windows, Linux, Web, SSH, Middleware
+  - Total of 58 configuration check items
+  - Supports JSON, HTML, Text three output formats
 
-### Planned Features
-- ⏳ Advanced vulnerability detection plugins
-- ⏳ Distributed scanning architecture
+- **Configuration Evidence Feature**
+  - Displays specific configuration file paths
+  - Displays configuration item names and current values
+  - Provides expected values and remediation suggestions
+  - Detailed risk descriptions and remediation steps
 
-## Recent changes
+#### Command Adjustments
 
-- **Version Update**: GYscan upgraded to v2.7-beta
-- **Command Adjustment**: Moved mg (honeypot detection tool) to testing phase commands
-- **Command Adjustment**: Moved tui (start TUI mode) to testing phase commands
-- **Enhanced SMB Service**: Now supports SMB service file scanning
-- **Added WiFi Cracking**: Added WiFi cracking function for Windows systems
+- Added `ca` command - Configuration audit tool
+- Added `pc` command - Remote patch detection tool
+- Moved mg (honeypot identification tool) from stable to beta commands
+- Removed tui (start TUI mode), TUI development no longer considered
 
-## 📝 Changelog
+#### Technical Optimizations
+
+- Enhanced CheckResult structure, supports configuration evidence fields
+- Optimized report generator, supports multiple output formats
+- Improved HTML report styles and interactivity
+
 ### v2.7-beta
 
 **Version Update and Command Adjustments**
 
 - **Version Upgrade**: GYscan upgraded from v2.6.3 to v2.7-beta
-- **Command Adjustment**: Moved mg (honeypot detection tool) from official commands to testing phase commands
-- **Command Adjustment**: Moved tui (start TUI mode) from official commands to testing phase commands
-- **Honeypot Detection Optimization**: Added HFish honeypot support to the honeypot detection tool
-- **Code Structure Optimization**: Adjusted command classification to make official commands more stable and reliable
+- **Command Adjustment**: Moved mg (honeypot identification tool) from stable to beta commands
+- **Command Adjustment**: Moved tui (start TUI mode) from stable to beta commands, planned for removal in subsequent versions
+- **Honeypot Identification Optimization**: Honeypot identification tool added HFish honeypot support
+- **Code Structure Optimization**: Adjusted command classification to make stable commands more stable and reliable
 
 ### v2.6.3
 
 **Feature Optimization and Enhancement**
 
-#### File Upload Vulnerability Checking Mechanism Optimization
+- **File Upload Vulnerability Check Mechanism Optimization**
+  - Frontend validation bypass detection
+  - Filename bypass detection enhanced
+  - MIME type bypass detection new
+  - Race condition detection new
 
-- **Front-end Verification Bypass Detection** (testFrontendBypass)
-  - Simulate disabling JavaScript or modifying the front-end verification code
-  - Test the direct upload of various malicious file types (PHP, JSP, ASP, etc.)
-
-- **File Name Bypass Detection** (testFileNameBypass) - Enhanced Version
-  - Space bypass, dot bypass, underline bypass
-  - Semicolon bypass, colon bypass, Unicode bypass
-  - URL encoding bypass, special character bypass
-  - Case mismatch, variant suffixes
-
-- **MIME Type Bypass Detection** (testMIMEBypass) - Newly added
-  - Fake image MIME (JPEG, GIF, PNG)
-  - Forged document MIME (text, HTML, XML, JSON)
-  - Forging office documents MIME (PDF, Word, Excel)
-
-- **Double Suffix Bypass Detection** (testDoubleExtension)
-  - Test various combinations of double suffixes
-
-- **Null Byte Injection Detection** (testNullByteInjection)
-  - Test the empty byte bypass of URL encoding
-
-- **Race Condition Detection** (testRaceCondition) - Newly added
-  - Concurrent upload test (10 concurrent requests)
-  - Detect race condition vulnerabilities
-
-#### Website Directory Scanning Function Optimization
-
-- **File Extension Scanning Support**
-  - Support for specifying specific file extensions for scanning
-  - Enhanced scanning configuration display, clearly showing extension settings
-
-- **Ctrl+C Interrupt Handling Optimization**
-  - Support for graceful interruption of scanning process with Ctrl+C
-  - Automatic resource cleanup and display of scanned results
-  - Context-based cancellation mechanism ensuring thread safety
-
-- **Cross-Platform Clear Screen Function**
-  - Compatible with Windows (cls) and Linux/Unix (clear) systems
-  - Automatic operating system detection and execution of appropriate clear commands
-
-- **Scan Results Organization and Display**
-  - Display scan results categorized by HTTP status code
-  - Support for result sorting and color coding
-  - Provides clearer result display interface
+- **Website Directory Scanning Feature Optimization**
+  - File extension scanning support
+  - Ctrl+C interrupt handling optimization
+  - Cross-platform clear screen function
+  - Scan results organized display
 
 ### v2.6.2
-Feature Updates:
-- **Added fu command** - File upload vulnerability checking feature, supporting multiple bypass techniques
-  - Support for file type bypass, file name bypass, path traversal bypass
-  - Support for content bypass, double extension bypass, null byte bypass
-  - Support for case mismatch bypass, variant extension bypass
-  - Real-time response parsing, detecting HTML elements and JavaScript
-  - Accuracy over 90%, strict validation logic reduces false positives
-- **Added wwifi command** - Windows system WiFi cracking feature
+
+- **New pc command** - Remote patch detection tool, remotely query target system middleware component versions and patch status without login
+  - Based on WhatWeb fingerprint recognition technology, supports 1999+ web fingerprints
+  - Supports Web servers: Nginx, Apache, Tomcat, IIS
+  - Supports databases: MySQL, SQL Server, Oracle, PostgreSQL
+  - Supports cache/messaging: Redis, Memcached, RabbitMQ
+  - Supports middleware: WebLogic, JBoss, GlassFish
+  - Supports CMS systems: WordPress, Drupal, Joomla
+  - Component version correlation analysis with official vulnerability database
+  - Supports multiple output formats and filtering options
+
+- **New fu command** - File upload vulnerability check feature, supports multiple bypass techniques
+- **New wwifi command** - Windows system WiFi cracking functionality
 
 ### v2.6.0
-Feature Updates:
-- **Added scapy module** - Integrated advanced network packet manipulation tool, providing Python Scapy-like low-level network packet operation capabilities
-  - **packet subcommand** - Raw network packet construction and sending functionality
-    - Support for TCP SYN/ACK/FIN packet construction
-    - Support for UDP packet construction and sending
-    - Support for custom payload, TTL, window size and other parameters
-    - Support for multi-protocol packet construction (Ethernet/IP/TCP/UDP)
-  - **interface subcommand** - Network interface detection and status analysis
-    - Detect all available network interfaces
-    - Display interface detailed information (MAC address, IP address, MTU, etc.)
-    - Support interface status classification (enabled/disabled, wired/wireless)
-    - Support verbose output mode
-  - **example subcommand** - Function demonstration and example code
-    - Provide network packet construction examples
-    - Showcase interface detection functionality
-    - Include practical code examples and best practices
-- **Removed scan functionality** - Deleted network scanning functionality in scapy module, focusing on packet construction and interface detection
-- **Optimized code structure** - Cleaned up scan-related code and parameters, improving module stability
-- **Maintained core functionality** - Preserved packet construction/sending, interface detection, and example demonstration core functions
+
+- **New scapy module** - Integrated advanced network packet manipulation tool
+  - Raw network packet construction and sending functionality
+  - Network interface detection and status analysis
+  - Feature demonstration and example code
 
 ### v2.5.4
-New features:
-- **linenum Function ** - Added linenum function, supporting local scanning of targets [including but not limited to]
-- Local file system scan
-- Local directory traversal
-- Local file content reading
-- Local system information acquisition
-- **linux-kernel Functionality ** - Added linux-kernel functionality, supporting local scanning of targets [including but not limited to]
-- Local kernel version acquisition
-- Local vulnerability detection
-Currently, only the Debain system is supported
 
-### v2.5.3.1
--**Optimization Function**:  Optimize the issue where cracking a single target in the database module and ftp module does not immediately end when a single target is successfully cracked, and add 'ctrl+C' to organize the context and display the successfully cracked target after multiple targets are successfully cracked
-
-### v2.5.2.1
-
-- **Function Fix**: Fixed dirscan module embedded dictionary loading issue, please create a dirmap folder in the software directory, place dicc.txt and mediume.txt, otherwise use the `-w` parameter to specify the file
-- **Function Optimization**: Improved dirscan CLI interface, optimized dictionary selection logic and error handling
-- **Function Verification**: Verified large dictionary (9756 entries) and medium dictionary (2762 entries) loading functions
+- **New linenum feature** - Linux local information enumeration and privilege escalation tool
+- **New linux-kernel feature** - Linux kernel vulnerability detection tool
 
 ### v2.5.2
 
-- **New Function**: Local remote Windows log tool
-- **Version Update**: Project version iterated to v2.5.2
-- **Function Optimization**: Fixed winlog command help manual parameter display issue, added detailed parameter description and usage examples
-- **Function Optimization**: Improved log entry display format, increased message display length limit from 50 characters to 100 characters
-- **Bug Fix**: Fixed log query default pagination issue, confirmed program defaults to no pagination display
-- **Code Quality**: Improved code stability and readability
+- **New winlog command** - Windows log viewing tool
+- Optimized log entry display format
 
 ### v2.5.1
-- **New Function**: Added WAF detection module, supporting detection of multiple WAF types
-- **Version Update**: Project version iterated to v2.5.1
-- **Function Optimization**: Optimized WAF detection module code, improved string comparison efficiency, used strings.EqualFold instead of strings.ToLower for case-insensitive comparison
-- **Bug Fix**: Fixed code yellow warnings related to WAF detection
-- **Code Quality**: Improved code stability and readability
+
+- **New waf command** - WAF detection tool
+- Optimized WAF detection module code
 
 ### v2.5.0
-- **Function Optimization**: Unified command registration mechanism, resolved command duplicate registration issue
-- **Function Optimization**: Implemented command group display, divided into official commands and testing phase commands
-- **Function Fix**: Fixed format string error in WebShell generator
-- **Function Optimization**: Optimized tool help information display, improved user experience
-- **New Function**: Improved PowerShell module, added HTTPS support
-- **New Function**: Enhanced WMI module functions, supporting more remote management operations
-- **New Function**: Improved RDP module, supporting session management and process viewing
-- **New Function**: Optimized SMB module, supporting version detection and share enumeration
-- **Code Optimization**: Optimized code structure and performance of each module
 
-### v2.0.1
-- **Function Optimization**: Removed Payload generation function, focused on security testing
-- **Code Optimization**: Optimized code structure and performance
-- **Documentation Improvement**: Updated help documentation and examples
+- Unified command registration mechanism
+- Implemented command grouping display
+- Completed PowerShell module, added HTTPS support
+- Enhanced WMI module functionality
 
 ### v2.0.0
-- **New Function**: Added CSRF vulnerability detection module
-- **Function Enhancement**: Improved XSS detection function
-- **Module Optimization**: Improved performance and stability of each function module
+
+- **New csrf command** - CSRF vulnerability detection module
+- Improved XSS detection functionality
 
 ### v1.0.0
-- **Initial Release**: Basic port scanning function
-- **Function Implementation**: Service identification and fingerprint collection
-- **Framework Construction**: Weak password brute force framework
-- **Basic Detection**: Basic vulnerability detection function
 
-## 🤝 Contribution Guide
+- **Initial Release**: Basic port scanning functionality
+- Service identification and fingerprinting
+- Weak password brute-forcing framework
+- Basic vulnerability detection functionality
+
+## Contributing Guide
 
 Welcome to submit Issues and Pull Requests to improve the project. Please ensure:
-1. Code conforms to Go language specifications
+1. Code complies with Go language specifications
 2. Add appropriate test cases
 3. Update relevant documentation
 4. Follow secure development specifications
 
-## 📄 License
+## License
 
-This project adopts the MIT License. For details, please check the LICENSE file.
+This project uses MIT license. See LICENSE file for details.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
-**Important Note**: This tool is only for security research and authorized testing purposes. Any unauthorized use is illegal, and users shall bear corresponding legal responsibilities. The author does not assume any direct or indirect responsibility arising from the use of this tool.
+**Important Notice**: This tool is for security research and authorized testing only. Any unauthorized use is illegal, and users bear corresponding legal responsibilities. The author does not assume any direct or indirect liability arising from the use of this tool.
 
 ---
 
-**GYscan - Focus on Internal Network Security, Guard Network Boundaries** 🛡️
+**GYscan - Focused on Internal Network Security, Guarding Network Boundaries** 🛡️

@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 // ToJSON 将任意对象转换为JSON字符串
@@ -37,4 +38,19 @@ func PrettyJSON(jsonStr string) (string, error) {
 	}
 	
 	return string(prettyJSON), nil
+}
+
+// SaveJSON 将对象保存为JSON文件
+func SaveJSON(filename string, v interface{}) error {
+	jsonBytes, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return fmt.Errorf("JSON序列化失败: %v", err)
+	}
+
+	err = os.WriteFile(filename, jsonBytes, 0644)
+	if err != nil {
+		return fmt.Errorf("文件写入失败: %v", err)
+	}
+
+	return nil
 }

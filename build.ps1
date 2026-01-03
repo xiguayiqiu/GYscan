@@ -1,29 +1,29 @@
 Write-Host "=================================================="
-Write-Host "           GYscan Windows构建脚本           "
-Write-Host "                版本 1.0                        "
+Write-Host "           GYscan Windows锟斤拷锟斤拷锟脚憋拷           "
+Write-Host "                锟芥本 1.0                        "
 Write-Host "=================================================="
 Write-Host ""
 
-# 检测系统环境
-Write-Host "[信息] 检测系统环境..."
+# 锟斤拷锟较低筹拷锟斤拷锟?
+Write-Host "[锟斤拷息] 锟斤拷锟较低筹拷锟斤拷锟?..."
 $OS = "Windows"
 $Distro = "windows"
 Write-Host "[???] ?????: $OS ($Distro)"
 Write-Host ""
 
-# 检查Go环境
-Write-Host "[信息] 检查Go环境..."
+# 锟斤拷锟紾o锟斤拷锟斤拷
+Write-Host "[锟斤拷息] 锟斤拷锟紾o锟斤拷锟斤拷..."
 $goCommand = Get-Command "go" -ErrorAction SilentlyContinue
 if (-not $goCommand) {
-    Write-Host "[错误] Go未安装，请安装Go 1.21.0或更高版本"
+    Write-Host "[锟斤拷锟斤拷] Go未锟斤拷装锟斤拷锟诫安装Go 1.21.0锟斤拷锟斤拷甙姹?"
     exit 1
 }
 
 $goVersionOutput = go version
 $goVersion = ($goVersionOutput -split ' ')[2].Substring(2)
-Write-Host "[信息] 当前Go版本: $goVersion"
+Write-Host "[锟斤拷息] 锟斤拷前Go锟芥本: $goVersion"
 
-# 检查Go版本是否符合要求
+# 锟斤拷锟紾o锟芥本锟角凤拷锟斤拷锟揭拷锟?
 $requiredVersion = "1.21.0"
 $versionParts = $goVersion -split '\.'
 $reqVersionParts = $requiredVersion -split '\.'
@@ -43,47 +43,47 @@ if ([int]$versionParts[0] -gt [int]$reqVersionParts[0]) {
 }
 
 if (-not $isVersionOk) {
-    Write-Host "[错误] Go版本过低，需要 $requiredVersion 或更高版本"
+    Write-Host "[锟斤拷锟斤拷] Go锟芥本锟斤拷锟酵ｏ拷锟斤拷要 $requiredVersion 锟斤拷锟斤拷甙姹?"
     exit 1
 }
 
-Write-Host "[信息] Go版本符合要求 ($goVersion >= $requiredVersion)"
+Write-Host "[锟斤拷息] Go锟芥本锟斤拷锟斤拷要锟斤拷 ($goVersion >= $requiredVersion)"
 Write-Host ""
 
-# 设置Go代理
-Write-Host "[信息] 设置Go代理..."
+# 锟斤拷锟斤拷Go锟斤拷锟斤拷
+Write-Host "[锟斤拷息] 锟斤拷锟斤拷Go锟斤拷锟斤拷..."
 go env -w GOPROXY=https://goproxy.cn,direct
 go env -w GOSUMDB=sum.golang.google.cn
 $proxyValue = go env GOPROXY
-Write-Host "[信息] Go代理已设置为: $proxyValue"
+Write-Host "[锟斤拷息] Go锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷为: $proxyValue"
 Write-Host ""
 
-# 清理构建缓存
-Write-Host "[信息] 清理构建缓存..."
+# 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+Write-Host "[锟斤拷息] 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷..."
 go clean -cache
 
-# 下载依赖
-Write-Host "[信息] 下载依赖..."
+# 锟斤拷锟斤拷锟斤拷锟斤拷
+Write-Host "[锟斤拷息] 锟斤拷锟斤拷锟斤拷锟斤拷..."
 go mod download
 
-# 编译项目
-Write-Host "[信息] 编译项目..."
+# 锟斤拷锟斤拷锟斤拷目
+Write-Host "[锟斤拷息] 锟斤拷锟斤拷锟斤拷目..."
 
-# 显示构建目标选项
-Write-Host "构建目标选项:"
-Write-Host "1) Client (构建客户端程序)"
-Write-Host "2) C2 (构建服务器端程序)"
+# 锟斤拷示锟斤拷锟斤拷目锟斤拷选锟斤拷
+Write-Host "锟斤拷锟斤拷目锟斤拷选锟斤拷:"
+Write-Host "1) Client (锟斤拷锟斤拷锟酵伙拷锟剿筹拷锟斤拷)"
+Write-Host "2) C2 (锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟剿筹拷锟斤拷)"
 Write-Host ""
 
-# 显示平台选项
-Write-Host "平台选项:"
-Write-Host "  windows - Windows平台（默认）"
+# 锟斤拷示平台选锟斤拷
+Write-Host "平台选锟斤拷:"
+Write-Host "  windows - Windows平台锟斤拷默锟较ｏ拷"
 Write-Host "  linux   - Linux平台"
 Write-Host "  darwin  - macOS平台"
 Write-Host ""
 
 do {
-    $choice = Read-Host "请选择构建目标 (1/2)"
+    $choice = Read-Host "锟斤拷选锟今构斤拷目锟斤拷 (1/2)"
     switch ($choice) {
         "1" { 
             $buildTarget = "Client"
@@ -94,23 +94,23 @@ do {
             break
         }
         default {
-            Write-Host "[错误] 无效的选择，请重新输入"
+            Write-Host "[锟斤拷锟斤拷] 锟斤拷效锟斤拷选锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷"
         }
     }
 } while ($choice -notin @("1", "2"))
 
-Write-Host "[信息] 选择的构建目标: $buildTarget"
+Write-Host "[锟斤拷息] 选锟斤拷墓锟斤拷锟侥匡拷锟?: $buildTarget"
 Write-Host ""
 
 # ??????
 if ($buildTarget -eq "Client") {
-    Write-Host "请选择Client目标平台:"
+    Write-Host "锟斤拷选锟斤拷Client目锟斤拷平台:"
 Write-Host "1) Linux"
 Write-Host "2) Windows"
 Write-Host ""
 
 do {
-    $choice = Read-Host "请选择目标平台 (1/2)"
+    $choice = Read-Host "锟斤拷选锟斤拷目锟斤拷平台 (1/2)"
     switch ($choice) {
         "1" { 
             $buildPlatform = "linux"
@@ -125,18 +125,18 @@ do {
             break
         }
         default {
-            Write-Host "无效的选择，请输入 1 或 2"
+            Write-Host "锟斤拷效锟斤拷选锟斤拷锟斤拷锟斤拷锟斤拷 1 锟斤拷 2"
         }
     }
 } while ($choice -notin @("1", "2"))
 } else {
-    Write-Host "请选择C2目标平台:"
+    Write-Host "锟斤拷选锟斤拷C2目锟斤拷平台:"
 Write-Host "1) Linux"
 Write-Host "2) Windows"
 Write-Host ""
 
 do {
-    $choice = Read-Host "请选择目标平台 (1/2)"
+    $choice = Read-Host "锟斤拷选锟斤拷目锟斤拷平台 (1/2)"
     switch ($choice) {
         "1" { 
             $buildPlatform = "linux"
@@ -153,39 +153,39 @@ do {
             break
         }
         default {
-            Write-Host "无效的选择，请输入 1 或 2"
+            Write-Host "锟斤拷效锟斤拷选锟斤拷锟斤拷锟斤拷锟斤拷 1 锟斤拷 2"
         }
     }
 } while ($choice -notin @("1", "2"))
 }
 
-Write-Host "[信息] 目标平台: $buildPlatform/$buildArch"
-Write-Host "[信息] 输出文件: $outputName"
+Write-Host "[锟斤拷息] 目锟斤拷平台: $buildPlatform/$buildArch"
+Write-Host "[锟斤拷息] 锟斤拷锟斤拷募锟?: $outputName"
 Write-Host ""
 
-# 显示构建配置
-Write-Host "构建配置:"
-Write-Host "目标: $buildTarget"
+# 锟斤拷示锟斤拷锟斤拷锟斤拷锟斤拷
+Write-Host "锟斤拷锟斤拷锟斤拷锟斤拷:"
+Write-Host "目锟斤拷: $buildTarget"
 Write-Host "平台: $buildPlatform/$buildArch"
-Write-Host "输出: $outputName"
+Write-Host "锟斤拷锟?: $outputName"
 Write-Host ""
 
-$confirm = Read-Host "确认开始构建? (y/N)"
+$confirm = Read-Host "确锟较匡拷始锟斤拷锟斤拷? (y/N)"
 if ($confirm -notmatch "^[Yy]$") {
-    Write-Host "[信息] 用户取消构建"
+    Write-Host "[锟斤拷息] 锟矫伙拷取锟斤拷锟斤拷锟斤拷"
     exit 0
 }
 
 Write-Host ""
-Write-Host "[信息] 开始构建项目..."
+Write-Host "[锟斤拷息] 锟斤拷始锟斤拷锟斤拷锟斤拷目..."
 
-# 保存当前位置
+# 锟斤拷锟芥当前位锟斤拷
 $originalLocation = Get-Location
 
 try {
     if ($buildTarget -eq "Client") {
         Set-Location "Client"
-        Write-Host "[信息] 切换到Client目录..."
+        Write-Host "[锟斤拷息] 锟叫伙拷锟斤拷Client目录..."
         
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
@@ -194,7 +194,7 @@ try {
         go build -tags nowasm -ldflags="-s -w" -o "..\$outputName"
     } else {
         Set-Location $c2Dir
-        Write-Host "[信息] 切换到C2目录..."
+        Write-Host "[锟斤拷息] 锟叫伙拷锟斤拷C2目录..."
         
         $env:GOOS = $buildPlatform
         $env:GOARCH = $buildArch
@@ -203,17 +203,17 @@ try {
     }
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "[成功] 构建完成!"
-        Write-Host "[信息] 输出路径: $(Get-Location)\$outputName"
+        Write-Host "[锟缴癸拷] 锟斤拷锟斤拷锟斤拷锟?!"
+        Write-Host "[锟斤拷息] 锟斤拷锟铰凤拷锟?: $(Get-Location)\$outputName"
         
-        # 检查文件大小
+        # 锟斤拷锟斤拷募锟斤拷锟叫?
         if (Test-Path $outputName) {
             Write-Host ""
-            Write-Host "文件信息:"
+            Write-Host "锟侥硷拷锟斤拷息:"
             Get-ChildItem $outputName | Format-Table Name, Length, LastWriteTime -AutoSize
         }
     } else {
-        Write-Host "[错误] 构建失败!"
+        Write-Host "[锟斤拷锟斤拷] 锟斤拷锟斤拷失锟斤拷!"
         exit 1
     }
 } finally {
@@ -221,4 +221,4 @@ try {
 }
 
 Write-Host ""
-Write-Host "[成功] 构建完成!"
+Write-Host "[锟缴癸拷] 锟斤拷锟斤拷锟斤拷锟?!"

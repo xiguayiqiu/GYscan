@@ -17,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.7-beta"
+	Version = "v2.7"
 )
 
 // rootCmd 表示基础命令
@@ -234,9 +234,9 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(wafCmd)         // WAF识别工具
 	cmd.AddCommand(whoisCmd)       // Whois查询工具
 	cmd.AddCommand(wwifiCmd)       // Windows系统WiFi破解工具
+	cmd.AddCommand(pcCmd)          // 远程补丁探测工具
 
 	// ===== 测试阶段命令 =====
-	cmd.AddCommand(tuiCmd)   // 启动 TUI 模式 [测试阶段]
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
 	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
 	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]

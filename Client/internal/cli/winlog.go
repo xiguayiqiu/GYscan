@@ -645,7 +645,7 @@ func processQueryResult(output string, limit int, verbose bool) string {
 
 	// 添加统计信息
 	if verbose {
-		resultLines = append(resultLines, fmt.Sprintf("\n查询统计信息:"))
+		resultLines = append(resultLines, "\n查询统计信息:")
 		resultLines = append(resultLines, fmt.Sprintf("   总记录数: %d", totalRecords))
 		if limit > 0 && totalRecords > limit {
 			resultLines = append(resultLines, fmt.Sprintf("   显示前 %d 条记录", limit))
@@ -654,7 +654,7 @@ func processQueryResult(output string, limit int, verbose bool) string {
 
 		// 添加详细的事件类型统计
 		logStats := analyzeLogStatistics(resultLines)
-		resultLines = append(resultLines, fmt.Sprintf("\n事件类型统计:"))
+		resultLines = append(resultLines, "\n事件类型统计:")
 		resultLines = append(resultLines, fmt.Sprintf("   信息事件: %d", logStats["info"]))
 		resultLines = append(resultLines, fmt.Sprintf("   警告事件: %d", logStats["warning"]))
 		resultLines = append(resultLines, fmt.Sprintf("   错误事件: %d", logStats["error"]))

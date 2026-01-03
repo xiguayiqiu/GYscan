@@ -695,7 +695,7 @@ func (s *FileUploadScanner) isUploadSuccessByJS(responseBody, lowerBody, fileNam
 func (s *FileUploadScanner) isFileAccessible(fileName, baseURL string) bool {
 	if baseURL == "" {
 		baseURL = s.target
-		if strings.HasSuffix(baseURL, "/") {
+		if strings.HasSuffix(baseURL, "/") && len(baseURL) > 1 {
 			baseURL = baseURL[:len(baseURL)-1]
 		}
 	}
