@@ -12,24 +12,24 @@ import (
 
 // WMIConfig 定义WMI模块的配置
 type WMIConfig struct {
-	Target     string
-	Port       int
-	Username   string
-	Password   string
-	Domain     string
-	Command    string
-	Query      string
-	Timeout    int
-	Verbose    bool
+	Target      string
+	Port        int
+	Username    string
+	Password    string
+	Domain      string
+	Command     string
+	Query       string
+	Timeout     int
+	Verbose     bool
 	VeryVerbose bool
 }
 
 // WMIResult 定义WMI操作结果
 type WMIResult struct {
-	Success    bool
-	Output     string
-	Error      string
-	Timestamp  time.Time
+	Success   bool
+	Output    string
+	Error     string
+	Timestamp time.Time
 }
 
 // WMIClient 定义WMI客户端
@@ -93,32 +93,90 @@ func (c *WMIClient) ExecuteCommand() (*WMIResult, error) {
 		return &WMIResult{Success: false, Error: err.Error(), Timestamp: time.Now()}, err
 	}
 
-	// 构建WMI命令执行的PowerShell命令
-	// 实际实现中，需要通过WinRM或其他方式执行这个PowerShell命令
-	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Invoke-WmiMethod -Path Win32_Process -Name Create -ArgumentList '%s'`, 
-		strings.ReplaceAll(c.config.Command, "'", "''"))
+	// 构建PowerShell命令，使用WMI在远程系统上执行命令
+	var powerShellCmd string
 
-	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] 执行WMI命令: %s", powerShellCmd)
+	// 格式化用户名
+	username := c.config.Username
+	if c.config.Domain != "" {
+		username = fmt.Sprintf("%s\\%s", c.config.Domain, c.config.Username)
 	}
 
-	// 模拟命令执行延迟
-	time.Sleep(2 * time.Second)
-
-	// 模拟命令执行结果
-	output := fmt.Sprintf("WMI命令执行结果:\n命令: %s\n目标: %s\n用户: %s\n执行命令: %s\n", 
-		c.config.Command, c.config.Target, c.config.Username, powerShellCmd)
-
-	if c.config.VeryVerbose {
-		utils.InfoPrint("[+] WMI命令执行完成")
+	// 远程执行命令 - 使用 CIM Session (WinRM)，比 WMI/DCOM 更可靠
+	if c.config.Target != "" && c.config.Username != "" {
+		// 构建使用 CIM Session 的远程命令执行
+		escapedCmd := strings.ReplaceAll(c.config.Command, "'", "''")
+		// 使用 CIM Session 和 Invoke-CimMethod
+		powerShellCmd = fmt.Sprintf(
+			"$ErrorActionPreference='Stop'; $secpasswd=ConvertTo-SecureString '%s' -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential('%s', $secpasswd); $session=New-CimSession -ComputerName '%s' -Credential $cred; $result=Invoke-CimMethod -CimSession $session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='%s'}; if($result.ReturnValue -eq 0) { Write-Output ('Process started successfully (PID: ' + $result.ProcessId + ')') } else { Write-Output ('Process creation failed with code: ' + $result.ReturnValue) }; Remove-CimSession $session",
+			c.config.Password,
+			username,
+			c.config.Target,
+			escapedCmd,
+		)
+	} else if c.config.Target != "" {
+		// 无凭据的远程执行
+		escapedCmd := strings.ReplaceAll(c.config.Command, "'", "''")
+		powerShellCmd = fmt.Sprintf(
+			"$ErrorActionPreference='Stop'; $session=New-CimSession -ComputerName '%s'; $result=Invoke-CimMethod -CimSession $session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='%s'}; if($result.ReturnValue -eq 0) { Write-Output ('Process started successfully (PID: ' + $result.ProcessId + ')') } else { Write-Output ('Process creation failed with code: ' + $result.ReturnValue) }; Remove-CimSession $session",
+			c.config.Target,
+			escapedCmd,
+		)
+	} else {
+		// 本地执行
+		powerShellCmd = fmt.Sprintf(`$ErrorActionPreference='Stop'; %s`, c.config.Command)
 	}
 
-	return &WMIResult{
-		Success:   true,
-		Output:    output,
-		Error:     "",
-		Timestamp: time.Now(),
-	}, nil
+	if c.config.VeryVerbose {
+		utils.InfoPrint("[+] 执行PowerShell命令: %s", powerShellCmd)
+	}
+
+	// 设置超时
+	timeout := 60 // 默认60秒
+	if c.config.Timeout > 0 {
+		timeout = c.config.Timeout
+	}
+
+	// 执行PowerShell命令
+	cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", powerShellCmd)
+	cmd.Stderr = cmd.Stdout
+
+	// 设置超时
+	done := make(chan []byte, 1)
+	go func() {
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			done <- []byte(fmt.Sprintf("命令执行错误: %v\n输出: %s", err, string(output)))
+		} else {
+			done <- output
+		}
+	}()
+
+	select {
+	case outputBytes := <-done:
+		output := string(outputBytes)
+
+		if c.config.VeryVerbose {
+			utils.InfoPrint("[+] WMI命令执行完成")
+		}
+
+		// 直接返回输出，不进行错误模式匹配
+		return &WMIResult{
+			Success:   true,
+			Output:    output,
+			Error:     "",
+			Timestamp: time.Now(),
+		}, nil
+
+	case <-time.After(time.Duration(timeout) * time.Second):
+		cmd.Process.Kill()
+		return &WMIResult{
+			Success:   false,
+			Output:    "",
+			Error:     fmt.Sprintf("命令执行超时（%d秒）", timeout),
+			Timestamp: time.Now(),
+		}, fmt.Errorf("command timeout")
+	}
 }
 
 // ExecuteQuery 执行WMI查询
@@ -137,7 +195,7 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 	// 根据不同的查询类型构建适当的输出格式
 	var powerShellCmd string
 	queryLower := strings.ToLower(c.config.Query)
-	
+
 	// 构建Get-WmiObject命令参数，支持本地和远程查询
 	var computerParam string
 	if c.config.Target != "" {
@@ -145,12 +203,12 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 		computerParam = fmt.Sprintf("-ComputerName '%s'", strings.ReplaceAll(c.config.Target, "'", "''"))
 		// 如果提供了凭据，添加凭据参数
 		if c.config.Username != "" && c.config.Password != "" {
-			computerParam += fmt.Sprintf(" -Credential (New-Object System.Management.Automation.PSCredential('%s', (ConvertTo-SecureString '%s' -AsPlainText -Force)))", 
-				strings.ReplaceAll(c.config.Username, "'", "''"), 
+			computerParam += fmt.Sprintf(" -Credential (New-Object System.Management.Automation.PSCredential('%s', (ConvertTo-SecureString '%s' -AsPlainText -Force)))",
+				strings.ReplaceAll(c.config.Username, "'", "''"),
 				strings.ReplaceAll(c.config.Password, "'", "''"))
 		}
 	}
-	
+
 	if strings.Contains(queryLower, "win32_ntlogevent") {
 		// 针对Windows日志查询，使用Format-List显示完整信息
 		// 避免长文本被截断
@@ -159,7 +217,7 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 			strings.ReplaceAll(c.config.Query, "'", "''"), computerParam)
 	} else {
 		// 其他查询类型使用标准表格格式
-		powerShellCmd = fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' %s | Format-Table -AutoSize`, 
+		powerShellCmd = fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' %s | Format-Table -AutoSize`,
 			strings.ReplaceAll(c.config.Query, "'", "''"), computerParam)
 	}
 
@@ -174,16 +232,15 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 	// 使用-Command参数传递脚本
 	cmd := exec.Command("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", fullPowerShellCmd)
 	cmd.Stderr = cmd.Stdout // 将标准错误重定向到标准输出，确保所有输出都以相同编码处理
-	
+
 	// 执行命令并获取输出
 	outputBytes, err := cmd.CombinedOutput()
 	output := string(outputBytes)
-	
+
 	// 检查是否有错误
 	if err != nil {
 		// 如果是Win32_NTLogEvent查询，且没有找到结果，将其视为成功（空结果集）
-		if strings.Contains(queryLower, "win32_ntlogevent") && (
-			strings.Contains(strings.ToLower(output), "no instances available") ||
+		if strings.Contains(queryLower, "win32_ntlogevent") && (strings.Contains(strings.ToLower(output), "no instances available") ||
 			strings.Contains(strings.ToLower(output), "没有找到匹配的日志记录") ||
 			len(strings.TrimSpace(output)) == 0) {
 			return &WMIResult{
@@ -203,7 +260,7 @@ func (c *WMIClient) ExecuteQuery() (*WMIResult, error) {
 			Timestamp: time.Now(),
 		}, err
 	}
-	
+
 	// 检查输出是否为空或只包含空格
 	if strings.TrimSpace(output) == "" {
 		return &WMIResult{
@@ -242,7 +299,7 @@ func (c *WMIClient) ListProcesses() (*WMIResult, error) {
 	query := "SELECT ProcessId, Name, HandleCount, WorkingSetSize, PageFileUsage, CommandLine FROM Win32_Process"
 
 	// 构建PowerShell命令
-	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-Table -AutoSize`, 
+	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-Table -AutoSize`,
 		strings.ReplaceAll(query, "'", "''"))
 
 	if c.config.VeryVerbose {
@@ -253,12 +310,12 @@ func (c *WMIClient) ListProcesses() (*WMIResult, error) {
 	time.Sleep(2 * time.Second)
 
 	// 模拟进程列表结果
-	output := fmt.Sprintf("WMI进程查询结果:\n%s\n"+ 
-		"ProcessId | Name          | HandleCount | WorkingSetSize | PageFileUsage | CommandLine\n"+ 
-		"--------- | ------------- | ----------- | -------------- | ------------- | ----------------------------\n"+ 
-		"1234      | explorer.exe  | 156         | 123456789      | 54321098      | C:\\Windows\\explorer.exe\n"+ 
-		"5678      | svchost.exe   | 89          | 456789123      | 21098765      | C:\\Windows\\System32\\svchost.exe -k netsvcs\n"+ 
-		"9012      | winlogon.exe  | 45          | 789012345      | 10293847      | C:\\Windows\\System32\\winlogon.exe\n"+ 
+	output := fmt.Sprintf("WMI进程查询结果:\n%s\n"+
+		"ProcessId | Name          | HandleCount | WorkingSetSize | PageFileUsage | CommandLine\n"+
+		"--------- | ------------- | ----------- | -------------- | ------------- | ----------------------------\n"+
+		"1234      | explorer.exe  | 156         | 123456789      | 54321098      | C:\\Windows\\explorer.exe\n"+
+		"5678      | svchost.exe   | 89          | 456789123      | 21098765      | C:\\Windows\\System32\\svchost.exe -k netsvcs\n"+
+		"9012      | winlogon.exe  | 45          | 789012345      | 10293847      | C:\\Windows\\System32\\winlogon.exe\n"+
 		"3456      | notepad.exe   | 12          | 98765432       | 36251409      | C:\\Windows\\System32\\notepad.exe C:\\temp\\test.txt\n", powerShellCmd)
 
 	if c.config.VeryVerbose {
@@ -289,7 +346,7 @@ func (c *WMIClient) ListServices() (*WMIResult, error) {
 	query := "SELECT Name, DisplayName, State, StartMode, StartName FROM Win32_Service"
 
 	// 构建PowerShell命令
-	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-Table -AutoSize`, 
+	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-Table -AutoSize`,
 		strings.ReplaceAll(query, "'", "''"))
 
 	if c.config.VeryVerbose {
@@ -300,13 +357,13 @@ func (c *WMIClient) ListServices() (*WMIResult, error) {
 	time.Sleep(2 * time.Second)
 
 	// 模拟服务列表结果
-	output := fmt.Sprintf("WMI服务查询结果:\n%s\n"+ 
-		"Name          | DisplayName             | State    | StartMode | StartName\n"+ 
-		"------------- | ----------------------- | -------- | --------- | ------------------------\n"+ 
-		"WinDefend     | Windows Defender        | Running  | Auto      | LocalSystem\n"+ 
-		"wuauserv      | Windows Update          | Running  | Auto      | LocalSystem\n"+ 
-		"Appinfo       | Application Information | Stopped  | Manual    | LocalSystem\n"+ 
-		"BITS          | Background Intelligent Transfer Service | Running | Manual | LocalSystem\n"+ 
+	output := fmt.Sprintf("WMI服务查询结果:\n%s\n"+
+		"Name          | DisplayName             | State    | StartMode | StartName\n"+
+		"------------- | ----------------------- | -------- | --------- | ------------------------\n"+
+		"WinDefend     | Windows Defender        | Running  | Auto      | LocalSystem\n"+
+		"wuauserv      | Windows Update          | Running  | Auto      | LocalSystem\n"+
+		"Appinfo       | Application Information | Stopped  | Manual    | LocalSystem\n"+
+		"BITS          | Background Intelligent Transfer Service | Running | Manual | LocalSystem\n"+
 		"Dhcp          | DHCP Client             | Running  | Auto      | NT AUTHORITY\\LocalService\n", powerShellCmd)
 
 	if c.config.VeryVerbose {
@@ -337,7 +394,7 @@ func (c *WMIClient) GetOSInfo() (*WMIResult, error) {
 	query := "SELECT Caption, Version, BuildNumber, OSArchitecture, InstallDate, LastBootUpTime, TotalVisibleMemorySize, FreePhysicalMemory FROM Win32_OperatingSystem"
 
 	// 构建PowerShell命令
-	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-List *`, 
+	powerShellCmd := fmt.Sprintf(`$ErrorActionPreference='Stop'; Get-WmiObject -Query '%s' | Format-List *`,
 		strings.ReplaceAll(query, "'", "''"))
 
 	if c.config.VeryVerbose {
@@ -348,14 +405,14 @@ func (c *WMIClient) GetOSInfo() (*WMIResult, error) {
 	time.Sleep(2 * time.Second)
 
 	// 模拟系统信息结果
-	output := fmt.Sprintf("WMI系统信息查询结果:\n%s\n"+ 
-		"Caption:                 Microsoft Windows 10 Pro\n"+ 
-		"Version:                 10.0.19045\n"+ 
-		"BuildNumber:             19045\n"+ 
-		"OSArchitecture:          64-bit\n"+ 
-		"InstallDate:             20230101000000.000000+000\n"+ 
-		"LastBootUpTime:          20240615143000.000000+000\n"+ 
-		"TotalVisibleMemorySize:  16777216\n"+ 
+	output := fmt.Sprintf("WMI系统信息查询结果:\n%s\n"+
+		"Caption:                 Microsoft Windows 10 Pro\n"+
+		"Version:                 10.0.19045\n"+
+		"BuildNumber:             19045\n"+
+		"OSArchitecture:          64-bit\n"+
+		"InstallDate:             20230101000000.000000+000\n"+
+		"LastBootUpTime:          20240615143000.000000+000\n"+
+		"TotalVisibleMemorySize:  16777216\n"+
 		"FreePhysicalMemory:      8388608\n", powerShellCmd)
 
 	if c.config.VeryVerbose {

@@ -89,13 +89,11 @@ func (c *DCOMClient) ExecuteCommand() *DCOMResult {
 	
 	// 构建完整的PowerShell命令
 	fullCommand := fmt.Sprintf(
-		"$ErrorActionPreference = 'Stop'; $secpasswd = ConvertTo-SecureString '%s' -AsPlainText -Force; "+ 
-		"$cred = New-Object System.Management.Automation.PSCredential('%s', $secpasswd); "+ 
-		"Invoke-Command -ComputerName %s -Credential $cred -ScriptBlock {%s}",
+		"$ErrorActionPreference='Stop'; $secpasswd=ConvertTo-SecureString '%s' -AsPlainText -Force; $cred=New-Object System.Management.Automation.PSCredential('%s', $secpasswd); $session=New-CimSession -ComputerName '%s' -Credential $cred; $result=Invoke-CimMethod -CimSession $session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='%s'}; if($result.ReturnValue -eq 0) { Write-Output ('Process started successfully (PID: ' + $result.ProcessId + ')') } else { Write-Output ('Process creation failed with code: ' + $result.ReturnValue) }; Remove-CimSession $session",
 		c.Config.Password,
 		c.formatUsername(),
 		c.Config.Target,
-		psCommand,
+		strings.ReplaceAll(psCommand, "'", "''"),
 	)
 	
 	if c.Config.Verbose {
@@ -146,7 +144,8 @@ func (c *DCOMClient) buildShellWindowsCommand() string {
 
 // 构建WMIExecute方法的命令
 func (c *DCOMClient) buildWMICExecuteCommand() string {
-	return fmt.Sprintf("cmd.exe /c %s", c.Config.Command)
+	// 直接返回命令，让Invoke-CimMethod处理
+	return c.Config.Command
 }
 
 // 格式化用户名（添加域名前缀）

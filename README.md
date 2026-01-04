@@ -235,31 +235,34 @@ GYscan配置审计提供详细的配置证据追踪功能，当检测到配置�
 # 执行全部类别的本地配置审计
 ./GYscan.exe ca run --target localhost
 
-# 使用SSH连接远程Linux系统进行审计（密码认证）
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-password yourpassword
+# 审计本地Linux系统的配置
+./GYscan.exe ca run --target localhost --os-type linux
 
-# 使用SSH连接远程Linux系统进行审计（私钥认证）
-./GYscan.exe ca 192.168.1.100 --os-type linux --connection-mode ssh --ssh-user root --ssh-key ~/.ssh/id_rsa
+# 审计本地Windows系统的配置
+./GYscan.exe ca run --target localhost --os-type windows
 
-# 指定SSH端口进行审计
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user admin --ssh-password pass --ssh-port 2222
+# 指定审计类别进行本地审计
+./GYscan.exe ca run --category linux
 
-# 使用WMI连接远程Windows系统进行审计
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user administrator --wmi-password yourpassword
+# 审计本地Web服务配置
+./GYscan.exe ca run --category web
 
-# 使用域账户连接Windows系统进行审计
-./GYscan.exe ca 192.168.1.50 --connection-mode wmi --wmi-user domain\\admin --wmi-password pass --wmi-domain CORP
+# 审计本地SSH配置
+./GYscan.exe ca run --category ssh
 
-# 自动检测目标系统类型并选择连接方式
-./GYscan.exe ca 192.168.1.100 --detect-os --connection-mode auto --ssh-user root --ssh-password pass
+# 审计本地中间件配置
+./GYscan.exe ca run --category middleware
 
-# 审计远程Linux系统并生成HTML报告
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-key ~/.ssh/id_rsa -o audit.html --format html
+# 生成JSON格式的本地审计报告
+./GYscan.exe ca run --target localhost -o audit.json --format json
 
-# 审计远程Windows系统的配置
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass --category os
+# 生成HTML格式的本地审计报告
+./GYscan.exe ca run --target localhost -o audit.html --format html
 
-# 列出所有Linux类别下的检查项
+# 列出所有可用的检查项
+./GYscan.exe ca list
+
+# 列出指定类别下的检查项
 ./GYscan.exe ca list --category linux
 
 # 生成目标系统的安全基线报告
@@ -269,21 +272,13 @@ GYscan配置审计提供详细的配置证据追踪功能，当检测到配置�
 ./GYscan.exe ca remediate --target localhost
 ```
 
-#### Windows系统135端口问题处理
+#### 本地审计说明
 
-当目标Windows系统未开启135端口时，会显示详细的操作指引：
+GYscan配置审计模块专注于本地系统配置审计，直接读取目标系统的配置文件和系统参数进行检测：
 
-```bash
-# 尝试审计Windows系统
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass
-```
-
-输出将包含：
-- **图形界面开启135端口的步骤** - Windows防火墙配置向导
-- **命令行开启135端口的方法** - netsh advfirewall firewall命令
-- **防火墙配置说明** - 入站规则设置、端口例外添加
-- **RPC服务启动与检查方法** - sc start rpcss, sc query rpcss
-- **操作完成后的验证步骤** - telnet测试、端口扫描验证
+- **无需远程连接**：不依赖SSH或WMI等远程协议，直接分析本地文件系统
+- **安全可靠**：避免远程连接带来的认证和权限问题
+- **全面覆盖**：支持Windows、Linux、Web、SSH、中间件五大类别
 
 ### 输出格式
 
@@ -329,6 +324,82 @@ GYscan配置审计支持三种输出格式：
 # 执行远程命令
 ./GYscan.exe wmi exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
 ```
+
+### DCOM远程执行
+
+GYscan的DCOM远程执行模块通过DCOM协议在目标Windows主机上执行远程命令，支持多种执行方法。
+
+#### 命令说明
+
+| 子命令 | 功能描述 |
+|--------|----------|
+| execute | 通过DCOM执行远程命令 |
+| connect | 测试DCOM连接可达性 |
+| list | 枚举远程主机上的DCOM对象 |
+
+#### 常用参数
+
+| 参数 | 简写 | 说明 |
+|------|------|------|
+| --target | -t | 目标主机IP地址或主机名（必填） |
+| --username | -u | 用户名（必填） |
+| --password | -p | 密码（必填） |
+| --domain | -d | 域名（可选） |
+| --command | -c | 要执行的命令（必填） |
+| --method | -m | DCOM执行方法：mmc20、shellwindows、wmiexecute（默认mmc20） |
+| --timeout | -o | 连接超时时间（秒，默认30） |
+| --verbose | -v | 显示详细输出 |
+| --ssl | -S | 使用SSL加密连接 |
+
+#### 使用示例
+
+```bash
+# 测试DCOM连接可达性
+./GYscan.exe dcom connect --target 192.168.1.100 --username Administrator --password "Password123"
+
+# 使用MMC20.Application方法执行远程命令（默认方法）
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "whoami"
+
+# 使用ShellWindows方法执行远程命令
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "ipconfig" --method shellwindows
+
+# 使用WMI Execute方法执行远程命令
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "hostname" --method wmiexecute
+
+# 执行多条命令
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "whoami & hostname"
+
+# 域环境下的DCOM执行
+./GYscan.exe dcom execute --target 192.168.1.100 --username admin --password "Password123" --domain CORP --command "whoami"
+
+# 带详细输出的DCOM执行
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "systeminfo" --verbose
+
+# 枚举远程主机上的DCOM对象
+./GYscan.exe dcom list --target 192.168.1.100 --username Administrator --password "Password123"
+```
+
+#### DCOM执行方法说明
+
+| 方法 | 说明 | 适用场景 |
+|------|------|----------|
+| mmc20 | 使用MMC20.Application COM对象执行命令 | 通用场景，默认方法 |
+| shellwindows | 使用ShellWindows COM对象执行命令 | MMC20被禁用时备选 |
+| wmiexecute | 使用WMI CIM对象执行命令 | 需要WMI访问权限时 |
+
+#### 端口要求
+
+DCOM远程执行需要目标主机开放135端口（RPC endpoint mapper）：
+
+```bash
+# 验证目标135端口是否开放
+telnet 192.168.1.100 135
+```
+
+如果135端口不可用，将返回连接错误，请检查：
+- Windows防火墙是否允许135端口入站
+- RPC服务（rpcss）是否正在运行
+- 网络防火墙是否允许135端口通信
 
 ### RDP远程桌面
 

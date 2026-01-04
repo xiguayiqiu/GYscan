@@ -84,6 +84,25 @@ func DetectLocalSystem() *SystemInfo {
 }
 
 func getWindowsVersion() string {
+	methods := []struct {
+		name string
+		fn   func() string
+	}{
+		{"wmic", getWindowsVersionWMIC},
+		{"powershell", getWindowsVersionPowerShell},
+		{"registry", getWindowsVersionRegistry},
+	}
+
+	for _, method := range methods {
+		if version := method.fn(); version != "" {
+			return version
+		}
+	}
+
+	return ""
+}
+
+func getWindowsVersionWMIC() string {
 	cmd := exec.Command("wmic", "os", "get", "Version,CSDVersion,ReleaseId", "/value")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -94,6 +113,38 @@ func getWindowsVersion() string {
 	versionMatch := regexp.MustCompile(`Version=(\d+\.\d+\.\d+)`)
 	if match := versionMatch.FindStringSubmatch(outputStr); len(match) > 1 {
 		return match[1]
+	}
+
+	return ""
+}
+
+func getWindowsVersionPowerShell() string {
+	cmd := exec.Command("powershell", "-Command",
+		"Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -ExpandProperty Version")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	version := strings.TrimSpace(string(output))
+	if matched, _ := regexp.MatchString(`^\d+\.\d+\.\d+`, version); matched {
+		return version
+	}
+
+	return ""
+}
+
+func getWindowsVersionRegistry() string {
+	cmd := exec.Command("reg", "query", `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion`, "/v", "CurrentVersion")
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	outputStr := string(output)
+	versionMatch := regexp.MustCompile(`CurrentVersion\s+REG_SZ\s+(\d+\.\d+)`)
+	if match := versionMatch.FindStringSubmatch(outputStr); len(match) > 1 {
+		return match[1] + ".0"
 	}
 
 	return ""

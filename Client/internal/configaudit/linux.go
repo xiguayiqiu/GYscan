@@ -153,7 +153,8 @@ func checkLinuxAccountRights(ctx *AuditContext) *CheckResult {
 	issues := []string{}
 	evidence := []string{}
 
-	sudoers, ok := ctx.Config["sudoers_users"].([]string)
+	sudoersRaw, _ := ctx.GetConfig("sudoers_users")
+	sudoers, ok := sudoersRaw.([]string)
 	if ok && len(sudoers) > 3 {
 		issue := fmt.Sprintf("sudo用户数量过多: %d", len(sudoers))
 		issues = append(issues, issue)
@@ -163,7 +164,8 @@ func checkLinuxAccountRights(ctx *AuditContext) *CheckResult {
 		result.RawValue = fmt.Sprintf("%v", sudoers)
 	}
 
-	rootLogin, ok := ctx.Config["root_ssh_login"].(bool)
+	rootLoginRaw, _ := ctx.GetConfig("root_ssh_login")
+	rootLogin, ok := rootLoginRaw.(bool)
 	if ok && rootLogin {
 		issues = append(issues, "root账户可通过SSH直接登录")
 		if len(evidence) == 0 {
@@ -174,7 +176,8 @@ func checkLinuxAccountRights(ctx *AuditContext) *CheckResult {
 		}
 	}
 
-	passwordAuth, ok := ctx.Config["password_auth"].(bool)
+	passwordAuthRaw, _ := ctx.GetConfig("password_auth")
+	passwordAuth, ok := passwordAuthRaw.(bool)
 	if ok && passwordAuth {
 		issues = append(issues, "允许使用密码进行SSH认证")
 		if len(evidence) == 0 {
@@ -185,7 +188,8 @@ func checkLinuxAccountRights(ctx *AuditContext) *CheckResult {
 		}
 	}
 
-	emptyPasswords, ok := ctx.Config["empty_password_accounts"].([]string)
+	emptyPasswordsRaw, _ := ctx.GetConfig("empty_password_accounts")
+	emptyPasswords, ok := emptyPasswordsRaw.([]string)
 	if ok && len(emptyPasswords) > 0 {
 		issues = append(issues, fmt.Sprintf("发现%d个空密码账户", len(emptyPasswords)))
 		evidence = append(evidence, fmt.Sprintf("配置文件: /etc/shadow\n空密码账户: %v", emptyPasswords))
@@ -220,7 +224,7 @@ func checkLinuxPasswordPolicy(ctx *AuditContext) *CheckResult {
 	minLength := 12
 	minClass := 4
 
-	policy, ok := ctx.Config["password_policy"].(map[string]interface{})
+	policyRaw, ok := ctx.GetConfig("password_policy")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取密码策略信息"
@@ -229,6 +233,18 @@ func checkLinuxPasswordPolicy(ctx *AuditContext) *CheckResult {
 		result.ConfigFile = "/etc/security/pwquality.conf"
 		result.ConfigKey = "策略配置"
 		result.RawValue = "无法读取配置"
+		return result
+	}
+
+	policy, ok := policyRaw.(map[string]interface{})
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "密码策略格式错误"
+		result.RiskLevel = RiskLevelMedium
+		result.Score = 50
+		result.ConfigFile = "/etc/security/pwquality.conf"
+		result.ConfigKey = "策略配置"
+		result.RawValue = "格式错误"
 		return result
 	}
 
@@ -301,7 +317,7 @@ func checkLinuxServices(ctx *AuditContext) *CheckResult {
 		"chargen", "echo", "discard", "daytime", "time",
 	}
 
-	services, ok := ctx.Config["enabled_services"].([]string)
+	servicesRaw, ok := ctx.GetConfig("enabled_services")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取服务列表"
@@ -310,6 +326,18 @@ func checkLinuxServices(ctx *AuditContext) *CheckResult {
 		result.ConfigFile = "/etc/systemd/system"
 		result.ConfigKey = "服务列表"
 		result.RawValue = "无法读取"
+		return result
+	}
+
+	services, ok := servicesRaw.([]string)
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "服务列表格式错误"
+		result.RiskLevel = RiskLevelMedium
+		result.Score = 50
+		result.ConfigFile = "/etc/systemd/system"
+		result.ConfigKey = "服务列表"
+		result.RawValue = "格式错误"
 		return result
 	}
 
@@ -350,7 +378,7 @@ func checkLinuxKernelParameters(ctx *AuditContext) *CheckResult {
 		Score:     0,
 	}
 
-	kernelParams, ok := ctx.Config["kernel_params"].(map[string]interface{})
+	kernelParamsRaw, ok := ctx.GetConfig("kernel_params")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取内核参数"
@@ -359,6 +387,18 @@ func checkLinuxKernelParameters(ctx *AuditContext) *CheckResult {
 		result.ConfigFile = "/proc/sys"
 		result.ConfigKey = "内核参数"
 		result.RawValue = "无法读取"
+		return result
+	}
+
+	kernelParams, ok := kernelParamsRaw.(map[string]interface{})
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "内核参数格式错误"
+		result.RiskLevel = RiskLevelMedium
+		result.Score = 50
+		result.ConfigFile = "/proc/sys"
+		result.ConfigKey = "内核参数"
+		result.RawValue = "格式错误"
 		return result
 	}
 
@@ -418,10 +458,19 @@ func checkLinuxFilePermissions(ctx *AuditContext) *CheckResult {
 		{"/root/.ssh/authorized_keys", "600", "SSH授权密钥"},
 	}
 
-	filePerms, ok := ctx.Config["file_permissions"].(map[string]string)
+	filePermsRaw, ok := ctx.GetConfig("file_permissions")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取文件权限信息"
+		result.RiskLevel = RiskLevelMedium
+		result.Score = 50
+		return result
+	}
+
+	filePerms, ok := filePermsRaw.(map[string]string)
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "文件权限信息格式错误"
 		result.RiskLevel = RiskLevelMedium
 		result.Score = 50
 		return result
@@ -466,7 +515,7 @@ func checkLinuxSSHConfig(ctx *AuditContext) *CheckResult {
 		Score:     0,
 	}
 
-	sshConfig, ok := ctx.Config["ssh_config"].(map[string]interface{})
+	sshConfigRaw, ok := ctx.GetConfig("ssh_config")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取SSH配置"
@@ -475,6 +524,18 @@ func checkLinuxSSHConfig(ctx *AuditContext) *CheckResult {
 		result.ConfigFile = "/etc/ssh/sshd_config"
 		result.ConfigKey = "配置读取"
 		result.RawValue = "无法读取"
+		return result
+	}
+
+	sshConfig, ok := sshConfigRaw.(map[string]interface{})
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "SSH配置格式错误"
+		result.RiskLevel = RiskLevelMedium
+		result.Score = 50
+		result.ConfigFile = "/etc/ssh/sshd_config"
+		result.ConfigKey = "配置读取"
+		result.RawValue = "格式错误"
 		return result
 	}
 
@@ -552,7 +613,8 @@ func checkLinuxAuditConfig(ctx *AuditContext) *CheckResult {
 		Score:     0,
 	}
 
-	auditStatus, ok := ctx.Config["auditd_status"].(string)
+	auditStatusRaw, _ := ctx.GetConfig("auditd_status")
+	auditStatus, ok := auditStatusRaw.(string)
 	if !ok || auditStatus != "running" {
 		result.Status = CheckStatusFail
 		result.RiskLevel = RiskLevelMedium
@@ -565,7 +627,8 @@ func checkLinuxAuditConfig(ctx *AuditContext) *CheckResult {
 		return result
 	}
 
-	auditRules, ok := ctx.Config["audit_rules"].([]string)
+	auditRulesRaw, _ := ctx.GetConfig("audit_rules")
+	auditRules, ok := auditRulesRaw.([]string)
 	if ok {
 		if len(auditRules) < 10 {
 			result.Status = CheckStatusWarning
@@ -594,7 +657,8 @@ func checkLinuxFirewallConfig(ctx *AuditContext) *CheckResult {
 		Score:     0,
 	}
 
-	firewallStatus, ok := ctx.Config["firewall_status"].(string)
+	firewallStatusRaw, _ := ctx.GetConfig("firewall_status")
+	firewallStatus, ok := firewallStatusRaw.(string)
 	if !ok || (firewallStatus != "active" && firewallStatus != "iptables") {
 		result.Status = CheckStatusWarning
 		result.RiskLevel = RiskLevelMedium
@@ -607,7 +671,8 @@ func checkLinuxFirewallConfig(ctx *AuditContext) *CheckResult {
 		return result
 	}
 
-	rulesCount, ok := ctx.Config["firewall_rules_count"].(int)
+	rulesCountRaw, _ := ctx.GetConfig("firewall_rules_count")
+	rulesCount, ok := rulesCountRaw.(int)
 	if !ok || rulesCount < 5 {
 		result.Status = CheckStatusWarning
 		result.RiskLevel = RiskLevelLow
@@ -636,7 +701,7 @@ func checkLinuxLogConfig(ctx *AuditContext) *CheckResult {
 		Score:     0,
 	}
 
-	logConfig, ok := ctx.Config["log_config"].(map[string]interface{})
+	logConfigRaw, ok := ctx.GetConfig("log_config")
 	if !ok {
 		result.Status = CheckStatusWarning
 		result.Details = "无法获取日志配置"
@@ -645,6 +710,18 @@ func checkLinuxLogConfig(ctx *AuditContext) *CheckResult {
 		result.ConfigFile = "/etc/rsyslog.conf"
 		result.ConfigKey = "配置读取"
 		result.RawValue = "无法读取"
+		return result
+	}
+
+	logConfig, ok := logConfigRaw.(map[string]interface{})
+	if !ok {
+		result.Status = CheckStatusWarning
+		result.Details = "日志配置格式错误"
+		result.RiskLevel = RiskLevelLow
+		result.Score = 25
+		result.ConfigFile = "/etc/rsyslog.conf"
+		result.ConfigKey = "配置读取"
+		result.RawValue = "格式错误"
 		return result
 	}
 
@@ -749,20 +826,34 @@ func checkLinuxUpdateStatus(ctx *AuditContext) *CheckResult {
 }
 
 func init() {
-	for _, check := range GetLinuxAuditChecks() {
+	checks := GetLinuxAuditChecks()
+	for _, check := range checks {
+		if check != nil {
+			check.OSType = OSLinux
+		}
 		RegisterLinuxCheck(check)
+		RegisterCheckForReport(check)
 	}
 }
 
 var linuxChecksRegistered bool = false
 
 func RegisterLinuxCheck(check *AuditCheck) {
+	if check != nil {
+		check.OSType = OSLinux
+		if globalCheckStore != nil {
+			globalCheckStore.checks[check.ID] = check
+		}
+	}
 }
 
 func LoadLinuxChecks(engine *AuditEngine) {
 	if !linuxChecksRegistered {
 		checks := GetLinuxAuditChecks()
 		for _, check := range checks {
+			if check != nil {
+				check.OSType = OSLinux
+			}
 			engine.RegisterCheck(check)
 		}
 		linuxChecksRegistered = true

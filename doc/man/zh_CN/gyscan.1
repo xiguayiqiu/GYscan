@@ -1,4 +1,4 @@
-.TH GYSCAN "1" "2026年1月3日" "GYscan v2.7" "用户命令手册"
+.TH GYSCAN "1" "2026年1月4日" "GYscan v2.7" "用户命令手册"
 .SH 名称
 GYscan \- Go语言内网横向边界安全测试工具
 .SH 总览
@@ -9,7 +9,7 @@ GYscan \- Go语言内网横向边界安全测试工具
 \fBabout\fR
 .PP
 .B GYscan
-\fBca\fR \fI子命令\fR [\fI选项\fR]
+\fBca\fR \fI目标\fR [\fI选项\fR]
 .PP
 .B GYscan
 \fBcrunch\fR \fI最小长度\fR \fI最大长度\fR \fI字符集\fR [\fI选项\fR]
@@ -19,6 +19,9 @@ GYscan \- Go语言内网横向边界安全测试工具
 .PP
 .B GYscan
 \fBdirscan\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
+.PP
+.B GYscan
+\fBdcom\fR \fI子命令\fR [\fI选项\fR]
 .PP
 .B GYscan
 \fBftp\fR \fI目标\fR [\fI选项\fR]
@@ -79,7 +82,6 @@ GYscan \- Go语言内网横向边界安全测试工具
 .PP
 .B GYscan
 \fBwwifi\fR [\fI选项\fR]
-.PP
 .SH 描述
 GYscan是一款专注于内网横向移动和边界安全测试的专业工具，基于Go语言开发。该工具集成了丰富的内网渗透测试功能，包括端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破等核心功能，为安全研究人员和渗透测试人员提供高效、可靠的内网安全评估解决方案。
 .PP
@@ -87,7 +89,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 .PP
 \fB资产探测\fR：存活主机识别、端口扫描、服务指纹识别
 .PP
-\fB配置审计\fR：基于CIS基线的系统配置安全检查，支持Windows、Linux、Web、SSH、中间件等五大类审计
+\fB配置审计\fR：基于CIS基线的本地系统配置安全检查，支持Windows、Linux、Web、SSH、中间件五大类审计
 .PP
 \fB凭证处理\fR：本地凭据抓取、批量凭据验证
 .PP
@@ -152,91 +154,50 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 .PP
 \fBGYscan ca\fR \fI目标\fR [\fI选项\fR]
 .PP
-配置审计（Configuration Audit）工具，基于CIS Benchmark安全基线对目标系统进行配置合规性检查。支持本地和远程系统审计，包括Windows、Linux、Web、SSH、中间件五大类检查。
+配置审计（Configuration Audit）工具，基于CIS Benchmark安全基线对目标系统进行配置合规性检查。支持本地系统审计，包括Windows、Linux、Web、SSH、中间件五大类检查。
 .PP
-\fB连接方式\fR：
-.PP
-\fBSSH连接（用于Linux/macOS系统）\fR
-.RS 4
-通过SSH协议连接远程Linux系统进行配置审计
-.RE
-.PP
-\fBWMI连接（用于Windows系统）\fR
-.RS 4
-通过135端口RPC服务连接远程Windows系统进行配置审计
-.RE
+\fB审计方式\fR：
 .PP
 \fB本地审计\fR
 .RS 4
 直接审计本机系统配置（需要相应权限）
 .RE
 .PP
-\fB使用规则\fR：
+\fB使用示例\fR：
 .PP
 .RS 4
-- Linux系统使用SSH参数（\fB--ssh-user\fR, \fB--ssh-password\fR 或 \fB--ssh-key\fR）
+.B GYscan ca localhost
+.RE
+.RS 4
+审计本地系统配置（自动识别本机系统类型）
 .RE
 .PP
 .RS 4
-- Windows系统使用WMI参数（\fB--wmi-user\fR, \fB--wmi-password\fR）
+.B GYscan ca localhost --category all
+.RE
+.RS 4
+全面审计本地系统
 .RE
 .PP
 .RS 4
-- 不能同时指定SSH和WMI连接参数
+.B GYscan ca localhost --category os
+.RE
+.RS 4
+只执行操作系统配置审计
 .RE
 .PP
-\fB远程审计选项\fR：
-.PP
-\fB--ssh-user\fR \fI用户名\fR
 .RS 4
-SSH连接用户名（用于Linux系统远程审计）
+.B GYscan ca localhost --category web --format html -o web_audit.html
 .RE
-.PP
-\fB--ssh-password\fR \fI密码\fR
 .RS 4
-SSH连接密码（用于Linux系统远程审计）
-.RE
-.PP
-\fB--ssh-key\fR \fI文件路径\fR
-.RS 4
-SSH私钥文件路径（用于Linux系统远程审计）
-.RE
-.PP
-\fB--ssh-key-data\fR \fI私钥内容\fR
-.RS 4
-SSH私钥内容（直接提供私钥数据）
-.RE
-.PP
-\fB--ssh-port\fR \fI端口号\fR
-.RS 4
-SSH端口号，默认22
-.RE
-.PP
-\fB--wmi-user\fR \fI用户名\fR
-.RS 4
-WMI连接用户名（用于Windows系统远程审计）
-.RE
-.PP
-\fB--wmi-password\fR \fI密码\fR
-.RS 4
-WMI连接密码（用于Windows系统远程审计）
-.RE
-.PP
-\fB--wmi-domain\fR \fI域名\fR
-.RS 4
-WMI连接域名（用于域环境，可选）
-.RE
-.PP
-\fB--wmi-port\fR \fI端口号\fR
-.RS 4
-WMI/RPC端口，默认135
+执行Web配置审计并输出HTML格式报告
 .RE
 .PP
 \fB审计选项\fR：
 .PP
 \fB--category\fR \fI类别\fR
 .RS 4
-审计类别：windows、linux、web、ssh、middleware（可选，默认全部）
+审计类别：os、web、ssh、middleware（可选，默认全部）
 .RE
 .PP
 \fB--format\fR \fI格式\fR
@@ -269,93 +230,9 @@ WMI/RPC端口，默认135
 跳过权限检查（谨慎使用）
 .RE
 .PP
-\fB使用示例\fR：
-.PP
+\fB--baseline\fR \fI基线名称\fR
 .RS 4
-.B GYscan ca 192.168.1.100 --ssh-user root --ssh-password yourpassword
-.RE
-.RS 4
-使用SSH密码连接审计Linux系统
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.100 --ssh-user root --ssh-key ~/.ssh/id_rsa
-.RE
-.RS 4
-使用SSH私钥连接审计Linux系统
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.100 --ssh-user admin --ssh-password pass --ssh-port 2222
-.RE
-.RS 4
-指定非标准SSH端口进行审计
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.50 --wmi-user administrator --wmi-password yourpassword
-.RE
-.RS 4
-使用WMI连接审计Windows系统
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.50 --wmi-user domain\\admin --wmi-password pass --wmi-domain CORP
-.RE
-.RS 4
-使用域账号审计Windows系统
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.100 --ssh-user root --ssh-password pass --category linux
-.RE
-.RS 4
-仅执行Linux系统配置审计
-.RE
-.PP
-.RS 4
-.B GYscan ca 192.168.1.100 --ssh-user root --ssh-password pass --category web --format html -o web_audit.html
-.RE
-.RS 4
-执行Web配置审计并输出HTML格式报告
-.RE
-.PP
-.RS 4
-.B GYscan ca localhost --category os
-.RE
-.RS 4
-审计本地系统配置（自动识别本机系统类型）
-.RE
-.PP
-.RS 4
-.B GYscan ca localhost --category all
-.RE
-.RS 4
-全面审计本地系统
-.RE
-.PP
-\fBWindows 135端口问题处理\fR：
-.PP
-.RS 4
-.B GYscan ca 192.168.1.50 --wmi-user admin --wmi-password pass
-.RE
-.RS 4
-如果目标Windows系统未开启135端口，会显示详细操作指引，包括：
-.RE
-.RS 4
-- 图形界面开启135端口的步骤（wf.msc）
-.RE
-.RS 4
-- 命令行开启135端口的方法（netsh advfirewall）
-.RE
-.RS 4
-- 防火墙配置说明
-.RE
-.RS 4
-- RPC服务启动与检查方法
-.RE
-.RS 4
-- 操作完成后的验证步骤
+安全基线配置：enterprise（企业级）、high_security（高安全）、pci_dss、hipaa
 .RE
 .PP
 \fB审计类别说明\fR：
@@ -549,6 +426,76 @@ MariaDB数据库
 .RE
 .RS 4
 破解Oracle数据库，指定SID为orcl
+.RE
+.SS dcom（DCOM远程执行模块）
+.PP
+\fBGYscan dcom\fR \fI子命令\fR [\fI选项\fR]
+.PP
+DCOM（Distributed Component Object Model）远程执行模块，支持通过DCOM协议执行远程命令。
+.PP
+\fB子命令\fR：
+.PP
+\fBinfo\fR
+.RS 4
+获取DCOM应用信息
+.RE
+.PP
+\fBexec\fR
+.RS 4
+执行远程命令
+.RE
+.PP
+\fB选项\fR：
+.PP
+\fB--target\fR \fI主机地址\fR
+.RS 4
+目标主机IP或域名（必需参数）
+.RE
+.PP
+\fB--port\fR \fI端口号\fR
+.RS 4
+RPC端口，默认135
+.RE
+.PP
+\fB--user\fR \fI用户名\fR
+.RS 4
+用户名
+.RE
+.PP
+\fB--password\fR \fI密码\fR
+.RS 4
+密码
+.RE
+.PP
+\fB--domain\fR \fI域名\fR
+.RS 4
+域名，用于域环境认证
+.RE
+.PP
+\fB-c\fR, \fB--command\fR \fI命令\fR
+.RS 4
+要执行的命令（exec子命令必需参数）
+.RE
+.PP
+\fB--object\fR \fI对象\fR
+.RS 4
+DCOM对象名称，默认MMC20.Application
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan dcom info --target 192.168.1.100
+.RE
+.RS 4
+获取目标DCOM应用信息
+.RE
+.PP
+.RS 4
+.B GYscan dcom exec --target 192.168.1.100 --user admin --password password --command "whoami"
+.RE
+.RS 4
+执行远程命令
 .RE
 .SS dirscan（网站目录扫描工具）
 .PP
@@ -2305,32 +2252,6 @@ CSRF令牌参数名
 .RS 4
 .B GYscan csrf --target http://example.com/vul/csrf.php -X POST -d "action=delete&id=1"
 .RE
-.SS dcom（DCOM远程执行模块）
-.PP
-\fBGYscan dcom\fR \fI子命令\fR [\fI选项\fR]
-.PP
-DCOM（Distributed Component Object Model）远程执行模块，支持通过DCOM协议执行远程命令。
-.PP
-\fB子命令\fR：
-.PP
-\fBinfo\fR
-.RS 4
-获取DCOM应用信息
-.RE
-.PP
-\fBexec\fR
-.RS 4
-执行远程命令
-.RE
-.PP
-\fB使用示例\fR：
-.PP
-.RS 4
-.B GYscan dcom info --target 192.168.1.100
-.RE
-.RS 4
-获取目标DCOM应用信息
-.RE
 .SS ldap（LDAP枚举模块）
 .PP
 \fBGYscan ldap\fR \fB--server\fR \fI服务器\fR [\fI选项\fR]
@@ -2479,13 +2400,15 @@ GYscan v2.7
 .PP
 \fB主要更新\fR：
 .PP
-新增配置审计（CA）模块，支持Windows、Linux、Web、SSH、中间件五大类配置安全检查
+新增配置审计（CA）模块，支持本地系统Windows、Linux、Web、SSH、中间件五大类配置安全检查
 .PP
 审计检查显示具体配置文件路径、配置项名称、当前值和修复建议
 .PP
 支持JSON、HTML、Text多种输出格式
 .PP
 审计报告包含详细的配置证据和风险评分
+.PP
+新增DCOM远程执行模块
 .SH 作者
 作者：BiliBili-弈秋啊
 .PP

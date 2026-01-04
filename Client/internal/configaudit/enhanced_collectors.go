@@ -81,16 +81,16 @@ func (oc *EnhancedOSCollector) collectWindowsInfo(result *CollectionResult) {
 	result.Data["local_admins"] = []string{"Administrator"}
 
 	result.Data["registry_settings"] = map[string]string{
-		"RestrictAnonymous":           "1",
-		"RestrictAnonymousSam":        "1",
-		"AutoShareServer":             "0",
-		"EnableICMPRedirect":          "0",
+		"RestrictAnonymous":    "1",
+		"RestrictAnonymousSam": "1",
+		"AutoShareServer":      "0",
+		"EnableICMPRedirect":   "0",
 	}
 
 	result.Data["audit_policy"] = map[string]string{
-		"AuditLogonEvents":      "成功,失败",
-		"AuditAccountLogon":     "成功,失败",
-		"AuditPolicyChange":     "成功,失败",
+		"AuditLogonEvents":  "成功,失败",
+		"AuditAccountLogon": "成功,失败",
+		"AuditPolicyChange": "成功,失败",
 	}
 
 	result.Data["firewall_status"] = map[string]interface{}{
@@ -149,10 +149,10 @@ func (oc *EnhancedOSCollector) collectLinuxInfo(result *CollectionResult) {
 	result.Data["root_ssh_login"] = false
 
 	result.Data["kernel_params"] = map[string]string{
-		"net.ipv4.ip_forward":                   readLinuxFile("/proc/sys/net/ipv4/ip_forward", ""),
-		"net.ipv4.icmp_echo_ignore_broadcasts":  readLinuxFile("/proc/sys/net/ipv4/icmp_echo_ignore_broadcasts", ""),
-		"net.ipv4.conf.all.rp_filter":           readLinuxFile("/proc/sys/net/ipv4/conf/all/rp_filter", ""),
-		"net.ipv4.conf.all.send_redirects":      readLinuxFile("/proc/sys/net/ipv4/conf/all/send_redirects", ""),
+		"net.ipv4.ip_forward":                  readLinuxFile("/proc/sys/net/ipv4/ip_forward", ""),
+		"net.ipv4.icmp_echo_ignore_broadcasts": readLinuxFile("/proc/sys/net/ipv4/icmp_echo_ignore_broadcasts", ""),
+		"net.ipv4.conf.all.rp_filter":          readLinuxFile("/proc/sys/net/ipv4/conf/all/rp_filter", ""),
+		"net.ipv4.conf.all.send_redirects":     readLinuxFile("/proc/sys/net/ipv4/conf/all/send_redirects", ""),
 	}
 
 	result.Data["file_permissions"] = map[string]string{
@@ -389,8 +389,8 @@ func (mc *EnhancedMiddlewareCollector) Collect(req *CollectionRequest) (*Collect
 	}
 
 	result.Data["cache_server_config"] = map[string]interface{}{
-		"no_password_required":   false,
-		"bind_all_interfaces":    false,
+		"no_password_required":    false,
+		"bind_all_interfaces":     false,
 		"flush_command_protected": true,
 	}
 
@@ -401,8 +401,8 @@ func (mc *EnhancedMiddlewareCollector) Collect(req *CollectionRequest) (*Collect
 	}
 
 	result.Data["middleware_logging"] = map[string]interface{}{
-		"log_level":        "INFO",
-		"log_rotation":     true,
+		"log_level":         "INFO",
+		"log_rotation":      true,
 		"audit_log_enabled": true,
 	}
 
@@ -415,13 +415,30 @@ func RegisterEnhancedCollectors(engine *AuditEngine) {
 	engine.RegisterCollector(&EnhancedWebCollector{})
 	engine.RegisterCollector(&EnhancedSSHCollector{})
 	engine.RegisterCollector(&EnhancedMiddlewareCollector{})
+	engine.RegisterCollector(&WindowsLocalCollector{})
+}
+
+func RegisterRemoteCollectors(engine *AuditEngine) {
+	engine.RegisterCollector(&EnhancedOSCollector{})
+	engine.RegisterCollector(&EnhancedWebCollector{})
+	engine.RegisterCollector(&EnhancedSSHCollector{})
+	engine.RegisterCollector(&EnhancedMiddlewareCollector{})
+}
+
+func RegisterLocalCollectors(engine *AuditEngine, osType OSType) {
+	engine.RegisterCollector(&EnhancedWebCollector{})
+
+	if osType == OSLinux {
+		engine.RegisterCollector(&LinuxOSCollector{})
+	} else if osType == OSWindows {
+		engine.RegisterCollector(&WindowsLocalCollector{})
+	}
 }
 
 func LoadEnhancedAuditChecks(engine *AuditEngine) {
 	LoadWindowsChecks(engine)
 	LoadLinuxChecks(engine)
 	LoadWebChecks(engine)
-	LoadSSHChecks(engine)
 	LoadMiddlewareChecks(engine)
 }
 
@@ -433,9 +450,6 @@ func init() {
 		RegisterCheck(check)
 	}
 	for _, check := range GetWebAuditChecks() {
-		RegisterCheck(check)
-	}
-	for _, check := range GetSSHAuditChecks() {
 		RegisterCheck(check)
 	}
 	for _, check := range GetMiddlewareAuditChecks() {

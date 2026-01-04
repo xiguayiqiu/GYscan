@@ -166,7 +166,7 @@ func checkWindowsAccountRights(ctx *AuditContext) *CheckResult {
 	} else {
 		for _, admin := range admins {
 			if strings.Contains(strings.ToLower(admin), "guest") ||
-			   strings.Contains(strings.ToLower(admin), "defaultaccount") {
+				strings.Contains(strings.ToLower(admin), "defaultaccount") {
 				issues = append(issues, fmt.Sprintf("发现可疑管理员账户: %s", admin))
 				evidence = append(evidence, fmt.Sprintf("管理员组包含非标准账户: %s", admin))
 			}
@@ -346,10 +346,10 @@ func checkWindowsRegistrySecurity(ctx *AuditContext) *CheckResult {
 	}
 
 	criticalKeys := []struct {
-		Path       string
-		ValueName  string
-		SafeValue  string
-		Setting    string
+		Path      string
+		ValueName string
+		SafeValue string
+		Setting   string
 	}{
 		{`HKLM\SYSTEM\CurrentControlSet\Control\LSA`, "RestrictAnonymous", "1", "限制匿名访问"},
 		{`HKLM\SYSTEM\CurrentControlSet\Control\LSA`, "RestrictAnonymousSam", "1", "限制SAM匿名访问"},
@@ -374,7 +374,7 @@ func checkWindowsRegistrySecurity(ctx *AuditContext) *CheckResult {
 
 	for _, key := range criticalKeys {
 		currentValue := ""
-		if v, exists := registry[key.Path]; exists {
+		if v, exists := registry[key.ValueName]; exists {
 			currentValue = fmt.Sprintf("%v", v)
 		}
 
@@ -497,20 +497,22 @@ func checkWindowsLSASecurity(ctx *AuditContext) *CheckResult {
 	restrictAnonymous := lsaSettings["RestrictAnonymous"]
 	if restrictAnonymous != nil {
 		cv := fmt.Sprintf("%v", restrictAnonymous)
-		if cv == "0" {
+		if cv != "" && cv == "0" {
 			issue := "未限制匿名访问"
 			issues = append(issues, issue)
 			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\RestrictAnonymous\n当前值: %s\n要求值: 1\n修复命令: reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\" /v RestrictAnonymous /t REG_DWORD /d 1 /f", cv))
 			result.ConfigFile = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA"
 			result.ConfigKey = "RestrictAnonymous"
 			result.RawValue = cv
+		} else if cv == "" {
+			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\RestrictAnonymous\n当前值: 未配置\n要求值: 1\n修复命令: reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\" /v RestrictAnonymous /t REG_DWORD /d 1 /f"))
 		}
 	}
 
 	disableDomainCreds := lsaSettings["DisableDomainCreds"]
 	if disableDomainCreds != nil {
 		cv := fmt.Sprintf("%v", disableDomainCreds)
-		if cv == "0" {
+		if cv != "" && cv == "0" {
 			issue := "未禁用域凭据的存储"
 			issues = append(issues, issue)
 			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\DisableDomainCreds\n当前值: %s\n要求值: 1", cv))
@@ -519,16 +521,20 @@ func checkWindowsLSASecurity(ctx *AuditContext) *CheckResult {
 				result.ConfigKey = "DisableDomainCreds"
 				result.RawValue = cv
 			}
+		} else if cv == "" {
+			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\DisableDomainCreds\n当前值: 未配置\n要求值: 1\n修复命令: reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\" /v DisableDomainCreds /t REG_DWORD /d 1 /f"))
 		}
 	}
 
 	restrictRemoteSamAccount := lsaSettings["RestrictRemoteSamAccount"]
 	if restrictRemoteSamAccount != nil {
 		cv := fmt.Sprintf("%v", restrictRemoteSamAccount)
-		if cv == "0" {
+		if cv != "" && cv == "0" {
 			issue := "未限制远程SAM账户访问"
 			issues = append(issues, issue)
 			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\RestrictRemoteSamAccount\n当前值: %s\n要求值: 1", cv))
+		} else if cv == "" {
+			problemLSA = append(problemLSA, fmt.Sprintf("注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\\RestrictRemoteSamAccount\n当前值: 未配置\n要求值: 1\n修复命令: reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA\" /v RestrictRemoteSamAccount /t REG_DWORD /d 1 /f"))
 		}
 	}
 
@@ -681,36 +687,60 @@ func checkWindowsSMBSecurity(ctx *AuditContext) *CheckResult {
 	problemSMB := []string{}
 
 	smbv1Enabled := smbSettings["smbv1_enabled"]
+	smbv1Status := ""
+	if v, ok := smbSettings["smbv1_status"].(string); ok {
+		smbv1Status = v
+	}
+
 	if smbv1Enabled != nil {
-		if smbv1Enabled.(bool) {
+		smbv1Str := fmt.Sprintf("%v", smbv1Enabled)
+		smbv1Bool := false
+		if b, ok := smbv1Enabled.(bool); ok {
+			smbv1Bool = b
+		} else if strings.Contains(strings.ToLower(smbv1Str), "true") || smbv1Str == "1" {
+			smbv1Bool = true
+		}
+
+		if smbv1Bool {
 			issue := "SMBv1协议已启用 (存在严重安全漏洞)"
 			issues = append(issues, issue)
 			problemSMB = append(problemSMB, "问题: SMBv1已启用\n风险: 极易受到WannaCry等勒索软件攻击\n修复方法: \n1. 运行: sc.exe config lanmanworks depend= RxNDRxSMBv2\n2. 或在注册表中设置: HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters -> SMBv1 = 0\n3. 重启系统")
 			result.ConfigFile = "HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters"
 			result.ConfigKey = "SMBv1"
 			result.RawValue = "已启用"
-		}
-	} else {
-		smbv1Str := fmt.Sprintf("%v", smbv1Enabled)
-		if strings.Contains(strings.ToLower(smbv1Str), "true") || smbv1Str == "1" {
-			issue := "SMBv1协议可能已启用"
-			issues = append(issues, issue)
-			problemSMB = append(problemSMB, "SMBv1协议可能已启用，请检查注册表设置")
+		} else if smbv1Status != "" && smbv1Status != "已禁用" {
+			if strings.Contains(smbv1Status, "未安装") || strings.Contains(smbv1Status, "不存在") {
+				problemSMB = append(problemSMB, "SMBv1状态: "+smbv1Status+" (安全)")
+			}
 		}
 	}
 
-	requireSMB2 := smbSettings["require_smb2"]
+	requireSMB2 := smbSettings["require_smb_signing"]
+	smbSigningStatus := ""
+	if v, ok := smbSettings["smb_signing_status"].(string); ok {
+		smbSigningStatus = v
+	}
+
 	if requireSMB2 != nil {
 		requireStr := fmt.Sprintf("%v", requireSMB2)
-		if strings.Contains(strings.ToLower(requireStr), "false") || requireStr == "0" {
-			issue := "未要求SMBv2/3签名"
+		requireBool := false
+		if b, ok := requireSMB2.(bool); ok {
+			requireBool = b
+		} else if requireStr == "1" {
+			requireBool = true
+		}
+
+		if !requireBool {
+			issue := "未要求SMB签名"
 			issues = append(issues, issue)
-			problemSMB = append(problemSMB, "问题: 未要求SMBv2/3签名\n修复方法: 设置注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters -> RequireSecuritySignature = 1")
+			problemSMB = append(problemSMB, "问题: 未要求SMB签名\n风险: 可能受到中间人攻击\n修复方法: 设置注册表项: HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters -> RequireSecuritySignature = 1")
 			if result.ConfigKey == "" {
 				result.ConfigFile = "HKLM\\SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters"
 				result.ConfigKey = "RequireSecuritySignature"
 				result.RawValue = "未设置"
 			}
+		} else {
+			problemSMB = append(problemSMB, "SMB签名状态: "+smbSigningStatus+" (安全)")
 		}
 	}
 
@@ -782,20 +812,34 @@ func checkWindowsAnonymousRestriction(ctx *AuditContext) *CheckResult {
 }
 
 func init() {
-	for _, check := range GetWindowsAuditChecks() {
+	checks := GetWindowsAuditChecks()
+	for _, check := range checks {
+		if check != nil {
+			check.OSType = OSWindows
+		}
 		RegisterCheck(check)
+		RegisterCheckForReport(check)
 	}
 }
 
 var windowsChecksRegistered bool = false
 
 func RegisterCheck(check *AuditCheck) {
+	if check != nil {
+		check.OSType = OSWindows
+		if globalCheckStore != nil {
+			globalCheckStore.checks[check.ID] = check
+		}
+	}
 }
 
 func LoadWindowsChecks(engine *AuditEngine) {
 	if !windowsChecksRegistered {
 		checks := GetWindowsAuditChecks()
 		for _, check := range checks {
+			if check != nil {
+				check.OSType = OSWindows
+			}
 			engine.RegisterCheck(check)
 		}
 		windowsChecksRegistered = true

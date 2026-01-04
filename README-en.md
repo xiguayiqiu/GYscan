@@ -235,31 +235,34 @@ GYscan configuration auditing provides detailed configuration evidence tracking.
 # Execute all categories of local configuration audit
 ./GYscan.exe ca run --target localhost
 
-# Use SSH to connect to remote Linux system for audit (password authentication)
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-password yourpassword
+# Audit local Linux system configuration
+./GYscan.exe ca run --target localhost --os-type linux
 
-# Use SSH to connect to remote Linux system for audit (private key authentication)
-./GYscan.exe ca 192.168.1.100 --os-type linux --connection-mode ssh --ssh-user root --ssh-key ~/.ssh/id_rsa
+# Audit local Windows system configuration
+./GYscan.exe ca run --target localhost --os-type windows
 
-# Specify SSH port for audit
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user admin --ssh-password pass --ssh-port 2222
+# Specify audit category for local audit
+./GYscan.exe ca run --category linux
 
-# Use WMI to connect to remote Windows system for audit
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user administrator --wmi-password yourpassword
+# Audit local Web service configuration
+./GYscan.exe ca run --category web
 
-# Use domain account to connect to Windows system for audit
-./GYscan.exe ca 192.168.1.50 --connection-mode wmi --wmi-user domain\\admin --wmi-password pass --wmi-domain CORP
+# Audit local SSH configuration
+./GYscan.exe ca run --category ssh
 
-# Auto-detect target system type and select connection method
-./GYscan.exe ca 192.168.1.100 --detect-os --connection-mode auto --ssh-user root --ssh-password pass
+# Audit local middleware configuration
+./GYscan.exe ca run --category middleware
 
-# Audit remote Linux system and generate HTML report
-./GYscan.exe ca 192.168.1.100 --os-type linux --ssh-user root --ssh-key ~/.ssh/id_rsa -o audit.html --format html
+# Generate JSON format local audit report
+./GYscan.exe ca run --target localhost -o audit.json --format json
 
-# Audit remote Windows system configuration
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass --category os
+# Generate HTML format local audit report
+./GYscan.exe ca run --target localhost -o audit.html --format html
 
-# List all check items under Linux category
+# List all available check items
+./GYscan.exe ca list
+
+# List check items under specified category
 ./GYscan.exe ca list --category linux
 
 # Generate security baseline report for target system
@@ -269,21 +272,13 @@ GYscan configuration auditing provides detailed configuration evidence tracking.
 ./GYscan.exe ca remediate --target localhost
 ```
 
-#### Windows System Port 135 Issue Handling
+#### Local Audit Description
 
-When the target Windows system has port 135 closed, detailed guidance will be displayed:
+GYscan configuration audit module focuses on local system configuration audit, directly reading target system configuration files and parameters for detection:
 
-```bash
-# Attempt to audit Windows system
-./GYscan.exe ca 192.168.1.50 --os-type windows --wmi-user admin --wmi-password pass
-```
-
-The output will include:
-- **Steps to enable port 135 via GUI** - Windows Firewall configuration wizard
-- **Command line method to enable port 135** - netsh advfirewall firewall commands
-- **Firewall configuration instructions** - Inbound rule settings, port exceptions
-- **RPC service startup and verification methods** - sc start rpcss, sc query rpcss
-- **Verification steps after completion** - telnet test, port scan verification
+- **No Remote Connection Required**: Does not rely on SSH, WMI, or other remote protocols, directly analyzes local file system
+- **Secure and Reliable**: Avoids authentication and permission issues from remote connections
+- **Comprehensive Coverage**: Supports five major categories: Windows, Linux, Web, SSH, Middleware
 
 ### Output Formats
 
@@ -329,6 +324,82 @@ GYscan configuration auditing supports three output formats:
 # Execute remote command
 ./GYscan.exe wmi exec --target 192.168.1.100 --user Administrator --password "Password123" --command "whoami"
 ```
+
+### DCOM Remote Execution
+
+GYscan's DCOM remote execution module executes remote commands on target Windows hosts through the DCOM protocol, supporting multiple execution methods.
+
+#### Command Description
+
+| Subcommand | Description |
+|------------|-------------|
+| execute | Execute remote commands via DCOM |
+| connect | Test DCOM connection reachability |
+| list | Enumerate DCOM objects on remote host |
+
+#### Common Parameters
+
+| Parameter | Short | Description |
+|-----------|-------|-------------|
+| --target | -t | Target host IP address or hostname (required) |
+| --username | -u | Username (required) |
+| --password | -p | Password (required) |
+| --domain | -d | Domain (optional) |
+| --command | -c | Command to execute (required) |
+| --method | -m | DCOM execution method: mmc20, shellwindows, wmiexecute (default: mmc20) |
+| --timeout | -o | Connection timeout in seconds (default: 30) |
+| --verbose | -v | Show verbose output |
+| --ssl | -S | Use SSL encrypted connection |
+
+#### Usage Examples
+
+```bash
+# Test DCOM connection reachability
+./GYscan.exe dcom connect --target 192.168.1.100 --username Administrator --password "Password123"
+
+# Execute remote command using MMC20.Application method (default)
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "whoami"
+
+# Execute remote command using ShellWindows method
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "ipconfig" --method shellwindows
+
+# Execute remote command using WMI Execute method
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "hostname" --method wmiexecute
+
+# Execute multiple commands
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "whoami & hostname"
+
+# DCOM execution in domain environment
+./GYscan.exe dcom execute --target 192.168.1.100 --username admin --password "Password123" --domain CORP --command "whoami"
+
+# DCOM execution with verbose output
+./GYscan.exe dcom execute --target 192.168.1.100 --username Administrator --password "Password123" --command "systeminfo" --verbose
+
+# Enumerate DCOM objects on remote host
+./GYscan.exe dcom list --target 192.168.1.100 --username Administrator --password "Password123"
+```
+
+#### DCOM Execution Method Description
+
+| Method | Description | Use Case |
+|--------|-------------|----------|
+| mmc20 | Execute command using MMC20.Application COM object | General use, default method |
+| shellwindows | Execute command using ShellWindows COM object | Alternative when MMC20 is disabled |
+| wmiexecute | Execute command using WMI CIM object | When WMI access is required |
+
+#### Port Requirements
+
+DCOM remote execution requires target host to have port 135 open (RPC endpoint mapper):
+
+```bash
+# Verify target port 135 is open
+telnet 192.168.1.100 135
+```
+
+If port 135 is not available, a connection error will be returned. Please check:
+- Whether Windows Firewall allows port 135 inbound
+- Whether RPC service (rpcss) is running
+- Whether network firewall allows port 135 communication
 
 ### RDP Remote Desktop
 

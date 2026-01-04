@@ -3,6 +3,7 @@ package configaudit
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type AuditCategory string
@@ -12,15 +13,18 @@ const (
 	CATEGORY_WEB        AuditCategory = "web"
 	CATEGORY_SSH        AuditCategory = "ssh"
 	CATEGORY_MIDDLEWARE AuditCategory = "middleware"
-	CATEGORY_NETWORK   AuditCategory = "network"
+	CATEGORY_NETWORK    AuditCategory = "network"
+	CATEGORY_SECURITY   AuditCategory = "security"
+	CATEGORY_DATABASE   AuditCategory = "database"
+	CATEGORY_ALL        AuditCategory = "all"
 )
 
 type AuditType string
 
 const (
-	AuditTypeCompliance    AuditType = "compliance"
-	AuditTypeSecurity      AuditType = "security"
-	AuditTypeOperational   AuditType = "operational"
+	AuditTypeCompliance  AuditType = "compliance"
+	AuditTypeSecurity    AuditType = "security"
+	AuditTypeOperational AuditType = "operational"
 )
 
 type RiskLevel string
@@ -54,41 +58,57 @@ const (
 )
 
 type AuditCheck struct {
-	ID             string       `json:"id"`
-	Name           string       `json:"name"`
-	Description    string       `json:"description"`
-	Category       AuditCategory `json:"category"`
-	AuditType      AuditType    `json:"audit_type"`
-	Severity       Severity     `json:"severity"`
-	BaselineRef    string       `json:"baseline_ref"`
-	Reference      string       `json:"reference"`
-	Remediation    string       `json:"remediation"`
-	Impact         string       `json:"impact"`
-	Execute        func(*AuditContext) *CheckResult `json:"-"`
+	ID          string                           `json:"id"`
+	Name        string                           `json:"name"`
+	Description string                           `json:"description"`
+	Category    AuditCategory                    `json:"category"`
+	AuditType   AuditType                        `json:"audit_type"`
+	Severity    Severity                         `json:"severity"`
+	BaselineRef string                           `json:"baseline_ref"`
+	Reference   string                           `json:"reference"`
+	Remediation string                           `json:"remediation"`
+	Impact      string                           `json:"impact"`
+	Execute     func(*AuditContext) *CheckResult `json:"-"`
+	OSType      OSType                           `json:"os_type"`
 }
 
 type CheckResult struct {
-	CheckID        string       `json:"check_id"`
-	Status         CheckStatus  `json:"status"`
-	ActualValue    interface{}  `json:"actual_value"`
-	ExpectedValue  interface{}  `json:"expected_value"`
-	Details        string       `json:"details"`
-	Evidence       string       `json:"evidence"`
-	RiskLevel      RiskLevel    `json:"risk_level"`
-	Score          int          `json:"score"`
-	ConfigFile     string       `json:"config_file"`
-	ConfigKey      string       `json:"config_key"`
-	ConfigSection  string       `json:"config_section"`
-	RawValue       string       `json:"raw_value"`
+	CheckID       string      `json:"check_id"`
+	Status        CheckStatus `json:"status"`
+	ActualValue   interface{} `json:"actual_value"`
+	ExpectedValue interface{} `json:"expected_value"`
+	Details       string      `json:"details"`
+	Evidence      string      `json:"evidence"`
+	RiskLevel     RiskLevel   `json:"risk_level"`
+	Score         int         `json:"score"`
+	ConfigFile    string      `json:"config_file"`
+	ConfigKey     string      `json:"config_key"`
+	ConfigSection string      `json:"config_section"`
+	RawValue      string      `json:"raw_value"`
 }
 
 type AuditContext struct {
 	Target      string                 `json:"target"`
 	Category    AuditCategory          `json:"category"`
+	OSType      OSType                 `json:"os_type"`
 	Config      map[string]interface{} `json:"config"`
 	Credentials map[string]string      `json:"credentials"`
 	Results     []*CheckResult         `json:"results"`
 	Errors      []error                `json:"errors"`
+	Mutex       sync.RWMutex           `json:"-"`
+}
+
+func (ctx *AuditContext) GetConfig(key string) (interface{}, bool) {
+	ctx.Mutex.RLock()
+	defer ctx.Mutex.RUnlock()
+	v, ok := ctx.Config[key]
+	return v, ok
+}
+
+func (ctx *AuditContext) SetConfig(key string, value interface{}) {
+	ctx.Mutex.Lock()
+	defer ctx.Mutex.Unlock()
+	ctx.Config[key] = value
 }
 
 func (r *RiskLevel) CalculateScore() int {
@@ -135,38 +155,38 @@ func (c *AuditCheck) Run(ctx *AuditContext) *CheckResult {
 }
 
 type AuditReport struct {
-	Target           string         `json:"target"`
-	Timestamp        string         `json:"timestamp"`
-	Duration         float64        `json:"duration"`
-	Category         AuditCategory  `json:"category"`
-	Summary          ReportSummary  `json:"summary"`
-	Results          []*CheckResult `json:"results"`
-	FailedChecks     []*CheckResult `json:"failed_checks"`
-	PassedChecks     []*CheckResult `json:"passed_checks"`
-	Warnings         []*CheckResult `json:"warnings"`
-	RemediationPlan  []Remediation  `json:"remediation_plan"`
+	Target          string         `json:"target"`
+	Timestamp       string         `json:"timestamp"`
+	Duration        float64        `json:"duration"`
+	Category        AuditCategory  `json:"category"`
+	Summary         ReportSummary  `json:"summary"`
+	Results         []*CheckResult `json:"results"`
+	FailedChecks    []*CheckResult `json:"failed_checks"`
+	PassedChecks    []*CheckResult `json:"passed_checks"`
+	Warnings        []*CheckResult `json:"warnings"`
+	RemediationPlan []Remediation  `json:"remediation_plan"`
 }
 
 type ReportSummary struct {
-	TotalChecks     int            `json:"total_checks"`
-	PassedChecks    int            `json:"passed_checks"`
-	FailedChecks    int            `json:"failed_checks"`
-	WarningChecks   int            `json:"warning_checks"`
-	ErrorChecks     int            `json:"error_checks"`
-	OverallScore    float64        `json:"overall_score"`
-	RiskLevel       RiskLevel      `json:"risk_level"`
-	ComplianceRate  float64        `json:"compliance_rate"`
+	TotalChecks    int       `json:"total_checks"`
+	PassedChecks   int       `json:"passed_checks"`
+	FailedChecks   int       `json:"failed_checks"`
+	WarningChecks  int       `json:"warning_checks"`
+	ErrorChecks    int       `json:"error_checks"`
+	OverallScore   float64   `json:"overall_score"`
+	RiskLevel      RiskLevel `json:"risk_level"`
+	ComplianceRate float64   `json:"compliance_rate"`
 }
 
 type Remediation struct {
-	CheckID      string   `json:"check_id"`
-	Priority     int      `json:"priority"`
-	Title        string   `json:"title"`
-	Description  string   `json:"description"`
-	Steps        []string `json:"steps"`
-	Commands     []string `json:"commands"`
-	EstimatedTime string  `json:"estimated_time"`
-	Risk         string   `json:"risk"`
+	CheckID       string   `json:"check_id"`
+	Priority      int      `json:"priority"`
+	Title         string   `json:"title"`
+	Description   string   `json:"description"`
+	Steps         []string `json:"steps"`
+	Commands      []string `json:"commands"`
+	EstimatedTime string   `json:"estimated_time"`
+	Risk          string   `json:"risk"`
 }
 
 func GenerateRemediation(result *CheckResult, check *AuditCheck) *Remediation {
@@ -180,13 +200,13 @@ func GenerateRemediation(result *CheckResult, check *AuditCheck) *Remediation {
 	}
 
 	return &Remediation{
-		CheckID:      result.CheckID,
-		Priority:     check.Severity.ToPriority(),
-		Title:        fmt.Sprintf("修复: %s", check.Name),
-		Description:  check.Description,
-		Steps:        steps,
+		CheckID:       result.CheckID,
+		Priority:      check.Severity.ToPriority(),
+		Title:         fmt.Sprintf("修复: %s", check.Name),
+		Description:   check.Description,
+		Steps:         steps,
 		EstimatedTime: "15-30分钟",
-		Risk:         check.Impact,
+		Risk:          check.Impact,
 	}
 }
 

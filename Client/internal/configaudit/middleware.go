@@ -151,14 +151,14 @@ func checkDatabaseAccountRights(ctx *AuditContext) *CheckResult {
 
 	dbConfig, ok := ctx.Config["database_config"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取数据库配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到数据库服务，跳过数据库账户权限检查"
 		result.ConfigFile = "database_config"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: database_config\n\n无法获取数据库配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装数据库"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装数据库服务或未检测到数据库配置，此检查不适用。"
 		return result
 	}
 
@@ -226,14 +226,14 @@ func checkDatabaseNetworkAccess(ctx *AuditContext) *CheckResult {
 
 	netConfig, ok := ctx.Config["database_network"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取数据库网络配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到数据库服务，跳过数据库网络访问控制检查"
 		result.ConfigFile = "database_network"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: database_network\n\n无法获取数据库网络配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装数据库"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装数据库服务或未检测到数据库配置，此检查不适用。"
 		return result
 	}
 
@@ -291,14 +291,14 @@ func checkDatabaseEncryption(ctx *AuditContext) *CheckResult {
 
 	encConfig, ok := ctx.Config["database_encryption"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取数据库加密配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到数据库服务，跳过数据库加密配置检查"
 		result.ConfigFile = "database_encryption"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: database_encryption\n\n无法获取数据库加密配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装数据库"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装数据库服务或未检测到数据库配置，此检查不适用。"
 		return result
 	}
 
@@ -356,14 +356,14 @@ func checkDatabaseAuditLogging(ctx *AuditContext) *CheckResult {
 
 	auditConfig, ok := ctx.Config["database_audit"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取数据库审计配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到数据库服务，跳过数据库审计日志检查"
 		result.ConfigFile = "database_audit"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: database_audit\n\n无法获取数据库审计配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装数据库"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装数据库服务或未检测到数据库配置，此检查不适用。"
 		return result
 	}
 
@@ -418,14 +418,14 @@ func checkDatabasePasswordPolicy(ctx *AuditContext) *CheckResult {
 
 	policyConfig, ok := ctx.Config["database_password_policy"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取密码策略配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到数据库服务，跳过数据库密码策略检查"
 		result.ConfigFile = "database_password_policy"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: database_password_policy\n\n无法获取数据库密码策略配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装数据库"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装数据库服务或未检测到数据库配置，此检查不适用。"
 		return result
 	}
 
@@ -489,14 +489,14 @@ func checkAppServerManagement(ctx *AuditContext) *CheckResult {
 
 	appConfig, ok := ctx.Config["app_server_config"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取应用服务器配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到应用服务器，跳过应用服务器管理接口检查"
 		result.ConfigFile = "app_server_config"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: app_server_config\n\n无法获取应用服务器配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装应用服务器"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装应用服务器或未检测到应用服务器配置，此检查不适用。"
 		return result
 	}
 
@@ -564,14 +564,14 @@ func checkAppServerSecurity(ctx *AuditContext) *CheckResult {
 
 	secConfig, ok := ctx.Config["app_server_security"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取应用服务器安全配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到应用服务器，跳过应用服务器安全配置检查"
 		result.ConfigFile = "app_server_security"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: app_server_security\n\n无法获取应用服务器安全配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装应用服务器"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装应用服务器或未检测到应用服务器配置，此检查不适用。"
 		return result
 	}
 
@@ -638,14 +638,14 @@ func checkCacheServerSecurity(ctx *AuditContext) *CheckResult {
 
 	cacheConfig, ok := ctx.Config["cache_server_config"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取缓存服务器配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到缓存服务器，跳过缓存服务器安全检查"
 		result.ConfigFile = "cache_server_config"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: cache_server_config\n\n无法获取缓存服务器配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装缓存服务器"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装缓存服务器或未检测到缓存服务器配置，此检查不适用。"
 		return result
 	}
 
@@ -707,14 +707,14 @@ func checkMessageQueueSecurity(ctx *AuditContext) *CheckResult {
 
 	mqConfig, ok := ctx.Config["message_queue_config"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取消息队列配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到消息队列服务，跳过消息队列安全检查"
 		result.ConfigFile = "message_queue_config"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelMedium
-		result.Score = 50
-		result.Evidence = "配置数据源: message_queue_config\n\n无法获取消息队列配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装消息队列"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装消息队列服务或未检测到消息队列配置，此检查不适用。"
 		return result
 	}
 
@@ -776,14 +776,14 @@ func checkMiddlewareLogging(ctx *AuditContext) *CheckResult {
 
 	logConfig, ok := ctx.Config["middleware_logging"].(map[string]interface{})
 	if !ok {
-		result.Status = CheckStatusWarning
-		result.Details = "无法获取日志配置"
+		result.Status = CheckStatusPass
+		result.Details = "未检测到中间件服务，跳过中间件日志配置检查"
 		result.ConfigFile = "middleware_logging"
-		result.ConfigKey = "无法获取"
-		result.RawValue = "配置不存在"
-		result.RiskLevel = RiskLevelLow
-		result.Score = 25
-		result.Evidence = "配置数据源: middleware_logging\n\n无法获取中间件日志配置信息，请检查配置文件是否正确加载。"
+		result.ConfigKey = "状态"
+		result.RawValue = "未安装中间件"
+		result.RiskLevel = RiskLevelInfo
+		result.Score = 100
+		result.Evidence = "当前系统未安装中间件服务或未检测到中间件日志配置，此检查不适用。"
 		return result
 	}
 
@@ -840,20 +840,34 @@ func checkMiddlewareLogging(ctx *AuditContext) *CheckResult {
 }
 
 func init() {
-	for _, check := range GetMiddlewareAuditChecks() {
+	checks := GetMiddlewareAuditChecks()
+	for _, check := range checks {
+		if check != nil {
+			check.OSType = OSUnknown
+		}
 		RegisterMiddlewareCheck(check)
+		RegisterCheckForReport(check)
 	}
 }
 
 var middlewareChecksRegistered bool = false
 
 func RegisterMiddlewareCheck(check *AuditCheck) {
+	if check != nil {
+		check.OSType = OSUnknown
+		if globalCheckStore != nil {
+			globalCheckStore.checks[check.ID] = check
+		}
+	}
 }
 
 func LoadMiddlewareChecks(engine *AuditEngine) {
 	if !middlewareChecksRegistered {
 		checks := GetMiddlewareAuditChecks()
 		for _, check := range checks {
+			if check != nil {
+				check.OSType = OSUnknown
+			}
 			engine.RegisterCheck(check)
 		}
 		middlewareChecksRegistered = true

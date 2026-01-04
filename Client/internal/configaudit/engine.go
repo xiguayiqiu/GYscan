@@ -8,25 +8,27 @@ import (
 )
 
 type AuditEngine struct {
-	checks       map[AuditCategory][]*AuditCheck
-	collectors   map[AuditCategory]DataCollector
-	baselines    map[string]*SecurityBaseline
-	config       *EngineConfig
-	resultChan   chan *CheckResult
-	wg           sync.WaitGroup
-	sshConfig    map[string]interface{}
-	remoteConfig map[string]interface{}
+	checks     map[AuditCategory][]*AuditCheck
+	collectors map[AuditCategory]DataCollector
+	baselines  map[string]*SecurityBaseline
+	config     *EngineConfig
+	resultChan chan *CheckResult
+	wg         sync.WaitGroup
+	localMode  bool
 }
 
 type EngineConfig struct {
-	Parallelism     int            `json:"parallelism"`
-	Timeout         time.Duration  `json:"timeout"`
-	RetryCount      int            `json:"retry_count"`
-	OutputFormat    string         `json:"output_format"`
-	IncludeDetails  bool           `json:"include_details"`
-	SkipPassed      bool           `json:"skip_passed"`
-	BaselineProfile string         `json:"baseline_profile"`
-	CustomRules     []CustomRule   `json:"custom_rules"`
+	Parallelism     int           `json:"parallelism"`
+	Timeout         time.Duration `json:"timeout"`
+	RetryCount      int           `json:"retry_count"`
+	OutputFormat    string        `json:"output_format"`
+	IncludeDetails  bool          `json:"include_details"`
+	SkipPassed      bool          `json:"skip_passed"`
+	BaselineProfile string        `json:"baseline_profile"`
+	CustomRules     []CustomRule  `json:"custom_rules"`
+	Baseline        string        `json:"baseline"`
+	SkipPrivCheck   bool          `json:"skip_priv_check"`
+	PrivMode        string        `json:"priv_mode"`
 }
 
 type CustomRule struct {
@@ -54,19 +56,11 @@ type CollectionRequest struct {
 }
 
 type CollectionResult struct {
-	Success    bool
-	Data       map[string]interface{}
-	Errors     []error
-	Duration   time.Duration
-	Evidence   []string
-}
-
-func (e *AuditEngine) SetSSHConfig(config map[string]interface{}) {
-	e.sshConfig = config
-}
-
-func (e *AuditEngine) SetRemoteConfig(config map[string]interface{}) {
-	e.remoteConfig = config
+	Success  bool
+	Data     map[string]interface{}
+	Errors   []error
+	Duration time.Duration
+	Evidence []string
 }
 
 func NewAuditEngine(config *EngineConfig) *AuditEngine {
@@ -91,7 +85,6 @@ func NewAuditEngine(config *EngineConfig) *AuditEngine {
 		baselines:  make(map[string]*SecurityBaseline),
 		config:     config,
 		resultChan: make(chan *CheckResult, 1000),
-		sshConfig:  nil,
 	}
 }
 
@@ -109,21 +102,20 @@ func (e *AuditEngine) RegisterBaseline(baseline *SecurityBaseline) {
 	e.baselines[baseline.Name] = baseline
 }
 
-func (e *AuditEngine) RunAudit(target string, categories []AuditCategory) (*AuditReport, error) {
+func (e *AuditEngine) SetLocalMode() {
+	e.localMode = true
+}
+
+func (e *AuditEngine) RunAudit(target string, categories []AuditCategory, osType OSType) (*AuditReport, error) {
 	startTime := time.Now()
 
 	ctx := &AuditContext{
 		Target:      target,
+		OSType:      osType,
 		Config:      make(map[string]interface{}),
 		Credentials: make(map[string]string),
 		Results:     []*CheckResult{},
 		Errors:      []error{},
-	}
-
-	if e.sshConfig != nil {
-		for k, v := range e.sshConfig {
-			ctx.Config[k] = v
-		}
 	}
 
 	var results []*CheckResult
@@ -191,13 +183,19 @@ func (e *AuditEngine) runCategoryAudit(ctx *AuditContext, category AuditCategory
 		if err != nil {
 			log.Printf("数据采集失败 (%s): %v", category, err)
 		} else if result.Success {
+			ctx.Mutex.Lock()
 			for k, v := range result.Data {
 				ctx.Config[k] = v
 			}
+			ctx.Mutex.Unlock()
 		}
 	}
 
 	for _, check := range checks {
+		if ctx.OSType != OSUnknown && check.OSType != OSUnknown && check.OSType != ctx.OSType {
+			continue
+		}
+
 		select {
 		case <-time.After(e.config.Timeout):
 			e.resultChan <- &CheckResult{

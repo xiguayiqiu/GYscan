@@ -370,7 +370,31 @@ func (rg *ReportGenerator) printColoredResults(output *strings.Builder, report *
 		return
 	}
 
+	securityFormatter := NewSecurityCheckFormatter()
+
 	for _, result := range allResults {
+		if result.Status == CheckStatusPass {
+			continue
+		}
+
+		check := rg.findCheckByID(report, result.CheckID)
+		formattedIssue := FormatCheckResultAsSecurityIssue(result, check)
+
+		if formattedIssue != "" {
+			if result.Status == CheckStatusFail {
+				securityFormatter.AddIssue(SecurityIssueDisplay{
+					Category:    string(check.Category),
+					CheckType:   "安全配置",
+					ConfigKey:   result.ConfigKey,
+					ConfigValue: result.RawValue,
+					Description: result.Details,
+					RiskLevel:   result.RiskLevel,
+					Advice:      check.Remediation,
+					Evidence:    result.Evidence,
+				})
+			}
+		}
+
 		statusIcon := "✓"
 		if result.Status == CheckStatusFail {
 			statusIcon = "✗"
@@ -433,6 +457,14 @@ func (rg *ReportGenerator) printColoredResults(output *strings.Builder, report *
 		output.WriteString("\n")
 	}
 
+	if securityFormatter.GetIssueCount() > 0 {
+		output.WriteString("\n")
+		output.WriteString(strings.Repeat("=", 70) + "\n")
+		output.WriteString("                    安全问题汇总\n")
+		output.WriteString(strings.Repeat("=", 70) + "\n\n")
+		output.WriteString(securityFormatter.FormatAll())
+	}
+
 	output.WriteString("\n")
 }
 
@@ -448,7 +480,29 @@ func (rg *ReportGenerator) printResults(output *strings.Builder, report *AuditRe
 		return
 	}
 
+	securityFormatter := NewSecurityCheckFormatter()
+
 	for _, result := range allResults {
+		if result.Status == CheckStatusPass {
+			continue
+		}
+
+		check := rg.findCheckByID(report, result.CheckID)
+		formattedIssue := FormatCheckResultAsSecurityIssue(result, check)
+
+		if formattedIssue != "" && result.Status == CheckStatusFail {
+			securityFormatter.AddIssue(SecurityIssueDisplay{
+				Category:    string(check.Category),
+				CheckType:   "安全配置",
+				ConfigKey:   result.ConfigKey,
+				ConfigValue: result.RawValue,
+				Description: result.Details,
+				RiskLevel:   result.RiskLevel,
+				Advice:      check.Remediation,
+				Evidence:    result.Evidence,
+			})
+		}
+
 		statusIcon := "[PASS]"
 		if result.Status == CheckStatusFail {
 			statusIcon = "[FAIL]"
@@ -498,6 +552,14 @@ func (rg *ReportGenerator) printResults(output *strings.Builder, report *AuditRe
 		}
 
 		output.WriteString("\n")
+	}
+
+	if securityFormatter.GetIssueCount() > 0 {
+		output.WriteString("\n")
+		output.WriteString(strings.Repeat("=", 70) + "\n")
+		output.WriteString("                    安全问题汇总\n")
+		output.WriteString(strings.Repeat("=", 70) + "\n\n")
+		output.WriteString(securityFormatter.FormatAll())
 	}
 
 	output.WriteString("\n")
@@ -564,6 +626,38 @@ func (rg *ReportGenerator) PrintSummary(report *AuditReport) {
 	fmt.Printf("    风险:    %s\n", report.Summary.RiskLevel)
 	fmt.Printf("    合规率:  %.1f%%\n", report.Summary.ComplianceRate)
 	fmt.Println(border)
+}
+
+type checkStore struct {
+	checks map[string]*AuditCheck
+}
+
+var globalCheckStore *checkStore
+
+func init() {
+	globalCheckStore = &checkStore{
+		checks: make(map[string]*AuditCheck),
+	}
+}
+
+func RegisterCheckForReport(check *AuditCheck) {
+	if globalCheckStore != nil && check != nil {
+		globalCheckStore.checks[check.ID] = check
+	}
+}
+
+func (rg *ReportGenerator) findCheckByID(report *AuditReport, checkID string) *AuditCheck {
+	if globalCheckStore != nil {
+		if check, exists := globalCheckStore.checks[checkID]; exists {
+			return check
+		}
+	}
+	return &AuditCheck{
+		ID:          checkID,
+		Name:        checkID,
+		Category:    CATEGORY_OS,
+		Remediation: "请参考相关安全基线文档进行修复",
+	}
 }
 
 func ExtractCheckID(checkID string) (category string, number string) {
