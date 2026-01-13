@@ -197,6 +197,7 @@ sudo zypper install -y \
 
 | 命令 | 功能描述 | 状态 |
 |------|----------|------|
+| adcs | AD CS 漏洞检测工具，检测 ESC1-ESC8 漏洞 [测试阶段] | ⚠️ 测试阶段 |
 | csrf | CSRF漏洞检测 [测试阶段] | ⚠️ 测试阶段 |
 | dcom | DCOM远程执行模块 [测试阶段] | ⚠️ 测试阶段 |
 | ldap | LDAP枚举模块 [测试阶段] | ⚠️ 测试阶段 |
@@ -444,6 +445,62 @@ telnet 192.168.1.100 135
 ./GYscan.exe waf -u "https://www.example.com/"
 ```
 
+### AD CS 漏洞检测
+
+GYscan 的 AD CS 漏洞检测模块可检测 Active Directory Certificate Services 中的多种安全漏洞，包括 ESC1-ESC8 等常见配置问题。
+
+#### 支持检测的漏洞
+
+| 漏洞类型 | 描述 | 严重程度 |
+|----------|------|----------|
+| ESC1 | 证书模板允许请求者提供 SAN + 客户端身份验证 | 🔴 高危 |
+| ESC2 | Any Purpose EKU 或未定义 EKU | 🔴 高危 |
+| ESC3-1 | Certificate Request Agent + 无签名 | 🔴 高危 |
+| ESC3-2 | Certificate Request Agent + 1签名 | 🟠 中危 |
+| ESC4 | 模板 ACL 过于宽松 | 🔴 高危 |
+| ESC6 | EDITF_ATTRIBUTESUBJECTALTNAME2 标志 | 🔴 高危 |
+| ESC7 | CA 权限配置问题 | 🟠 中危 |
+| ESC8 | NTLM 中继风险 | 🟠 中危 |
+
+#### 使用示例
+
+```bash
+# 基本扫描
+./GYscan.exe adcs --target dc.domain.local --user domain\\admin --password Pass123
+
+# 指定域和输出文件
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -d domain.local -o results.json
+
+# 仅检测特定漏洞
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 --filters esc1,esc2
+
+# JSON 格式输出
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -f json
+
+# 详细输出模式
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -v
+```
+
+#### 参数说明
+
+| 参数 | 简写 | 说明 |
+|------|------|------|
+| --target | -t | 目标域控制器地址（必填） |
+| --port | -p | LDAP 端口（默认：389，LDAPS：636） |
+| --user | -u | 用户名（必填，格式：DOMAIN\\user 或 user@domain.com） |
+| --password | -w | 密码（必填） |
+| --domain | -d | 域名称（可选） |
+| --output | -o | 输出文件路径（可选） |
+| --format | -f | 输出格式：text/json（默认：text） |
+| --filters | -x | 漏洞过滤器，用逗号分隔（如：esc1,esc2,esc6） |
+| --verbose | -v | 详细输出模式 |
+
+#### 认证格式
+
+支持两种认证格式：
+- `DOMAIN\\username` (Windows 风格)
+- `username@domain.com` (UPN 风格)
+
 ## 技术架构
 
 ### 项目结构
@@ -452,6 +509,7 @@ telnet 192.168.1.100 135
 GYscan/
 ├── Client/                # 客户端主程序（渗透测试工具）
 │   ├── internal/          # 内部功能模块
+│   │   ├── adcs/          # AD CS 漏洞检测模块 (v2.7 新增)
 │   │   ├── cli/           # 命令行界面和命令注册
 │   │   ├── config/        # 配置管理模块
 │   │   ├── configaudit/   # 配置审计模块（v2.7新增）
@@ -493,8 +551,61 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 | **数据库驱动** | lib/pq | PostgreSQL数据库支持 |
 | **数据库驱动** | go-ora | Oracle数据库支持 |
 | **SMB协议** | go-smb2 | SMB协议支持 |
+| **LDAP客户端** | go-ldap/ldap | LDAP协议支持 |
 | **YAML解析** | yaml.v3 | YAML配置文件解析 |
+### 最近修改
 
+1. 清理废弃代码和重复注册逻辑 ✅
+- 移除了废弃的 portScan 函数
+- 实现了 isSameSubnet 函数（之前只有 TODO）
+- 改进了 arpDiscovery 函数说明
+- 清理了 registry.go 中的重复命令注册
+
+2. 配置验证和安全权限改进 ✅
+- 添加了 Config.Validate() 函数验证配置有效性
+- 改进了 SaveConfig() 函数，配置文件权限从 0644 改为 0600
+- 添加了详细的配置验证逻辑（超时、线程数、端口范围等）
+
+3. 正则表达式编译优化 ✅
+- 将 MySQL 版本正则表达式和 MAC 地址正则表达式移到包级别预编译
+- 避免了每次调用函数时重新编译正则表达式的性能开销
+
+4. 统一帮助信息展示逻辑 ✅
+- 重构了 printCustomHelp() 函数，使用 CommandRegistry 的分组逻辑
+- 移除了硬编码的命令分类逻辑
+- 简化了代码结构，减少了重复代码
+
+5. 定义常量替代魔法数字 ✅
+- 在 nmap/scan.go 中添加了大量常量定义：
+  - 端口范围常量：MinPort, MaxPort, DefaultScanPortRange
+  - 超时常量：DefaultTimeout, LongTimeout, FastTimeout 等
+  - 线程常量：ParanoidThreads, DefaultThreads, InsaneThreads 等
+  - 定时模板常量：TimingParanoid, TimingNormal, TimingInsane 等
+  - TTL 常量：WindowsDefaultTTL, LinuxDefaultTTL
+  - 网络距离常量：LocalNetworkDistance, PrivateNetworkDistance
+- 添加了常用端口映射表和 MAC 地址厂商前缀映射
+- 更新了 applyTimingTemplate 和 parsePorts 函数使用常量
+
+6. AD CS 漏洞检测功能（测试阶段）✅
+- 新增 `adcs` 命令，位于测试阶段命令分类
+- 支持检测 ESC1-ESC8 共 8 种 AD CS 漏洞：
+  - ESC1: 错误配置的证书模板 (SubjectAltName 欺骗) - 高危
+  - ESC2: Any Purpose EKU 证书模板 - 高危
+  - ESC3: 注册代理模板错误配置 - 高危/中危
+  - ESC4: 证书模板访问控制漏洞 - 高危
+  - ESC6: EDITF_ATTRIBUTESUBJECTALTNAME2 标志 - 高危
+  - ESC7: CA 权限配置问题 - 中危
+  - ESC8: NTLM 中继到 HTTP 端点 - 中危
+- 支持漏洞过滤器，可选择检测特定漏洞
+- 支持 Text 和 JSON 两种输出格式
+- 支持结果导出到文件
+- 基于 LDAP 协议查询 AD CS 配置
+
+7. 代码质量和稳定性改进 ✅
+- 修复了配置文件路径权限问题（从 /etc/GYscan 改为 ~/.GYscan）
+- 清理了未使用的 AI 配置文件（ai_config.yml, logging.json）
+- 改进了 LDAP 连接的错误处理和超时设置
+- 完善了文件输出功能
 ## 更新日志
 
 ### v2.7

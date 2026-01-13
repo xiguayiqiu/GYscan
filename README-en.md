@@ -197,6 +197,7 @@ sudo zypper install -y \
 
 | Command | Description | Status |
 |---------|-------------|--------|
+| adcs | AD CS vulnerability detection tool, detects ESC1-ESC8 vulnerabilities [Beta] | ⚠️ Beta |
 | csrf | CSRF vulnerability detection [Beta] | ⚠️ Beta |
 | dcom | DCOM remote execution module [Beta] | ⚠️ Beta |
 | ldap | LDAP enumeration module [Beta] | ⚠️ Beta |
@@ -444,6 +445,62 @@ If port 135 is not available, a connection error will be returned. Please check:
 ./GYscan.exe waf -u "https://www.example.com/"
 ```
 
+### AD CS Vulnerability Detection
+
+GYscan's AD CS vulnerability detection module can detect various security vulnerabilities in Active Directory Certificate Services, including ESC1-ESC8 and other common configuration issues.
+
+#### Supported Vulnerabilities
+
+| Vulnerability | Description | Severity |
+|---------------|-------------|----------|
+| ESC1 | Certificate template allows enrollee to supply SAN + client authentication | 🔴 High |
+| ESC2 | Any Purpose EKU or undefined EKU | 🔴 High |
+| ESC3-1 | Certificate Request Agent + no signature | 🔴 High |
+| ESC3-2 | Certificate Request Agent + 1 signature | 🟠 Medium |
+| ESC4 | Template ACL too permissive | 🔴 High |
+| ESC6 | EDITF_ATTRIBUTESUBJECTALTNAME2 flag | 🔴 High |
+| ESC7 | CA permission configuration issues | 🟠 Medium |
+| ESC8 | NTLM relay risk | 🟠 Medium |
+
+#### Usage Examples
+
+```bash
+# Basic scan
+./GYscan.exe adcs --target dc.domain.local --user domain\\admin --password Pass123
+
+# Specify domain and output file
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -d domain.local -o results.json
+
+# Detect specific vulnerabilities only
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 --filters esc1,esc2
+
+# JSON format output
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -f json
+
+# Verbose output mode
+./GYscan.exe adcs --target dc.domain.local --user admin --password Pass123 -v
+```
+
+#### Parameter Description
+
+| Parameter | Short | Description |
+|-----------|-------|-------------|
+| --target | -t | Target domain controller address (required) |
+| --port | -p | LDAP port (default: 389, LDAPS: 636) |
+| --user | -u | Username (required, format: DOMAIN\\user or user@domain.com) |
+| --password | -w | Password (required) |
+| --domain | -d | Domain name (optional) |
+| --output | -o | Output file path (optional) |
+| --format | -f | Output format: text/json (default: text) |
+| --filters | -x | Vulnerability filter, comma-separated (e.g., esc1,esc2,esc6) |
+| --verbose | -v | Verbose output mode |
+
+#### Authentication Format
+
+Supports two authentication formats:
+- `DOMAIN\\username` (Windows style)
+- `username@domain.com` (UPN style)
+
 ## Technical Architecture
 
 ### Project Structure
@@ -452,6 +509,7 @@ If port 135 is not available, a connection error will be returned. Please check:
 GYscan/
 ├── Client/                # Client main program (penetration testing tool)
 │   ├── internal/          # Internal function modules
+│   │   ├── adcs/          # AD CS vulnerability detection module (v2.7 new)
 │   │   ├── cli/           # Command-line interface and command registration
 │   │   ├── config/        # Configuration management module
 │   │   ├── configaudit/   # Configuration audit module (v2.7 new)
@@ -493,7 +551,62 @@ GYscan is built using a modern technology stack to ensure high performance, scal
 | **Database Driver** | lib/pq | PostgreSQL database support |
 | **Database Driver** | go-ora | Oracle database support |
 | **SMB Protocol** | go-smb2 | SMB protocol support |
+| **LDAP Client** | go-ldap/ldap | LDAP protocol support |
 | **YAML Parsing** | yaml.v3 | YAML configuration file parsing |
+
+### Recent modifications:
+
+1. Cleaned up obsolete code and duplicated registration logic ✅
+- Removed the obsolete portScan function
+- Implemented the isSameSubnet function (previously only a TODO)
+- Improved the description of the arpDiscovery function
+- Cleaned up the duplicate command registration in registry.go
+
+2. Configuration validation and security permissions improvement ✅
+- Added the Config.Validate() function to validate configuration validity
+- Improved the SaveConfig() function, changing the configuration file permission from 0644 to 0600
+- Added detailed configuration validation logic (timeout, thread count, port range, etc.)
+
+3. Regular expression compilation optimization ✅
+- Moved the MySQL version regular expression and MAC address regular expression to package-level pre-compilation
+- Avoided the performance overhead of re-compiling regular expressions each time the function is called
+
+4. Unified help information display logic ✅
+- Reconstructed the printCustomHelp() function, using the grouping logic of CommandRegistry
+- Removed hardcoded command classification logic
+- Simplified the code structure and reduced duplicate code
+
+5. Defined constants to replace magic numbers ✅
+- Added a large number of constant definitions in nmap/scan.go:
+  - Port range constants: MinPort, MaxPort, DefaultScanPortRange
+  - Timeout constants: DefaultTimeout, LongTimeout, FastTimeout, etc.
+  - Thread constants: ParanoidThreads, DefaultThreads, InsaneThreads, etc.
+  - Timing template constants: TimingParanoid, TimingNormal, TimingInsane, etc.
+  - TTL constants: WindowsDefaultTTL, LinuxDefaultTTL
+  - Network distance constants: LocalNetworkDistance, PrivateNetworkDistance
+- Added common port mapping table and MAC address manufacturer prefix mapping
+- Updated the applyTimingTemplate and parsePorts functions to use constants
+
+6. AD CS Vulnerability Detection Feature (Beta) ✅
+- Added `adcs` command, located in beta commands category
+- Supports detection of 8 AD CS vulnerabilities (ESC1-ESC8):
+  - ESC1: Misconfigured certificate template (SubjectAltName spoofing) - High
+  - ESC2: Any Purpose EKU certificate template - High
+  - ESC3: Registration agent template misconfiguration - High/Medium
+  - ESC4: Certificate template ACL vulnerability - High
+  - ESC6: EDITF_ATTRIBUTESUBJECTALTNAME2 flag - High
+  - ESC7: CA permission configuration issues - Medium
+  - ESC8: NTLM relay to HTTP endpoint - Medium
+- Supports vulnerability filters to detect specific vulnerabilities
+- Supports Text and JSON output formats
+- Supports result export to file
+- Based on LDAP protocol to query AD CS configuration
+
+7. Code quality and stability improvements ✅
+- Fixed configuration file path permission issues (changed from /etc/GYscan to ~/.GYscan)
+- Cleaned up unused AI configuration files (ai_config.yml, logging.json)
+- Improved LDAP connection error handling and timeout settings
+- Completed file output functionality
 
 ## Changelog
 

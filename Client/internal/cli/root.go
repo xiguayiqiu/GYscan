@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"GYscan/internal/csrf"
 	"GYscan/internal/nmap"
@@ -70,26 +69,48 @@ func printBanner() {
 
 // Execute 执行根命令
 func Execute() {
-	// 先显示ASCII艺术字，所有命令执行前都显示
-	printBanner()
+	// 解析全局参数
+	noBanner := hasFlag("no-banner")
+	noColor := hasFlag("no-color")
+	verbose := hasFlag("verbose")
+	silent := hasFlag("silent")
 
-	// 记录程序启动信息
-	utils.LogInfo("GYscan 程序启动，版本: %s", Version)
+	// 设置全局状态
+	if noColor {
+		utils.UseColor = false
+	}
+	if verbose {
+		utils.IsVerbose = true
+	}
+	if silent {
+		utils.IsSilent = true
+	}
 
-	// 检查是否需要显示版本信息（仅在根命令下使用-v或--version）
-	if len(os.Args) > 1 && (os.Args[1] == "-v" || os.Args[1] == "--version") && len(os.Args) == 2 {
-		utils.LogInfo("显示版本信息")
+	// 显示版本信息
+	if showVersion() {
+		printVersion()
 		return
 	}
 
-	// 检查是否是主帮助请求（根命令的帮助）
-	if (len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help" || os.Args[1] == "help")) || len(os.Args) == 1 {
-		utils.LogInfo("显示帮助信息")
+	// 显示帮助信息
+	if showHelp() {
+		if !noBanner {
+			printBanner()
+		}
 		printCustomHelp()
 		return
 	}
 
-	// 使用完全自定义的简洁模板，移除所有多余空行并将--help替换为help
+	// 无参数或只请求横幅时
+	if len(os.Args) == 1 || (len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help")) {
+		if !noBanner {
+			printBanner()
+		}
+		printCustomHelp()
+		return
+	}
+
+	// 使用完全自定义的简洁模板
 	rootCmd.SetUsageTemplate(`Usage:
   {{if .Runnable}}{{.UseLine}}{{end}}
   {{if .HasAvailableSubCommands}}{{.CommandPath}} [command]{{end}}
@@ -101,17 +122,40 @@ Available Commands:
 Flags:
 {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}
 
-使用 "{{.CommandPath}} help [command]" 获取命令帮助信息
+Use "{{.CommandPath}} help [command]" 获取命令帮助信息
 `)
 
 	// 正常执行命令
-	utils.LogInfo("开始执行命令")
 	if err := rootCmd.Execute(); err != nil {
 		utils.LogError("命令执行失败: %v", err)
 		utils.ErrorPrint("%v", err)
 		os.Exit(1)
 	}
-	utils.LogInfo("命令执行完成")
+}
+
+// 检查参数是否存在
+func hasFlag(name string) bool {
+	for _, arg := range os.Args[1:] {
+		if arg == "--"+name || arg == "-"+name[0:1] {
+			return true
+		}
+	}
+	return false
+}
+
+// 检查是否只显示版本
+func showVersion() bool {
+	return len(os.Args) > 1 && (os.Args[1] == "-v" || os.Args[1] == "--version") && len(os.Args) == 2
+}
+
+// 检查是否只显示帮助
+func showHelp() bool {
+	return len(os.Args) == 2 && (os.Args[1] == "-h" || os.Args[1] == "--help" || os.Args[1] == "help")
+}
+
+// printVersion 输出版本信息
+func printVersion() {
+	fmt.Printf("GYscan version %s\n", Version)
 }
 
 // printCustomHelp 自定义帮助信息，将命令按类别分组显示
@@ -121,47 +165,26 @@ func printCustomHelp() {
 	fmt.Println("  GYscan [command]")
 	fmt.Println()
 
-	// 定义命令分组
-	commandGroups := make(map[string][]*cobra.Command)
+	// 使用CommandRegistry获取分组信息
+	r := BuildRegistry()
+	commandGroups := make(map[CommandGroup][]*cobra.Command)
 
-	// 初始化命令分组
-	commandGroups["综合工具"] = []*cobra.Command{}
-	commandGroups["密码学工具"] = []*cobra.Command{}
-	commandGroups["网络扫描工具"] = []*cobra.Command{}
-	commandGroups["远程管理工具"] = []*cobra.Command{}
-	commandGroups["信息收集工具"] = []*cobra.Command{}
-	commandGroups["Web安全工具"] = []*cobra.Command{}
-	commandGroups["测试阶段命令"] = []*cobra.Command{}
-
-	// 将命令分组
+	// 将所有命令按组分类
 	for _, cmd := range rootCmd.Commands() {
 		if cmd.Name() == "help" {
 			continue
 		}
-
-		// 检查是否为测试阶段命令
-		if strings.Contains(cmd.Short, "测试阶段") || strings.Contains(cmd.Long, "测试阶段") {
-			commandGroups["测试阶段命令"] = append(commandGroups["测试阶段命令"], cmd)
-			continue
-		}
-
-		// 根据命令名称进行分类
-		switch cmd.Name() {
-		case "about":
-			commandGroups["综合工具"] = append(commandGroups["综合工具"], cmd)
-		case "crunch", "database", "ftp", "ssh":
-			commandGroups["密码学工具"] = append(commandGroups["密码学工具"], cmd)
-		case "scan", "dirscan", "route", "whois", "scapy":
-			commandGroups["网络扫描工具"] = append(commandGroups["网络扫描工具"], cmd)
-		case "powershell", "rdp", "smb", "wmi":
-			commandGroups["远程管理工具"] = append(commandGroups["远程管理工具"], cmd)
-		case "process", "userinfo", "winlog":
-			commandGroups["信息收集工具"] = append(commandGroups["信息收集工具"], cmd)
-		case "webshell", "waf", "xss", "fu":
-			commandGroups["Web安全工具"] = append(commandGroups["Web安全工具"], cmd)
-		default:
-			// 未分类的命令添加到综合工具
-			commandGroups["综合工具"] = append(commandGroups["综合工具"], cmd)
+		registeredCmd := r.GetCommand(cmd.Name())
+		if registeredCmd != nil {
+			// 找到该命令所属的组
+			for group, commands := range r.groups {
+				for _, c := range commands {
+					if c.Name() == cmd.Name() {
+						commandGroups[group] = append(commandGroups[group], cmd)
+						break
+					}
+				}
+			}
 		}
 	}
 
@@ -169,10 +192,8 @@ func printCustomHelp() {
 	fmt.Println("Available Commands:")
 	fmt.Println()
 
-	// 定义分组显示顺序
-	groupOrder := []string{"综合工具", "密码学工具", "网络扫描工具", "远程管理工具", "信息收集工具", "Web安全工具", "测试阶段命令"}
-
-	for _, group := range groupOrder {
+	// 按照预定义的顺序显示分组
+	for _, group := range r.GetGroupsInOrder() {
 		commands := commandGroups[group]
 		if len(commands) == 0 {
 			continue
@@ -192,6 +213,9 @@ func printCustomHelp() {
 	fmt.Println("      --proxy string   代理服务器 (支持 HTTP/SOCKS5)")
 	fmt.Println("  -q, --silent         静默模式，仅输出关键结果")
 	fmt.Println("  -V, --version        显示版本信息")
+	fmt.Println("      --no-banner      不显示启动横幅")
+	fmt.Println("      --no-color       禁用颜色输出")
+	fmt.Println("  -v, --verbose        显示详细输出")
 	fmt.Println()
 	fmt.Println("使用 \"GYscan help [command]\" 获取命令帮助信息")
 }
@@ -208,6 +232,9 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("proxy", "", "代理服务器 (支持 HTTP/SOCKS5)")
 	cmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
+	cmd.PersistentFlags().Bool("no-banner", false, "不显示启动横幅")
+	cmd.PersistentFlags().Bool("no-color", false, "禁用颜色输出")
+	cmd.PersistentFlags().BoolP("verbose", "v", false, "显示详细输出")
 
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)       // 查看工具信息
@@ -241,6 +268,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
 	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]
 	cmd.AddCommand(mgCmd)    // 蜜罐识别工具 [测试阶段]
+	cmd.AddCommand(adcsCmd)  // AD CS 漏洞检测工具 [测试阶段]
 }
 
 // init 初始化命令

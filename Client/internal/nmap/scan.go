@@ -13,6 +13,166 @@ import (
 	"time"
 )
 
+// Pre-compiled regular expressions for performance optimization
+var (
+	mysqlVersionRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`(\d+\.\d+\.\d+)-MariaDB`),
+		regexp.MustCompile(`MariaDB[\s\-]*(\d+\.\d+\.\d+)`),
+		regexp.MustCompile(`(\d+\.\d+\.\d+)[\s\-]*MySQL`),
+		regexp.MustCompile(`MySQL[\s\-]*(\d+\.\d+\.\d+)`),
+		regexp.MustCompile(`\b(\d+\.\d+\.\d+)\b`),
+		regexp.MustCompile(`\b(\d+\.\d+)\b`),
+	}
+
+	macAddressRegex = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
+)
+
+// Constants for magic numbers to improve code readability and maintainability
+const (
+	// Port ranges
+	MinPort              = 1
+	MaxPort              = 65535
+	DefaultScanPortRange = "1-10000"
+	FullPortScanRange    = "1-65535"
+
+	// Timeout constants
+	DefaultTimeout = 3 * time.Second
+	LongTimeout    = 5 * time.Minute
+	SlowTimeout    = 15 * time.Second
+	MediumTimeout  = 400 * time.Millisecond
+	FastTimeout    = 1 * time.Second
+	InsaneTimeout  = 500 * time.Millisecond
+
+	// Thread counts
+	ParanoidThreads   = 1
+	PoliteThreads     = 10
+	DefaultThreads    = 50
+	AggressiveThreads = 100
+	InsaneThreads     = 200
+
+	// Timing templates (matching nmap -T parameters)
+	TimingParanoid   = 0
+	TimingSneaky     = 1
+	TimingPolite     = 2
+	TimingNormal     = 3
+	TimingAggressive = 4
+	TimingInsane     = 5
+
+	// TTL values for OS detection
+	WindowsDefaultTTL = 128
+	LinuxDefaultTTL   = 64
+	UnixDefaultTTL    = 255
+
+	// Network distance estimation
+	LocalNetworkDistance   = 1
+	PrivateNetworkDistance = 2
+	MinGeographicDistance  = 5
+	MaxGeographicDistance  = 15
+
+	// Progress display frequency
+	ProgressDisplayFrequency = 100
+
+	// Banner read timeout
+	BannerReadTimeout = 2 * time.Second
+
+	// Confirmation methods for host discovery
+	MinConfirmationMethods = 2
+)
+
+// Common ports for various services
+var (
+	// Common TCP ports for host discovery
+	commonHostDiscoveryPorts = []int{22, 23, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995, 1723, 3389, 5900, 8080}
+
+	// Common TCP ports for service identification
+	commonServicePorts = map[int]string{
+		21:    "ftp",
+		22:    "ssh",
+		23:    "telnet",
+		25:    "smtp",
+		53:    "dns",
+		80:    "http",
+		110:   "pop3",
+		111:   "rpcbind",
+		135:   "msrpc",
+		139:   "netbios-ssn",
+		143:   "imap",
+		443:   "https",
+		445:   "microsoft-ds",
+		993:   "imaps",
+		995:   "pop3s",
+		1433:  "ms-sql-s",
+		1521:  "oracle",
+		2049:  "nfs",
+		3306:  "mysql",
+		3389:  "rdp",
+		5432:  "postgresql",
+		5900:  "vnc",
+		6379:  "redis",
+		8080:  "http-proxy",
+		27017: "mongodb",
+	}
+
+	// Common UDP ports for service identification
+	commonUDPPorts = map[int]string{
+		53:   "dns",
+		67:   "dhcps",
+		68:   "dhcpc",
+		69:   "tftp",
+		123:  "ntp",
+		161:  "snmp",
+		162:  "snmptrap",
+		514:  "syslog",
+		520:  "rip",
+		1434: "ms-sql-m",
+		1900: "upnp",
+		5353: "mdns",
+	}
+
+	// Well-known MAC address prefixes (OUI) for vendor identification
+	macVendorPrefixes = map[string]string{
+		"00:0C:29": "VMware",
+		"00:50:56": "VMware",
+		"00:1C:42": "Parallels",
+		"08:00:27": "Oracle VirtualBox",
+		"52:54:00": "QEMU",
+		"00:15:5D": "Microsoft Hyper-V",
+		"00:1B:21": "Intel",
+		"00:1D:72": "Intel",
+		"00:25:90": "Intel",
+		"00:26:B9": "Intel",
+		"00:1A:92": "Dell",
+		"00:21:9B": "Dell",
+		"00:24:E8": "Dell",
+		"00:14:22": "HP",
+		"00:1F:29": "HP",
+		"00:25:B3": "HP",
+		"00:19:B9": "Cisco",
+		"00:21:A1": "Cisco",
+		"00:26:0B": "Cisco",
+		"00:1E:13": "Cisco",
+		"00:1F:6C": "Cisco",
+		"00:23:04": "Cisco",
+		"00:24:14": "Cisco",
+		"00:26:98": "Cisco",
+		"00:1E:4C": "Apple",
+		"00:23:12": "Apple",
+		"00:25:00": "Apple",
+		"00:26:08": "Apple",
+		"00:26:B0": "Apple",
+		"00:17:F2": "ASUS",
+		"00:1D:60": "ASUS",
+		"00:22:15": "ASUS",
+		"00:24:8C": "ASUS",
+		"00:26:18": "ASUS",
+		"00:1F:C6": "Samsung",
+		"00:21:4C": "Samsung",
+		"00:23:39": "Samsung",
+		"00:24:90": "Samsung",
+		"00:26:5D": "Samsung",
+	}
+)
+
 // ServiceFingerprint 表示服务指纹信息
 type ServiceFingerprint struct {
 	Port        int    `json:"port"`
@@ -71,30 +231,30 @@ type ScanConfig struct {
 // applyTimingTemplate 应用nmap风格的扫描速度模板
 func applyTimingTemplate(config *ScanConfig) {
 	// 默认使用级别3 (Normal)
-	if config.TimingTemplate < 0 || config.TimingTemplate > 5 {
-		config.TimingTemplate = 3
+	if config.TimingTemplate < TimingParanoid || config.TimingTemplate > TimingInsane {
+		config.TimingTemplate = TimingNormal
 	}
 
 	// 根据nmap -T参数标准设置
 	switch config.TimingTemplate {
-	case 0: // Paranoid - 极慢 (每5分钟发送一个包)
-		config.Threads = 1
-		config.Timeout = 5 * time.Minute
-	case 1: // Sneaky - 很慢 (每15秒发送一个包)
-		config.Threads = 1
-		config.Timeout = 15 * time.Second
-	case 2: // Polite - 慢速 (每0.4秒发送一个包)
-		config.Threads = 10
-		config.Timeout = 400 * time.Millisecond
-	case 3: // Normal - 正常 (默认)
-		config.Threads = 50
-		config.Timeout = 3 * time.Second
-	case 4: // Aggressive - 快速 (减少超时时间)
-		config.Threads = 100
-		config.Timeout = 1 * time.Second
-	case 5: // Insane - 极快 (最大并发，最小超时)
-		config.Threads = 200
-		config.Timeout = 500 * time.Millisecond
+	case TimingParanoid:
+		config.Threads = ParanoidThreads
+		config.Timeout = LongTimeout
+	case TimingSneaky:
+		config.Threads = ParanoidThreads
+		config.Timeout = SlowTimeout
+	case TimingPolite:
+		config.Threads = PoliteThreads
+		config.Timeout = MediumTimeout
+	case TimingNormal:
+		config.Threads = DefaultThreads
+		config.Timeout = DefaultTimeout
+	case TimingAggressive:
+		config.Threads = AggressiveThreads
+		config.Timeout = FastTimeout
+	case TimingInsane:
+		config.Threads = InsaneThreads
+		config.Timeout = InsaneTimeout
 	}
 }
 
@@ -377,12 +537,15 @@ func udpPing(ip string, timeout time.Duration) bool {
 }
 
 // arpDiscovery ARP发现（同一网段）
+// 注意：由于系统权限限制，ARP发现功能需要管理员/root权限
+// 当前实现返回false，后续版本将完善此功能
 func arpDiscovery(ip string, timeout time.Duration) bool {
 	// 仅在同一网段内有效
 	if !isSameSubnet(ip) {
 		return false
 	}
-	// TODO: 实现ARP发现
+	// ARP发现需要原始套接字权限，当前版本暂未实现
+	// 如需使用ARP发现，请确保有足够的系统权限
 	return false
 }
 
@@ -412,20 +575,6 @@ func isPrivateIP(ip string) bool {
 	}
 
 	return false
-}
-
-// portScan 端口扫描（已废弃，使用portScanWithProgress替代）
-func portScan(ip string, ports []int, scanType string, threads int, timeout time.Duration) map[int]PortInfo {
-	// 创建一个空的上下文用于兼容旧代码
-	ctx := context.Background()
-	var mu sync.Mutex
-	var openPortsCount int
-	config := ScanConfig{
-		ScanType: scanType,
-		Threads:  threads,
-		Timeout:  timeout,
-	}
-	return portScanWithProgress(ctx, ip, ports, config, &openPortsCount, &mu)
 }
 
 // portScanWithProgress 带进度显示的端口扫描
@@ -1145,9 +1294,8 @@ func getMACAddress(ip string) string {
 
 // isValidMAC 验证MAC地址格式
 func isValidMAC(mac string) bool {
-	// MAC地址格式验证（支持多种格式）
-	macRegex := regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
-	return macRegex.MatchString(mac)
+	// 使用预编译的正则表达式提高性能
+	return macAddressRegex.MatchString(mac)
 }
 
 // getVendorByMAC 根据MAC地址获取厂商信息
@@ -1410,18 +1558,9 @@ func identifyServiceByBanner(banner string) string {
 // extractMySQLVersion 从banner中提取MySQL版本信息
 func extractMySQLVersion(banner string) string {
 	// MySQL版本信息通常以数字格式出现，如5.7.40, 8.0.30, 12.0.2-MariaDB等
+	// 使用预编译的正则表达式提高性能
 
-	// 匹配常见的MySQL版本格式
-	regexes := []*regexp.Regexp{
-		regexp.MustCompile(`(\d+\.\d+\.\d+)-MariaDB`),
-		regexp.MustCompile(`MariaDB[\s\-]*(\d+\.\d+\.\d+)`),
-		regexp.MustCompile(`(\d+\.\d+\.\d+)[\s\-]*MySQL`),
-		regexp.MustCompile(`MySQL[\s\-]*(\d+\.\d+\.\d+)`),
-		regexp.MustCompile(`\b(\d+\.\d+\.\d+)\b`),
-		regexp.MustCompile(`\b(\d+\.\d+)\b`),
-	}
-
-	for _, re := range regexes {
+	for _, re := range mysqlVersionRegexes {
 		matches := re.FindStringSubmatch(banner)
 		if len(matches) > 1 {
 			return matches[1]
@@ -1603,7 +1742,7 @@ func parsePorts(ports string) []int {
 
 	if ports == "" {
 		// 默认端口范围 1-1000 (匹配nmap默认行为)
-		for p := 1; p <= 1000; p++ {
+		for p := MinPort; p <= 1000; p++ {
 			portList = append(portList, p)
 		}
 		return portList
@@ -1612,7 +1751,7 @@ func parsePorts(ports string) []int {
 	// 检查是否为全端口扫描参数 "-p-"
 	if ports == "-" {
 		// 全端口扫描 1-65535
-		for p := 1; p <= 65535; p++ {
+		for p := MinPort; p <= MaxPort; p++ {
 			portList = append(portList, p)
 		}
 		return portList
@@ -1636,7 +1775,7 @@ func parsePorts(ports string) []int {
 		} else {
 			// 单个端口
 			port, err := strconv.Atoi(part)
-			if err == nil && port > 0 && port <= 65535 {
+			if err == nil && port >= MinPort && port <= MaxPort {
 				portList = append(portList, port)
 			}
 		}
@@ -1656,8 +1795,53 @@ func inc(ip net.IP) {
 }
 
 // isSameSubnet 检查是否在同一网段
+// 通过获取本机网络接口信息来判断目标IP是否在同一子网
 func isSameSubnet(ip string) bool {
-	// TODO: 实现网段检查
+	parsedIP := net.ParseIP(ip)
+	if parsedIP == nil {
+		return false
+	}
+
+	// 获取所有网络接口
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return false
+	}
+
+	for _, iface := range interfaces {
+		// 跳过未启用的接口
+		if iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+
+		// 获取接口的地址信息
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			// 检查是否为IP地址
+			ipNet, ok := addr.(*net.IPNet)
+			if !ok {
+				continue
+			}
+
+			// 检查IP类型是否匹配（IPv4或IPv6）
+			if parsedIP.To4() != nil && ipNet.IP.To4() == nil {
+				continue
+			}
+			if parsedIP.To4() == nil && ipNet.IP.To4() != nil {
+				continue
+			}
+
+			// 检查目标IP是否在当前接口的子网范围内
+			if ipNet.Contains(parsedIP) {
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
