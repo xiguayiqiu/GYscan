@@ -4,7 +4,7 @@
 
 **For this project, when sharing, whether it's an article, tool introduction, or video introduction, please make sure to keep the original author's repository name! Thank you for your cooperation!**
 
-**To those who replace or alter the original author's work, you might receive a legal summons one day~~
+**To those who replace or alter the original author's work, you might receive a legal summons one day~~**
 
 ## Project Overview
 
