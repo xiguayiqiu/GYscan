@@ -25,10 +25,10 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/streadway/amqp v1.1.0
 	github.com/valyala/fasttemplate v1.2.2
-	golang.org/x/crypto v0.44.0
-	golang.org/x/net v0.47.0
-	golang.org/x/sys v0.38.0
-	golang.org/x/text v0.31.0
+	golang.org/x/crypto v0.47.0
+	golang.org/x/net v0.48.0
+	golang.org/x/sys v0.40.0
+	golang.org/x/text v0.33.0
 )
 
 require (

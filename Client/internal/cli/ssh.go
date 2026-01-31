@@ -91,6 +91,7 @@ var sshCmd = &cobra.Command{
 		// 准备SSH配置
 		config := &ssh.SSHConfig{
 			Target:       target,
+			TargetFile:   file,
 			Port:         port,
 			Username:     username,
 			UsernameFile: usernames,

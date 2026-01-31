@@ -28,7 +28,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
-| **Latest Version** | v2.7 |
+| **Latest Version** | v2.7.1 |
 
 ### Legal Disclaimer
 
@@ -654,6 +654,31 @@ GYscan is built using a modern technology stack to ensure high performance, scal
 - Enhanced CheckResult structure, supports configuration evidence fields
 - Optimized report generator, supports multiple output formats
 - Improved HTML report styles and interactivity
+
+### v2.7.1
+
+**SSH Module Enhancement and Bug Fixes**
+
+#### Feature Improvements
+
+- **SSH Batch Target Brute Force Optimization**
+  - Supports loading target IPs from file via `--file` parameter
+  - Optimized multi-target concurrent brute force logic
+  - Added real-time progress display, similar to Hydra-style output
+
+#### Bug Fixes
+
+- Fixed SSH target file parsing issue, supports loading multiple targets from text file
+- Fixed incorrect result statistics in multi-target mode
+- Fixed real-time progress not displaying during batch brute force
+- Optimized SSH connection algorithm configuration for better compatibility
+
+#### SSH Module Enhancements
+
+- Added `--file` parameter support: load target IPs from text file in batch
+- Added `--verbose` mode: display each authentication attempt in real-time
+- Optimized error handling and logging for better debugging
+- Supports multi-target concurrent brute force, significantly improving batch testing efficiency
 
 ### v2.7-beta
 
