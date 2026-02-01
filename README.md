@@ -27,7 +27,7 @@ GYscan是一款专注于内网横向移动和边界安全测试的专业工具�
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache 2.0 |
-| **最新版本** | v2.7.1 |
+| **最新版本** | v2.7.2 |
 
 ### 法律声明
 
@@ -183,7 +183,7 @@ sudo zypper install -y \
 | process | 进程与服务信息收集工具 | ✅ 稳定 |
 | rdp | RDP远程桌面工具 | ✅ 稳定 |
 | route | 路由跳数检测 | ✅ 稳定 |
-| scan | 网络扫描工具，支持主机发现、端口扫描、服务识别等功能 | ✅ 稳定 |
+| scan | 网络扫描工具，支持主机发现、端口扫描、服务识别、IPv6扫描等功能 | ✅ 稳定 |
 | scapy | 高级网络包操作工具，支持原始包构造、接口检测和功能演示 | ✅ 稳定 |
 | ssh | SSH密码爆破工具（Hydra风格） | ✅ 稳定 |
 | userinfo | 本地用户和组分析 | ✅ 稳定 |
@@ -558,58 +558,56 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 | **YAML解析** | yaml.v3 | YAML配置文件解析 |
 ### 最近修改
 
-1. 清理废弃代码和重复注册逻辑 ✅
-- 移除了废弃的 portScan 函数
-- 实现了 isSameSubnet 函数（之前只有 TODO）
-- 改进了 arpDiscovery 函数说明
-- 清理了 registry.go 中的重复命令注册
+### v2.7.2
 
-2. 配置验证和安全权限改进 ✅
-- 添加了 Config.Validate() 函数验证配置有效性
-- 改进了 SaveConfig() 函数，配置文件权限从 0644 改为 0600
-- 添加了详细的配置验证逻辑（超时、线程数、端口范围等）
+**IPv6支持增强**
 
-3. 正则表达式编译优化 ✅
-- 将 MySQL 版本正则表达式和 MAC 地址正则表达式移到包级别预编译
-- 避免了每次调用函数时重新编译正则表达式的性能开销
+#### 新增功能
 
-4. 统一帮助信息展示逻辑 ✅
-- 重构了 printCustomHelp() 函数，使用 CommandRegistry 的分组逻辑
-- 移除了硬编码的命令分类逻辑
-- 简化了代码结构，减少了重复代码
+- **IPv6扫描支持**
+  - 新增 `-6, --ipv6` 标志启用IPv6扫描模式
+  - 支持标准IPv6地址：`2001:db8::1`、`::1`、`fe80::1`
+  - 支持IPv6地址解析和DNS查询（AAAA记录）
+  - 支持IPv6主机发现（ICMPv6 Echo请求）
+  - 支持IPv6端口扫描和服务识别
+  - 支持IPv6链路本地地址（带zone ID）
+  - 自动识别IPv4/IPv6地址并选择合适的网络连接方式
 
-5. 定义常量替代魔法数字 ✅
-- 在 nmap/scan.go 中添加了大量常量定义：
-  - 端口范围常量：MinPort, MaxPort, DefaultScanPortRange
-  - 超时常量：DefaultTimeout, LongTimeout, FastTimeout 等
-  - 线程常量：ParanoidThreads, DefaultThreads, InsaneThreads 等
-  - 定时模板常量：TimingParanoid, TimingNormal, TimingInsane 等
-  - TTL 常量：WindowsDefaultTTL, LinuxDefaultTTL
-  - 网络距离常量：LocalNetworkDistance, PrivateNetworkDistance
-- 添加了常用端口映射表和 MAC 地址厂商前缀映射
-- 更新了 applyTimingTemplate 和 parsePorts 函数使用常量
+#### 技术改进
 
-6. AD CS 漏洞检测功能（测试阶段）✅
-- 新增 `adcs` 命令，位于测试阶段命令分类
-- 支持检测 ESC1-ESC8 共 8 种 AD CS 漏洞：
-  - ESC1: 错误配置的证书模板 (SubjectAltName 欺骗) - 高危
-  - ESC2: Any Purpose EKU 证书模板 - 高危
-  - ESC3: 注册代理模板错误配置 - 高危/中危
-  - ESC4: 证书模板访问控制漏洞 - 高危
-  - ESC6: EDITF_ATTRIBUTESUBJECTALTNAME2 标志 - 高危
-  - ESC7: CA 权限配置问题 - 中危
-  - ESC8: NTLM 中继到 HTTP 端点 - 中危
-- 支持漏洞过滤器，可选择检测特定漏洞
-- 支持 Text 和 JSON 两种输出格式
-- 支持结果导出到文件
-- 基于 LDAP 协议查询 AD CS 配置
-
-7. 代码质量和稳定性改进 ✅
-- 修复了配置文件路径权限问题（从 /etc/GYscan 改为 ~/.GYscan）
-- 清理了未使用的 AI 配置文件（ai_config.yml, logging.json）
-- 改进了 LDAP 连接的错误处理和超时设置
-- 完善了文件输出功能
+- 新增 `isIPv6()` 函数用于IPv6地址检测
+- 新增 `isPrivateIPv6()` 函数支持IPv6私有地址范围（RFC 4193 ULA、RFC 3879链路本地）
+- 新增 `formatIPForConnection()` 函数处理IPv6地址格式化（方括号包裹）
+- 更新 `RemoveProtocolPrefix()` 正确处理IPv6地址
+- 新增 `icmpv6Ping()` 和 `systemPing6()` 函数支持ICMPv6探测
+- 新增 `isLinux()` 和 `isMacOS()` 辅助函数
+- 更新 `hostDiscovery()` 为IPv6目标跳过ARP探测
 ## 更新日志
+
+### v2.7.2
+
+**IPv6支持增强**
+
+#### 新增功能
+
+- **IPv6扫描支持**
+  - 新增 `-6, --ipv6` 标志启用IPv6扫描模式
+  - 支持标准IPv6地址：`2001:db8::1`、`::1`、`fe80::1`
+  - 支持IPv6地址解析和DNS查询（AAAA记录）
+  - 支持IPv6主机发现（ICMPv6 Echo请求）
+  - 支持IPv6端口扫描和服务识别
+  - 支持IPv6链路本地地址（带zone ID）
+  - 自动识别IPv4/IPv6地址并选择合适的网络连接方式
+
+#### 技术改进
+
+- 新增 `isIPv6()` 函数用于IPv6地址检测
+- 新增 `isPrivateIPv6()` 函数支持IPv6私有地址范围（RFC 4193 ULA、RFC 3879链路本地）
+- 新增 `formatIPForConnection()` 函数处理IPv6地址格式化（方括号包裹）
+- 更新 `RemoveProtocolPrefix()` 正确处理IPv6地址
+- 新增 `icmpv6Ping()` 和 `systemPing6()` 函数支持ICMPv6探测
+- 新增 `isLinux()` 和 `isMacOS()` 辅助函数
+- 更新 `hostDiscovery()` 为IPv6目标跳过ARP探测
 
 ### v2.7.1
 

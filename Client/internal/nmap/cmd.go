@@ -63,6 +63,7 @@ func init() {
 		udpScan          bool
 		hostDiscovery    bool
 		pn               bool
+		ipv6             bool
 		output           string
 	)
 	// 配置命令运行函数
@@ -118,6 +119,7 @@ func init() {
 			UDPScan:          udpScan,
 			HostDiscovery:    hostDiscovery,
 			Pn:               pn,
+			IPv6:             ipv6,
 		}
 
 		// 如果启用了全面扫描模式 (-A)，自动启用相关功能
@@ -182,6 +184,9 @@ func init() {
 
 	// 跳过主机发现，直接扫描端口 (nmap -Pn参数)
 	ScanCmd.Flags().BoolVarP(&pn, "Pn", "", false, "跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)")
+
+	// IPv6扫描模式 (nmap -6参数)
+	ScanCmd.Flags().BoolVarP(&ipv6, "ipv6", "6", false, "启用IPv6扫描模式 (等同于nmap -6参数)")
 
 	ScanCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")
 

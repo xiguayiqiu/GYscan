@@ -1,4 +1,4 @@
-.TH GYSCAN "1" "2026年1月4日" "GYscan v2.7" "用户命令手册"
+.TH GYSCAN "1" "2026年2月1日" "GYscan v2.7.2" "用户命令手册"
 .SH 名称
 GYscan \- Go语言内网横向边界安全测试工具
 .SH 总览
@@ -82,6 +82,9 @@ GYscan \- Go语言内网横向边界安全测试工具
 .PP
 .B GYscan
 \fBwwifi\fR [\fI选项\fR]
+.PP
+.B GYscan
+\fBws\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
 .SH 描述
 GYscan是一款专注于内网横向移动和边界安全测试的专业工具，基于Go语言开发。该工具集成了丰富的内网渗透测试功能，包括端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破等核心功能，为安全研究人员和渗透测试人员提供高效、可靠的内网安全评估解决方案。
 .PP
@@ -1142,13 +1145,15 @@ RDP端口，默认3389
 .RE
 .SS scan（网络扫描工具）
 .PP
-\fBGYscan scan\fR \fB--target\fR \fI目标\fR [\fI选项\fR]
+\fBGYscan scan\fR \fI目标\fR [\fI选项\fR]
 .PP
-网络扫描工具，支持主机发现、端口扫描、服务识别等功能。
+网络扫描工具，支持主机发现、端口扫描、服务识别、服务指纹识别、IPv6扫描等功能。
 .PP
 \fB目标格式\fR：
 .PP
 单个IP：\fI192.168.1.100\fR
+.PP
+IPv6地址：\fI2001:db8::1\fR、\fI::1\fR（回环地址）
 .PP
 IP段：\fI192.168.1.0/24\fR
 .PP
@@ -1156,72 +1161,175 @@ IP范围：\fI192.168.1.1-192.168.1.254\fR
 .PP
 域名：\fIwww.example.com\fR
 .PP
-\fB选项\fR：
+\fB基本选项\fR：
 .PP
-\fB--target\fR \fI目标\fR
+\fI目标\fR
 .RS 4
-扫描目标，支持IP、IP段、域名（必需参数）
+扫描目标，支持IPv4/IPv6地址、IP段、域名（必需参数，可直接传递或使用 -t/--target）
 .RE
 .PP
-\fB--ports\fR \fI端口列表\fR
+\fB-t\fR, \fB--target\fR \fI目标\fR
 .RS 4
-扫描端口，逗号分隔或范围，如：80,443,22或1-1000
+扫描目标，支持IP、IP段、域名、IPv6地址
 .RE
 .PP
-\fB-T\fR, \fB--threads\fR \fI线程数\fR
+\fB-p\fR, \fB--ports\fR \fI端口列表\fR
 .RS 4
-并发线程数，默认25
+扫描端口，逗号分隔或范围，如：80,443,22或1-1000，-p-表示全端口扫描
 .RE
 .PP
-\fB--timeout\fR \fI秒数\fR
+\fB-n\fR, \fB--threads\fR \fI线程数\fR
+.RS 4
+并发线程数，默认50
+.RE
+.PP
+\fB-w\fR, \fB--timeout\fR \fI秒数\fR
 .RS 4
 连接超时时间，默认3秒
 .RE
 .PP
-\fB--top-ports\fR \fI数量\fR
+\fB-T\fR, \fB--timing\fR \fI级别\fR
 .RS 4
-扫描最常见的N个端口
+扫描速度级别 (0-5):
+.RS 4
+0: 偏执 (Paranoid) - 非常慢的扫描，用于IDS规避
 .RE
-.PP
-\fB-sV\fR, \fB--service-version\fR
 .RS 4
-启用服务版本检测
+1: 鬼祟 (Sneaky) - 慢速扫描，IDS规避
+.RE
+.RS 4
+2: 礼貌 (Polite) - 降低速度以减少对目标系统的影响
+.RE
+.RS 4
+3: 普通 (Normal) - 默认速度，平衡速度和隐蔽性
+.RE
+.RS 4
+4: 激进 (Aggressive) - 快速扫描，可能被检测到
+.RE
+.RS 4
+5: 疯狂 (Insane) - 极速扫描，容易被检测
+.RE
 .RE
 .PP
 \fB-o\fR, \fB--output\fR \fI文件路径\fR
 .RS 4
-输出结果到文件
+结果输出文件路径
 .RE
 .PP
-\fB-oJ\fR
+\fB扫描类型选项\fR：
+.PP
+\fB--sT\fR
 .RS 4
-输出JSON格式结果
+TCP连接扫描 (nmap -sT)
 .RE
 .PP
-\fB--verbose\fR
+\fB--sU\fR
 .RS 4
-详细输出模式
+UDP扫描 (nmap -sU)
 .RE
 .PP
-\fB--very-verbose\fR
+\fB--sS\fR
 .RS 4
-更详细的输出模式
+TCP SYN扫描 (nmap -sS)
+.RE
+.PP
+\fB--6\fR, \fB--ipv6\fR
+.RS 4
+启用IPv6扫描模式 (nmap -6参数)
+.RS 4
+支持标准IPv6地址：2001:db8::1、::1、fe80::1
+.RE
+.RS 4
+支持IPv6主机发现（ICMPv6 Echo请求）
+.RE
+.RS 4
+支持IPv6端口扫描和服务识别
+.RE
+.RE
+.PP
+\fB功能选项\fR：
+.PP
+\fB--O\fR
+.RS 4
+启用系统识别 (nmap -O参数)
+.RE
+.PP
+\fB--sV\fR
+.RS 4
+启用服务识别和版本检测 (nmap -sV参数)
+.RE
+.PP
+\fB--A\fR
+.RS 4
+全面扫描模式 (nmap -A参数)
+.RS 4
+等同于同时启用：系统识别、服务识别、TTL检测
+.RE
+.RS 4
+自动设置扫描速度为激进模式 (-T4)
+.RE
+.RE
+.PP
+\fB--f\fR, \fB--fragmented\fR
+.RS 4
+碎片化扫描模式 (nmap -f参数)
+.RS 4
+数据包分片发送以规避检测
+.RE
+.RE
+.PP
+\fB--ttl\fR
+.RS 4
+启用TTL检测，估算目标距离（网络跳数）
+.RE
+.PP
+\fB--sn\fR
+.RS 4
+主机存活探测模式 (nmap -sn参数)
+.RS 4
+仅进行主机发现，跳过端口扫描
+.RE
+.RS 4
+采用多协议组合探测（ICMP Ping + TCP SYN/ACK + UDP）
+.RE
+.RE
+.PP
+\fB--Pn\fR
+.RS 4
+跳过主机发现，直接扫描端口 (nmap -Pn参数)
+.RS 4
+适用于已确定主机存活的场景
+.RE
 .RE
 .PP
 \fB使用示例\fR：
 .PP
 .RS 4
-.B GYscan scan --target 192.168.1.100
+.B GYscan scan 192.168.1.100
 .RE
 .RS 4
-扫描单个IP地址
+扫描单个IPv4地址
 .RE
 .PP
 .RS 4
-.B GYscan scan --target 192.168.1.0/24
+.B GYscan scan 192.168.1.0/24
 .RE
 .RS 4
 扫描整个网段
+.RE
+.PP
+.RS 4
+.B GYscan scan "::1" --ipv6 -p 22,80
+.RE
+.RS 4
+扫描IPv6本地回环地址
+.RE
+.PP
+.RS 4
+.B GYscan scan 2001:db8::1 --ipv6 -p 1-1000
+.RE
+.RS 4
+扫描IPv6地址
 .RE
 .PP
 .RS 4
@@ -1232,17 +1340,24 @@ IP范围：\fI192.168.1.1-192.168.1.254\fR
 .RE
 .PP
 .RS 4
-.B GYscan scan --target www.example.com --top-ports 100
+.B GYscan scan 192.168.1.0/24 -T 4 --sn
 .RE
 .RS 4
-扫描最常见的100个端口
+快速主机发现模式
 .RE
 .PP
 .RS 4
-.B GYscan scan --target 192.168.1.100 -sV -o result.txt
+.B GYscan scan 192.168.1.100 -O -sV
 .RE
 .RS 4
-检测服务版本并保存结果
+启用系统识别和服务版本检测
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 -A -o result.txt
+.RE
+.RS 4
+全面扫描并保存结果
 .RE
 .SS scapy（高级网络包操作工具）
 .PP
@@ -1964,6 +2079,194 @@ WMI服务端口，默认135
 .RE
 .RS 4
 组合条件查询
+.RE
+.SS ws（WebSocket测试工具）
+.PP
+\fBGYscan ws\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
+.PP
+WebSocket测试工具，支持WebSocket连接测试、消息发送、响应断言、自动重连、心跳检测等功能。
+.PP
+\fB基本选项\fR：
+.PP
+\fB-u\fR, \fB--url\fR \fIURL\fR
+.RS 4
+WebSocket服务器地址 (ws://host:port/path 或 wss://host:port/path)
+.RE
+.PP
+\fB-m\fR, \fB--message\fR \fI内容\fR
+.RS 4
+发送的消息内容，默认：Hello GYscan
+.RE
+.PP
+\fB-t\fR, \fB--type\fR \fI类型\fR
+.RS 4
+消息类型：text（默认）或 binary
+.RE
+.PP
+\fB-H\fR, \fB--header\fR \fI请求头\fR
+.RS 4
+自定义HTTP头，格式：Key:Value，可多次使用
+.RE
+.PP
+\fB-c\fR, \fB--count\fR \fI次数\fR
+.RS 4
+发送消息次数，默认1次
+.RE
+.PP
+\fB-i\fR, \fB--interval\fR \fI间隔\fR
+.RS 4
+发送消息间隔，默认1秒
+.RE
+.PP
+\fB-o\fR, \fB--timeout\fR \fI时间\fR
+.RS 4
+超时时间，默认10秒
+.RE
+.PP
+\fB-v\fR, \fB--verbose\fR
+.RS 4
+详细输出模式
+.RE
+.PP
+\fB连接选项\fR：
+.PP
+\fB--skip-verify\fR
+.RS 4
+跳过TLS证书验证（用于WSS连接）
+.RE
+.PP
+\fB--origin\fR \fI字符串\fR
+.RS 4
+Origin请求头值
+.RE
+.PP
+\fB--subprotocols\fR \fI协议列表\fR
+.RS 4
+WebSocket子协议列表，逗号分隔
+.RE
+.PP
+\fB--send-delay\fR \fI时间\fR
+.RS 4
+发送消息后延迟
+.RE
+.PP
+\fB--network-timeout\fR \fI时间\fR
+.RS 4
+网络操作超时时间，默认10秒
+.RE
+.PP
+\fB自动重连选项\fR：
+.PP
+\fB-r\fR, \fB--reconnect\fR
+.RS 4
+启用自动重连机制
+.RE
+.PP
+\fB-k\fR, \fB--retries\fR \fI次数\fR
+.RS 4
+最大重试次数，默认5
+.RE
+.PP
+\fB-d\fR, \fB--max-delay\fR \fI时间\fR
+.RS 4
+最大重连延迟，默认30秒
+.RE
+.PP
+\fB响应断言选项\fR：
+.PP
+\fB-a\fR, \fB--assert\fR \fI断言规则\fR
+.RS 4
+响应断言，验证服务器响应是否符合预期
+.RS 4
+支持格式：
+.RE
+.RS 4
+contains:text - 响应包含指定文本
+.RE
+.RS 4
+regex:pattern - 响应匹配正则表达式
+.RE
+.RS 4
+json:field:value - JSON响应中指定字段的值
+.RE
+.RS 4
+length_greater:N - 响应长度大于N
+.RE
+.RE
+.PP
+\fB心跳检测选项\fR：
+.PP
+\fB--heartbeat\fR
+.RS 4
+启用心跳检测
+.RE
+.PP
+\fB--heartbeat-msg\fR \fI内容\fR
+.RS 4
+心跳消息内容，默认：ping
+.RE
+.PP
+\fB--heartbeat-interval\fR \fI时间\fR
+.RS 4
+心跳间隔，默认30秒
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080/echo
+.RE
+.RS 4
+连接WebSocket服务器并发送默认消息
+.RE
+.PP
+.RS 4
+.B GYscan ws -u wss://echo.websocket.org -m "Hello" -v
+.RE
+.RS 4
+连接WSS服务器并启用详细输出
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 -m "test" -c 5 -i 2
+.RE
+.RS 4
+发送5次消息，间隔2秒
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 -H "Authorization:Bearer token123"
+.RE
+.RS 4
+携带自定义HTTP头连接
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 -a contains:Hello -a regex:^PONG
+.RE
+.RS 4
+使用响应断言验证服务器响应
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 --heartbeat --heartbeat-msg ping --heartbeat-interval 10s
+.RE
+.RS 4
+启用心跳检测，每10秒发送ping消息
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 -r -k 10 -d 60s
+.RE
+.RS 4
+启用自动重连，最多10次，最大延迟60秒
+.RE
+.PP
+.RS 4
+.B GYscan ws -u ws://192.168.1.100:8080 -t binary -m "base64:SGVsbG8="
+.RE
+.RS 4
+发送二进制消息（支持base64/hex编码）
 .RE
 .SS xss（XSS漏洞检测工具）
 .PP

@@ -244,17 +244,35 @@ func RemoveProtocolPrefix(url string) string {
 		url = strings.TrimPrefix(url, "https://")
 	}
 
+	// 尝试直接解析为IP地址（支持IPv4和IPv6）
+	if ip := net.ParseIP(url); ip != nil {
+		// 是IP地址，可能包含端口号
+		// IPv6地址用方括号包裹
+		if strings.HasPrefix(url, "[") {
+			// [IPv6]:port 格式
+			if idx := strings.LastIndex(url, "]"); idx != -1 {
+				url = url[1:idx] // 移除[和]
+			}
+		} else if strings.Count(url, ":") == 1 {
+			// IPv4:port 格式
+			if idx := strings.LastIndex(url, ":"); idx != -1 {
+				url = url[:idx]
+			}
+		}
+		// 如果是纯IPv6地址（无端口），保持原样
+		return url
+	}
+
+	// 不是IP地址，作为域名处理
 	// 移除端口号
 	if strings.Contains(url, ":") {
 		parts := strings.Split(url, ":")
-		// 只保留第一个部分（主机名/IP）
 		url = parts[0]
 	}
 
 	// 移除路径部分
 	if strings.Contains(url, "/") {
 		parts := strings.Split(url, "/")
-		// 只保留第一个部分（主机名/IP）
 		url = parts[0]
 	}
 

@@ -226,6 +226,7 @@ type ScanConfig struct {
 	UDPScan          bool // UDP扫描模式 (等同于nmap -sU参数)
 	HostDiscovery    bool // 主机存活探测模式 (等同于nmap -sn参数)
 	Pn               bool // 跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)
+	IPv6             bool // IPv6扫描模式 (等同于nmap -6参数)
 }
 
 // applyTimingTemplate 应用nmap风格的扫描速度模板
@@ -402,7 +403,7 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 	// 多种方式检测主机存活（多协议组合探测，类似nmap -sn）
 	// 按优先级排序：ARP > ICMP > TCP > UDP
 	methods := []func(string, time.Duration) bool{
-		arpDiscovery,      // ARP发现（同一网段，最准确）
+		arpDiscovery,      // ARP发现（同一网段，最准确，仅IPv4）
 		icmpPing,          // ICMP Echo请求（标准ping）
 		tcpSynPing,        // TCP SYN探测（半开连接，类似nmap -PS）
 		tcpAckPing,        // TCP ACK探测（类似nmap -PA）
@@ -412,8 +413,18 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 	}
 
 	// 根据目标IP类型调整探测策略
-	if isPrivateIP(ip) {
-		// 私有网络：优先使用ARP和ICMP
+	if isIPv6(ip) {
+		// IPv6: 跳过ARP，使用ICMPv6和TCP
+		methods = []func(string, time.Duration) bool{
+			icmpPing,          // ICMPv6 Echo请求
+			tcpSynPing,        // TCP SYN探测
+			tcpAckPing,        // TCP ACK探测
+			tcpPing,           // TCP全连接探测
+			udpPing,           // UDP探测
+			icmpTimestampPing, // ICMP时间戳请求
+		}
+	} else if isPrivateIP(ip) {
+		// IPv4私有网络：优先使用ARP和ICMP
 		methods = []func(string, time.Duration) bool{
 			arpDiscovery,
 			icmpPing,
@@ -424,7 +435,7 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 			icmpTimestampPing,
 		}
 	} else {
-		// 公网：优先使用TCP和ICMP
+		// IPv4公网：优先使用TCP和ICMP
 		methods = []func(string, time.Duration) bool{
 			tcpSynPing,
 			tcpAckPing,
@@ -475,13 +486,112 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 
 // icmpPing ICMP Ping检测（Echo请求）
 func icmpPing(ip string, timeout time.Duration) bool {
+	// 根据IP类型选择检测方法
+	if isIPv6(ip) {
+		// IPv6使用ICMPv6
+		return icmpv6Ping(ip, timeout)
+	}
+
 	// Windows上需要管理员权限，使用TCP作为备选
-	// 在Windows上尝试使用ping命令
 	if isWindows() {
 		return windowsICMPPing(ip, timeout)
 	}
+
 	// 其他系统使用TCP作为备选
 	return tcpPing(ip, timeout)
+}
+
+// icmpv6Ping ICMPv6 Ping检测
+func icmpv6Ping(ip string, timeout time.Duration) bool {
+	// 移除IPv6 zone ID（如果有的话）
+	ipClean := removeZoneID(ip)
+
+	// 尝试使用系统ping6命令
+	if isLinux() || isMacOS() {
+		return systemPing6(ipClean, timeout)
+	}
+
+	// Windows上尝试使用ping -6命令
+	if isWindows() {
+		return windowsPing6(ipClean, timeout)
+	}
+
+	// 其他系统回退到TCP ping
+	return tcpPing(ip, timeout)
+}
+
+// removeZoneID 移除IPv6地址中的zone ID
+func removeZoneID(ip string) string {
+	if idx := strings.LastIndex(ip, "%"); idx != -1 {
+		return ip[:idx]
+	}
+	return ip
+}
+
+// systemPing6 使用系统ping6命令进行IPv6 ping
+func systemPing6(ip string, timeout time.Duration) bool {
+	// 根据超时时间计算ping次数 (假设每秒一次)
+	count := int(timeout.Seconds())
+	if count < 1 {
+		count = 1
+	}
+	if count > 4 {
+		count = 4 // 限制最大次数以提高速度
+	}
+
+	var cmd *exec.Cmd
+	if isLinux() {
+		cmd = exec.Command("ping6", "-c", strconv.Itoa(count), "-W", "1", ip)
+	} else if isMacOS() {
+		cmd = exec.Command("ping", "-c", strconv.Itoa(count), "-W", "1", ip)
+	} else {
+		cmd = exec.Command("ping", "-c", strconv.Itoa(count), "-W", "1", ip)
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		// 检查输出中是否有回复
+		outputStr := string(output)
+		if strings.Contains(outputStr, "bytes from") ||
+			strings.Contains(outputStr, "ttl=") ||
+			strings.Contains(outputStr, "time=") {
+			return true
+		}
+		return false
+	}
+
+	// 检查ping输出中是否有回复
+	outputStr := string(output)
+	return strings.Contains(outputStr, "bytes from") ||
+		strings.Contains(outputStr, "ttl=") ||
+		strings.Contains(outputStr, "time=")
+}
+
+// windowsPing6 使用Windows ping命令进行IPv6 ping
+func windowsPing6(ip string, timeout time.Duration) bool {
+	// Windows ping -6 使用IPv6
+	count := int(timeout.Seconds())
+	if count < 1 {
+		count = 1
+	}
+	if count > 4 {
+		count = 4
+	}
+
+	cmd := exec.Command("ping", "-n", strconv.Itoa(count), "-w", "1000", ip)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := string(output)
+		if strings.Contains(outputStr, "Reply from") ||
+			strings.Contains(outputStr, "bytes=") {
+			return true
+		}
+		return false
+	}
+
+	outputStr := string(output)
+	return strings.Contains(outputStr, "Reply from") ||
+		strings.Contains(outputStr, "bytes=")
 }
 
 // icmpTimestampPing ICMP时间戳请求探测
@@ -556,6 +666,11 @@ func isPrivateIP(ip string) bool {
 		return false
 	}
 
+	// 检查是否为IPv6地址
+	if parsedIP.To4() == nil {
+		return isPrivateIPv6(parsedIP)
+	}
+
 	// 检查私有IP地址范围
 	// 10.0.0.0/8
 	if parsedIP.To4()[0] == 10 {
@@ -575,6 +690,53 @@ func isPrivateIP(ip string) bool {
 	}
 
 	return false
+}
+
+// isIPv6 判断是否为IPv6地址
+func isIPv6(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() == nil
+}
+
+// isPrivateIPv6 判断IPv6地址是否为私有地址
+func isPrivateIPv6(ip net.IP) bool {
+	// RFC 4193 私有地址范围: fc00::/7
+	// 包括 fd00::/8 (唯一本地地址 ULA)
+	if len(ip) >= 1 && ip[0] == 0xfd {
+		return true
+	}
+
+	// RFC 3879 链路本地地址: fe80::/10
+	if ip.IsLinkLocalUnicast() {
+		return true
+	}
+
+	// 站点本地地址 (已废弃，但仍可能有设备使用): fec0::/10
+	if len(ip) >= 1 && ip[0] == 0xfe && (ip[1]&0xc0) == 0xc0 {
+		return true
+	}
+
+	// IPv4映射的IPv6地址中的私有IPv4
+	// ::ffff:10.x.x.x, ::ffff:172.16.x.x, ::ffff:192.168.x.x
+	if ip.To4() != nil {
+		return isPrivateIP(ip.To4().String())
+	}
+
+	// 回环地址
+	if ip.IsLoopback() {
+		return true
+	}
+
+	return false
+}
+
+// formatIPForConnection 格式化IP地址用于网络连接
+// IPv6地址需要用方括号包裹
+func formatIPForConnection(ip string, port int) string {
+	if isIPv6(ip) {
+		return fmt.Sprintf("[%s]:%d", ip, port)
+	}
+	return fmt.Sprintf("%s:%d", ip, port)
 }
 
 // portScanWithProgress 带进度显示的端口扫描
@@ -703,7 +865,7 @@ func udpScan(ip string, port int, timeout time.Duration) PortInfo {
 
 // getUDPBanner 获取UDP服务banner
 func getUDPBanner(ip string, port int, timeout time.Duration) string {
-	conn, err := net.DialTimeout("udp", fmt.Sprintf("%s:%d", ip, port), timeout)
+	conn, err := net.DialTimeout("udp", formatIPForConnection(ip, port), timeout)
 	if err != nil {
 		return ""
 	}
@@ -782,7 +944,7 @@ func getUDPProbeData(port int) []byte {
 
 // tcpConnect TCP连接测试
 func tcpConnect(ip string, port int, timeout time.Duration) bool {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, port), timeout)
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
 	if err != nil {
 		return false
 	}
@@ -797,7 +959,7 @@ func tcpConnectFragmented(ip string, port int, timeout time.Duration) bool {
 
 	// 尝试3次连接，模拟数据包分片
 	for i := 0; i < 3; i++ {
-		conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, port), timeout/3)
+		conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout/3)
 		if err == nil {
 			conn.Close()
 			return true
@@ -810,7 +972,7 @@ func tcpConnectFragmented(ip string, port int, timeout time.Duration) bool {
 
 // udpConnect UDP连接测试
 func udpConnect(ip string, port int, timeout time.Duration) bool {
-	conn, err := net.DialTimeout("udp", fmt.Sprintf("%s:%d", ip, port), timeout)
+	conn, err := net.DialTimeout("udp", formatIPForConnection(ip, port), timeout)
 	if err != nil {
 		return false
 	}
@@ -835,7 +997,7 @@ func udpConnect(ip string, port int, timeout time.Duration) bool {
 
 // getBanner 获取服务banner
 func getBanner(ip string, port int, timeout time.Duration) string {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, port), timeout)
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
 	if err != nil {
 		return ""
 	}
@@ -1227,14 +1389,14 @@ func detectOSByTCPFingerprint(ip string) string {
 	// 实际实现需要分析TCP窗口大小、TTL、MSS等参数
 
 	// 尝试连接常见端口并分析TCP响应特征
-	conn, err := net.DialTimeout("tcp", ip+":22", 3*time.Second)
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, 22), 3*time.Second)
 	if err == nil {
 		conn.Close()
 		// SSH端口开放，可能是Linux/Unix系统
 		return "Linux 2.6.32 - 4.9 (96%)"
 	}
 
-	conn, err = net.DialTimeout("tcp", ip+":3389", 3*time.Second)
+	conn, err = net.DialTimeout("tcp", formatIPForConnection(ip, 3389), 3*time.Second)
 	if err == nil {
 		conn.Close()
 		// RDP端口开放，可能是Windows系统
@@ -1679,14 +1841,11 @@ func parseTarget(target string) []string {
 
 			var result []string
 			for _, ip := range ips {
-				// 只使用IPv4地址
-				if ipv4 := ip.To4(); ipv4 != nil {
-					result = append(result, ipv4.String())
-				}
+				result = append(result, ip.String())
 			}
 
 			if len(result) == 0 {
-				// 没有IPv4地址，返回原域名
+				// 没有解析到任何地址，返回原域名
 				return []string{target}
 			}
 
@@ -2161,6 +2320,16 @@ func tcpAckConnect(ip string, port int, timeout time.Duration) bool {
 // isWindows 检查当前系统是否为Windows
 func isWindows() bool {
 	return runtime.GOOS == "windows"
+}
+
+// isLinux 检查当前系统是否为Linux
+func isLinux() bool {
+	return runtime.GOOS == "linux"
+}
+
+// isMacOS 检查当前系统是否为macOS
+func isMacOS() bool {
+	return runtime.GOOS == "darwin"
 }
 
 // windowsICMPPing Windows系统ICMP Ping检测

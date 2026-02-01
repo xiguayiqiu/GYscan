@@ -95,6 +95,7 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(wafCmd, GroupWeb)
 	r.Register(xss.XssCmd, GroupWeb)
 	r.Register(fuCmd, GroupWeb)
+	r.Register(wsCmd, GroupWeb)
 
 	r.Register(linenumCmd, GroupGeneral)
 	r.Register(linuxKernelCmd, GroupGeneral)

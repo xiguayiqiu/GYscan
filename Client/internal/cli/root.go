@@ -16,7 +16,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.7.1"
+	Version = "v2.7.2"
 )
 
 // rootCmd 表示基础命令
@@ -262,6 +262,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(whoisCmd)       // Whois查询工具
 	cmd.AddCommand(wwifiCmd)       // Windows系统WiFi破解工具
 	cmd.AddCommand(pcCmd)          // 远程补丁探测工具
+	cmd.AddCommand(wsCmd)          // WebSocket测试工具
 
 	// ===== 测试阶段命令 =====
 	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]

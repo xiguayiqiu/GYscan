@@ -28,7 +28,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
-| **Latest Version** | v2.7.1 |
+| **Latest Version** | v2.7.2 |
 
 ### Legal Disclaimer
 
@@ -184,7 +184,7 @@ sudo zypper install -y \
 | process | Process and service information collection tool | ✅ Stable |
 | rdp | RDP remote desktop tool | ✅ Stable |
 | route | Route hop detection | ✅ Stable |
-| scan | Network scanning tool, supporting host discovery, port scanning, service identification | ✅ Stable |
+| scan | Network scanning tool, supporting host discovery, port scanning, service identification, IPv6 scanning | ✅ Stable |
 | scapy | Advanced network packet manipulation tool, supporting raw packet construction, interface detection and demonstrations | ✅ Stable |
 | ssh | SSH password brute-forcing tool (Hydra-style) | ✅ Stable |
 | userinfo | Local user and group analysis | ✅ Stable |
@@ -560,100 +560,57 @@ GYscan is built using a modern technology stack to ensure high performance, scal
 
 ### Recent modifications:
 
-1. Cleaned up obsolete code and duplicated registration logic ✅
-- Removed the obsolete portScan function
-- Implemented the isSameSubnet function (previously only a TODO)
-- Improved the description of the arpDiscovery function
-- Cleaned up the duplicate command registration in registry.go
+### v2.7.2
 
-2. Configuration validation and security permissions improvement ✅
-- Added the Config.Validate() function to validate configuration validity
-- Improved the SaveConfig() function, changing the configuration file permission from 0644 to 0600
-- Added detailed configuration validation logic (timeout, thread count, port range, etc.)
-
-3. Regular expression compilation optimization ✅
-- Moved the MySQL version regular expression and MAC address regular expression to package-level pre-compilation
-- Avoided the performance overhead of re-compiling regular expressions each time the function is called
-
-4. Unified help information display logic ✅
-- Reconstructed the printCustomHelp() function, using the grouping logic of CommandRegistry
-- Removed hardcoded command classification logic
-- Simplified the code structure and reduced duplicate code
-
-5. Defined constants to replace magic numbers ✅
-- Added a large number of constant definitions in nmap/scan.go:
-  - Port range constants: MinPort, MaxPort, DefaultScanPortRange
-  - Timeout constants: DefaultTimeout, LongTimeout, FastTimeout, etc.
-  - Thread constants: ParanoidThreads, DefaultThreads, InsaneThreads, etc.
-  - Timing template constants: TimingParanoid, TimingNormal, TimingInsane, etc.
-  - TTL constants: WindowsDefaultTTL, LinuxDefaultTTL
-  - Network distance constants: LocalNetworkDistance, PrivateNetworkDistance
-- Added common port mapping table and MAC address manufacturer prefix mapping
-- Updated the applyTimingTemplate and parsePorts functions to use constants
-
-6. AD CS Vulnerability Detection Feature (Beta) ✅
-- Added `adcs` command, located in beta commands category
-- Supports detection of 8 AD CS vulnerabilities (ESC1-ESC8):
-  - ESC1: Misconfigured certificate template (SubjectAltName spoofing) - High
-  - ESC2: Any Purpose EKU certificate template - High
-  - ESC3: Registration agent template misconfiguration - High/Medium
-  - ESC4: Certificate template ACL vulnerability - High
-  - ESC6: EDITF_ATTRIBUTESUBJECTALTNAME2 flag - High
-  - ESC7: CA permission configuration issues - Medium
-  - ESC8: NTLM relay to HTTP endpoint - Medium
-- Supports vulnerability filters to detect specific vulnerabilities
-- Supports Text and JSON output formats
-- Supports result export to file
-- Based on LDAP protocol to query AD CS configuration
-
-7. Code quality and stability improvements ✅
-- Fixed configuration file path permission issues (changed from /etc/GYscan to ~/.GYscan)
-- Cleaned up unused AI configuration files (ai_config.yml, logging.json)
-- Improved LDAP connection error handling and timeout settings
-- Completed file output functionality
-
-## Changelog
-
-### v2.7
-
-**Version Update and Configuration Audit Feature Release**
+**IPv6 Support Enhancement**
 
 #### New Features
 
-- **pc command** - Remote patch detection tool, remotely query target system middleware component versions and patch status without login
-  - Based on WhatWeb fingerprint recognition technology, supports 1999+ web fingerprints
-  - Supports Web servers: Nginx, Apache, Tomcat, IIS
-  - Supports databases: MySQL, SQL Server, Oracle, PostgreSQL
-  - Supports cache/messaging: Redis, Memcached, RabbitMQ
-  - Supports middleware: WebLogic, JBoss, GlassFish
-  - Supports CMS systems: WordPress, Drupal, Joomla
-  - Component version correlation analysis with official vulnerability database
-  - Supports multiple output formats and filtering options
+- **IPv6 Scanning Support**
+  - Added `-6, --ipv6` flag to enable IPv6 scanning mode
+  - Supports standard IPv6 addresses: `2001:db8::1`, `::1`, `fe80::1`
+  - Supports IPv6 address resolution and DNS queries (AAAA records)
+  - Supports IPv6 host discovery (ICMPv6 Echo requests)
+  - Supports IPv6 port scanning and service identification
+  - Supports IPv6 link-local addresses (with zone ID)
+  - Automatically detects IPv4/IPv6 addresses and selects appropriate network connection method
 
-- **Configuration Audit (CA) Module** - Newly Released
-  - Configuration compliance checks based on CIS Benchmark security baseline
-  - Supports five audit categories: Windows, Linux, Web, SSH, Middleware
-  - Total of 58 configuration check items
-  - Supports JSON, HTML, Text three output formats
+#### Technical Improvements
 
-- **Configuration Evidence Feature**
-  - Displays specific configuration file paths
-  - Displays configuration item names and current values
-  - Provides expected values and remediation suggestions
-  - Detailed risk descriptions and remediation steps
+- Added `isIPv6()` function for IPv6 address detection
+- Added `isPrivateIPv6()` function for IPv6 private address ranges (RFC 4193 ULA, RFC 3879 link-local)
+- Added `formatIPForConnection()` function to handle IPv6 address formatting (bracket wrapping)
+- Updated `RemoveProtocolPrefix()` to properly handle IPv6 addresses
+- Added `icmpv6Ping()` and `systemPing6()` functions for ICMPv6 detection
+- Added `isLinux()` and `isMacOS()` helper functions
+- Updated `hostDiscovery()` to skip ARP detection for IPv6 targets
 
-#### Command Adjustments
+## Changelog
 
-- Added `ca` command - Configuration audit tool
-- Added `pc` command - Remote patch detection tool
-- Moved mg (honeypot identification tool) from stable to beta commands
-- Removed tui (start TUI mode), TUI development no longer considered
+### v2.7.2
 
-#### Technical Optimizations
+**IPv6 Support Enhancement**
 
-- Enhanced CheckResult structure, supports configuration evidence fields
-- Optimized report generator, supports multiple output formats
-- Improved HTML report styles and interactivity
+#### New Features
+
+- **IPv6 Scanning Support**
+  - Added `-6, --ipv6` flag to enable IPv6 scanning mode
+  - Supports standard IPv6 addresses: `2001:db8::1`, `::1`, `fe80::1`
+  - Supports IPv6 address resolution and DNS queries (AAAA records)
+  - Supports IPv6 host discovery (ICMPv6 Echo requests)
+  - Supports IPv6 port scanning and service identification
+  - Supports IPv6 link-local addresses (with zone ID)
+  - Automatically detects IPv4/IPv6 addresses and selects appropriate network connection method
+
+#### Technical Improvements
+
+- Added `isIPv6()` function for IPv6 address detection
+- Added `isPrivateIPv6()` function for IPv6 private address ranges (RFC 4193 ULA, RFC 3879 link-local)
+- Added `formatIPForConnection()` function to handle IPv6 address formatting (bracket wrapping)
+- Updated `RemoveProtocolPrefix()` to properly handle IPv6 addresses
+- Added `icmpv6Ping()` and `systemPing6()` functions for ICMPv6 detection
+- Added `isLinux()` and `isMacOS()` helper functions
+- Updated `hostDiscovery()` to skip ARP detection for IPv6 targets
 
 ### v2.7.1
 
