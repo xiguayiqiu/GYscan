@@ -196,6 +196,7 @@ sudo zypper install -y \
 | clean | Advanced hacker trace detection and cleanup tool | ✅ Stable |
 | fu | File upload vulnerability check tool | ✅ Stable |
 | wwifi | Windows system WiFi cracking functionality | ✅ Stable |
+| ws | WebSocket testing tool, supporting connection testing, message sending, response assertions, auto-reconnect, and heartbeat detection | ✅ Stable |
 
 ### Beta Commands
 
@@ -585,32 +586,19 @@ GYscan is built using a modern technology stack to ensure high performance, scal
 - Added `isLinux()` and `isMacOS()` helper functions
 - Updated `hostDiscovery()` to skip ARP detection for IPv6 targets
 
+- **WebSocket Testing Tool (ws command)**
+  - Supports WebSocket connection testing (ws:// and wss://)
+  - Supports text and binary message sending (with base64/hex encoding)
+  - Supports custom HTTP headers and Origin request header
+  - Supports WSS TLS certificate verification skip
+  - Supports WebSocket subprotocols
+  - Supports auto-reconnect mechanism (exponential backoff + jitter)
+  - Supports response assertion validation (contains/regex/json/length_greater)
+  - Supports heartbeat detection (Ping/Pong)
+  - Supports message count and interval control
+  - Supports verbose output and performance monitoring
+
 ## Changelog
-
-### v2.7.2
-
-**IPv6 Support Enhancement**
-
-#### New Features
-
-- **IPv6 Scanning Support**
-  - Added `-6, --ipv6` flag to enable IPv6 scanning mode
-  - Supports standard IPv6 addresses: `2001:db8::1`, `::1`, `fe80::1`
-  - Supports IPv6 address resolution and DNS queries (AAAA records)
-  - Supports IPv6 host discovery (ICMPv6 Echo requests)
-  - Supports IPv6 port scanning and service identification
-  - Supports IPv6 link-local addresses (with zone ID)
-  - Automatically detects IPv4/IPv6 addresses and selects appropriate network connection method
-
-#### Technical Improvements
-
-- Added `isIPv6()` function for IPv6 address detection
-- Added `isPrivateIPv6()` function for IPv6 private address ranges (RFC 4193 ULA, RFC 3879 link-local)
-- Added `formatIPForConnection()` function to handle IPv6 address formatting (bracket wrapping)
-- Updated `RemoveProtocolPrefix()` to properly handle IPv6 addresses
-- Added `icmpv6Ping()` and `systemPing6()` functions for ICMPv6 detection
-- Added `isLinux()` and `isMacOS()` helper functions
-- Updated `hostDiscovery()` to skip ARP detection for IPv6 targets
 
 ### v2.7.1
 

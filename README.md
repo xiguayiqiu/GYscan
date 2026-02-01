@@ -195,6 +195,7 @@ sudo zypper install -y \
 | clean | 高级黑客攻击痕迹检测与清理工具 | ✅ 稳定 |
 | fu | 文件上传漏洞检查工具 | ✅ 稳定 |
 | wwifi | Windows系统WiFi破解功能 | ✅ 稳定 |
+| ws | WebSocket测试工具，支持连接测试、消息发送、响应断言、自动重连、心跳检测 | ✅ 稳定 |
 
 ### 测试阶段命令
 
@@ -582,32 +583,18 @@ GYscan采用现代化的技术栈构建，确保高性能、可扩展性和易�
 - 新增 `icmpv6Ping()` 和 `systemPing6()` 函数支持ICMPv6探测
 - 新增 `isLinux()` 和 `isMacOS()` 辅助函数
 - 更新 `hostDiscovery()` 为IPv6目标跳过ARP探测
-## 更新日志
 
-### v2.7.2
-
-**IPv6支持增强**
-
-#### 新增功能
-
-- **IPv6扫描支持**
-  - 新增 `-6, --ipv6` 标志启用IPv6扫描模式
-  - 支持标准IPv6地址：`2001:db8::1`、`::1`、`fe80::1`
-  - 支持IPv6地址解析和DNS查询（AAAA记录）
-  - 支持IPv6主机发现（ICMPv6 Echo请求）
-  - 支持IPv6端口扫描和服务识别
-  - 支持IPv6链路本地地址（带zone ID）
-  - 自动识别IPv4/IPv6地址并选择合适的网络连接方式
-
-#### 技术改进
-
-- 新增 `isIPv6()` 函数用于IPv6地址检测
-- 新增 `isPrivateIPv6()` 函数支持IPv6私有地址范围（RFC 4193 ULA、RFC 3879链路本地）
-- 新增 `formatIPForConnection()` 函数处理IPv6地址格式化（方括号包裹）
-- 更新 `RemoveProtocolPrefix()` 正确处理IPv6地址
-- 新增 `icmpv6Ping()` 和 `systemPing6()` 函数支持ICMPv6探测
-- 新增 `isLinux()` 和 `isMacOS()` 辅助函数
-- 更新 `hostDiscovery()` 为IPv6目标跳过ARP探测
+- **WebSocket测试工具（ws命令）**
+  - 支持WebSocket连接测试（ws://和wss://）
+  - 支持文本和二进制消息发送（支持base64/hex编码）
+  - 支持自定义HTTP头和Origin请求头
+  - 支持WSS TLS证书验证跳过
+  - 支持WebSocket子协议
+  - 支持自动重连机制（指数退避+随机抖动）
+  - 支持响应断言验证（contains/regex/json/length_greater）
+  - 支持启用心跳检测（Ping/Pong）
+  - 支持消息发送次数和间隔控制
+  - 支持详细输出和性能监控
 
 ### v2.7.1
 
