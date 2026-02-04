@@ -95,50 +95,45 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 			}
 
 			if len(result.Ports) > 0 {
-				utils.InfoPrint("开放端口:")
+				utils.InfoPrint("扫描端口:")
 				for _, portInfo := range result.Ports {
-					// 使用不同颜色标记端口信息
 					fmt.Printf("  ")
 
-					// 端口号 - 蓝色
 					color.New(color.FgBlue).Printf("%d", portInfo.Port)
 					fmt.Printf("/")
 
-					// 协议 - 青色
 					color.New(color.FgCyan).Printf("%s", portInfo.Protocol)
 					fmt.Printf(" ")
 
-					// 状态 - 绿色（开放）或黄色（其他状态）
-					if portInfo.State == "open" {
-						color.New(color.FgGreen).Printf("%-8s", portInfo.State)
-					} else {
-						color.New(color.FgYellow).Printf("%-8s", portInfo.State)
+					switch portInfo.State {
+					case PortStateOpen:
+						color.New(color.FgGreen).Printf("%-10s", portInfo.State)
+					case PortStateFiltered, PortStateOpenFiltered, PortStateClosedFiltered:
+						color.New(color.FgYellow).Printf("%-10s", portInfo.State)
+					case PortStateUnfiltered:
+						color.New(color.FgHiYellow).Printf("%-10s", portInfo.State)
+					default:
+						color.New(color.FgRed).Printf("%-10s", portInfo.State)
 					}
 
-					// 如果启用了服务识别，显示服务信息
 					if config.ServiceDetection {
 						if portInfo.Service != "" {
 							fmt.Printf(" ")
-							// 服务名称 - 紫色
 							color.New(color.FgMagenta).Printf("%s", portInfo.Service)
 						}
 						if portInfo.Version != "" {
 							fmt.Printf(" ")
-							// 版本信息 - 白色
 							color.New(color.FgWhite).Printf("%s", portInfo.Version)
 						}
 						if portInfo.Banner != "" {
 							fmt.Printf(" ")
-							// Banner信息 - 灰色，限制显示长度避免换行
 							banner := portInfo.Banner
-							// 过滤掉非ASCII字符，避免乱码
 							banner = strings.Map(func(r rune) rune {
 								if r >= 32 && r <= 126 {
 									return r
 								}
 								return -1
 							}, banner)
-							// 限制banner显示长度
 							if len(banner) > 80 {
 								banner = banner[:80] + "..."
 							}

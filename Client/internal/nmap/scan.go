@@ -27,7 +27,15 @@ var (
 	macAddressRegex = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
 )
 
-// Constants for magic numbers to improve code readability and maintainability
+// Port state constants (matching nmap port states)
+const (
+	PortStateOpen           = "open"
+	PortStateClosed         = "closed"
+	PortStateFiltered       = "filtered"
+	PortStateUnfiltered     = "unfiltered"
+	PortStateOpenFiltered   = "open|filtered"
+	PortStateClosedFiltered = "closed|filtered"
+)
 const (
 	// Port ranges
 	MinPort              = 1
@@ -205,7 +213,7 @@ type PortInfo struct {
 	Protocol string `json:"protocol"`
 	Service  string `json:"service"`
 	Banner   string `json:"banner,omitempty"`
-	State    string `json:"state"` // open/closed/filtered
+	State    string `json:"state"` // open/closed/filtered/unfiltered/open|filtered/closed|filtered
 	Version  string `json:"version,omitempty"`
 }
 
@@ -435,21 +443,27 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 			icmpTimestampPing,
 		}
 	} else {
-		// IPv4公网：优先使用TCP和ICMP
+		// IPv4公网：优先使用TCP和ICMP，简化探测
 		methods = []func(string, time.Duration) bool{
-			tcpSynPing,
-			tcpAckPing,
-			tcpPing,
-			icmpPing,
-			udpPing,
-			icmpTimestampPing,
+			tcpPing,    // TCP全连接探测（最可靠）
+			icmpPing,   // ICMP ping
+			tcpSynPing, // TCP SYN探测
 		}
 	}
 
-	// 并行执行多种探测方法，需要至少两种方法确认
+	// 并行执行多种探测方法，公网1种方法确认，私网需要2种
+	isPublic := !isPrivateIP(ip) && !isIPv6(ip)
+	minConfirm := 1
+	if !isPublic {
+		minConfirm = 2
+	}
+
 	resultChan := make(chan bool, len(methods))
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	// 每个方法使用2/3的超时时间
+	methodTimeout := timeout * 2 / 3
 
 	for _, method := range methods {
 		go func(m func(string, time.Duration) bool) {
@@ -457,31 +471,28 @@ func hostDiscovery(ip string, timeout time.Duration) bool {
 			case <-ctx.Done():
 				resultChan <- false
 			default:
-				resultChan <- m(ip, timeout/3) // 每种方法使用1/3超时时间，提高响应速度
+				resultChan <- m(ip, methodTimeout)
 			}
 		}(method)
 	}
 
-	// 收集结果，需要至少2种方法确认主机存活
+	// 收集结果
 	successCount := 0
 	for i := 0; i < len(methods); i++ {
 		select {
 		case result := <-resultChan:
 			if result {
 				successCount++
-				// 如果已经有2种方法确认，立即返回
-				if successCount >= 2 {
+				if successCount >= minConfirm {
 					return true
 				}
 			}
 		case <-ctx.Done():
-			// 超时，返回当前成功计数
-			return successCount >= 2
+			return successCount >= minConfirm
 		}
 	}
 
-	// 最终检查：至少需要2种方法确认
-	return successCount >= 2
+	return successCount >= minConfirm
 }
 
 // icmpPing ICMP Ping检测（Echo请求）
@@ -606,8 +617,8 @@ func icmpTimestampPing(ip string, timeout time.Duration) bool {
 
 // tcpPing TCP Ping检测（全连接，类似nmap -PT）
 func tcpPing(ip string, timeout time.Duration) bool {
-	// 尝试常见端口（全连接方式）
-	commonPorts := []int{22, 23, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995, 1723, 3389, 5900, 8080}
+	// 尝试最常见的HTTP/HTTPS端口（全连接方式）
+	commonPorts := []int{80, 443, 8080, 22, 53}
 	for _, port := range commonPorts {
 		if tcpConnect(ip, port, timeout) {
 			return true
@@ -619,7 +630,7 @@ func tcpPing(ip string, timeout time.Duration) bool {
 // tcpSynPing TCP SYN探测（半开连接，类似nmap -PS）
 func tcpSynPing(ip string, timeout time.Duration) bool {
 	// 尝试常见端口（SYN探测）
-	commonPorts := []int{22, 23, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995, 1723, 3389, 5900, 8080}
+	commonPorts := []int{80, 443, 22, 53, 8080}
 	for _, port := range commonPorts {
 		if tcpSynConnect(ip, port, timeout) {
 			return true
@@ -631,7 +642,7 @@ func tcpSynPing(ip string, timeout time.Duration) bool {
 // tcpAckPing TCP ACK探测（类似nmap -PA）
 func tcpAckPing(ip string, timeout time.Duration) bool {
 	// 尝试常见端口（ACK探测）
-	commonPorts := []int{22, 23, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995, 1723, 3389, 5900, 8080}
+	commonPorts := []int{80, 443, 22, 53, 8080}
 	for _, port := range commonPorts {
 		if tcpAckConnect(ip, port, timeout) {
 			return true
@@ -748,10 +759,10 @@ func portScanWithProgress(ctx context.Context, ip string, ports []int, config Sc
 	totalPorts := len(ports)
 	completedPorts := 0
 	openPorts := 0
+	filteredPorts := 0
 
 	semaphore := make(chan struct{}, config.Threads)
 
-	// 显示端口扫描开始信息
 	fmt.Printf("[进度] 主机 %s 开始扫描 %d 个端口\n", ip, totalPorts)
 
 	for _, port := range ports {
@@ -763,20 +774,34 @@ func portScanWithProgress(ctx context.Context, ip string, ports []int, config Sc
 
 			var portInfo PortInfo
 
-			// 处理-sT和-sU参数逻辑
 			if config.TCPScan {
-				// -sT参数：强制TCP扫描（使用connect扫描）
 				portInfo = connectScan(ip, p, config.Timeout, config.FragmentedScan)
 			} else if config.UDPScan {
-				// -sU参数：强制UDP扫描
 				portInfo = udpScan(ip, p, config.Timeout)
 			} else {
-				// 正常扫描类型选择
 				switch config.ScanType {
 				case "syn":
 					portInfo = synScan(ip, p, config.Timeout, config.FragmentedScan)
 				case "udp":
 					portInfo = udpScan(ip, p, config.Timeout)
+				case "fin":
+					state := finScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+				case "xmas":
+					state := xmasScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+				case "null":
+					state := nullScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+				case "ack":
+					state := ackScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+				case "window":
+					state := windowScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+				case "maimon":
+					state := maimonScan(ip, p, config.Timeout)
+					portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
 				default:
 					portInfo = connectScan(ip, p, config.Timeout, config.FragmentedScan)
 				}
@@ -785,23 +810,26 @@ func portScanWithProgress(ctx context.Context, ip string, ports []int, config Sc
 			mu.Lock()
 			completedPorts++
 
-			if portInfo.State == "open" {
+			switch portInfo.State {
+			case PortStateOpen:
 				results[p] = portInfo
 				openPorts++
-
-				// 更新全局开放端口计数
 				muGlobal.Lock()
 				*openPortsCount++
 				muGlobal.Unlock()
-
-				// 只在开放端口时显示进度，避免重复显示
 				fmt.Printf("[进度] 主机 %s 端口 %d 开放 (%d/%d) - 已发现 %d 个开放端口\n",
 					ip, p, completedPorts, totalPorts, openPorts)
-			} else {
-				// 每扫描100个端口显示一次进度（减少输出频率）
+			case PortStateFiltered, PortStateOpenFiltered:
+				results[p] = portInfo
+				filteredPorts++
 				if completedPorts%100 == 0 || completedPorts == totalPorts {
-					fmt.Printf("[进度] 主机 %s 端口扫描进度: %d/%d - 已发现 %d 个开放端口\n",
-						ip, completedPorts, totalPorts, openPorts)
+					fmt.Printf("[进度] 主机 %s 端口扫描进度: %d/%d - 开放: %d, 过滤: %d\n",
+						ip, completedPorts, totalPorts, openPorts, filteredPorts)
+				}
+			default:
+				if completedPorts%100 == 0 || completedPorts == totalPorts {
+					fmt.Printf("[进度] 主机 %s 端口扫描进度: %d/%d - 开放: %d, 过滤: %d\n",
+						ip, completedPorts, totalPorts, openPorts, filteredPorts)
 				}
 			}
 			mu.Unlock()
@@ -809,7 +837,7 @@ func portScanWithProgress(ctx context.Context, ip string, ports []int, config Sc
 	}
 
 	wg.Wait()
-	fmt.Printf("[进度] 主机 %s 端口扫描完成: %d/%d 端口开放\n", ip, openPorts, totalPorts)
+	fmt.Printf("[进度] 主机 %s 端口扫描完成: %d 开放, %d 过滤\n", ip, openPorts, filteredPorts)
 	return results
 }
 
@@ -818,7 +846,7 @@ func connectScan(ip string, port int, timeout time.Duration, fragmented bool) Po
 	info := PortInfo{
 		Port:     port,
 		Protocol: "tcp",
-		State:    "closed",
+		State:    PortStateClosed,
 	}
 
 	var isOpen bool
@@ -829,8 +857,7 @@ func connectScan(ip string, port int, timeout time.Duration, fragmented bool) Po
 	}
 
 	if isOpen {
-		info.State = "open"
-		// 获取banner
+		info.State = PortStateOpen
 		info.Banner = getBanner(ip, port, timeout)
 		info.Service = identifyService(port, info.Banner)
 	}
@@ -845,22 +872,265 @@ func synScan(ip string, port int, timeout time.Duration, fragmented bool) PortIn
 	return connectScan(ip, port, timeout, fragmented)
 }
 
-// udpScan UDP扫描
+// udpScan UDP扫描（支持完整端口状态检测）
 func udpScan(ip string, port int, timeout time.Duration) PortInfo {
 	info := PortInfo{
 		Port:     port,
 		Protocol: "udp",
-		State:    "closed",
+		State:    PortStateClosed,
 	}
 
-	if udpConnect(ip, port, timeout) {
-		info.State = "open"
-		// 获取UDP服务banner并识别服务
+	state := detectUDPPortState(ip, port, timeout)
+	info.State = state
+
+	if state == PortStateOpen {
 		banner := getUDPBanner(ip, port, timeout)
 		info.Service = identifyUDPService(port, banner)
 	}
 
 	return info
+}
+
+// detectUDPPortState UDP端口状态检测（支持open/filtered/closed/open|filtered）
+func detectUDPPortState(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("udp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateClosed
+	}
+	defer conn.Close()
+
+	testData := []byte("GYscan-UDP-Probe")
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(testData)
+	if err != nil {
+		return PortStateClosed
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateOpenFiltered
+		}
+		return PortStateClosed
+	}
+	if n > 0 {
+		return PortStateOpen
+	}
+	return PortStateOpenFiltered
+}
+
+// finScan TCP FIN扫描（用于检测open|filtered状态）
+func finScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	finData := []byte{0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(finData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateOpenFiltered
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Err.Error() == "connection reset by peer" {
+				return PortStateClosed
+			}
+		}
+		return PortStateFiltered
+	}
+	if n > 0 {
+		return PortStateClosed
+	}
+	return PortStateOpenFiltered
+}
+
+// xmasScan TCP XMAS扫描
+func xmasScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	xmasData := []byte{0x29, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(xmasData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateOpenFiltered
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Err.Error() == "connection reset by peer" {
+				return PortStateClosed
+			}
+		}
+		return PortStateFiltered
+	}
+	if n > 0 {
+		return PortStateClosed
+	}
+	return PortStateOpenFiltered
+}
+
+// nullScan TCP NULL扫描
+func nullScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	nullData := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(nullData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateOpenFiltered
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Err.Error() == "connection reset by peer" {
+				return PortStateClosed
+			}
+		}
+		return PortStateFiltered
+	}
+	if n > 0 {
+		return PortStateClosed
+	}
+	return PortStateOpenFiltered
+}
+
+// ackScan TCP ACK扫描（用于检测unfiltered状态）
+func ackScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	ackData := []byte{0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(ackData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateFiltered
+		}
+		return PortStateUnfiltered
+	}
+	if n > 0 {
+		return PortStateUnfiltered
+	}
+	return PortStateUnfiltered
+}
+
+// maimonScan TCP Maimon扫描
+func maimonScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	maimonData := []byte{0x11, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(maimonData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateOpenFiltered
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Err.Error() == "connection reset by peer" {
+				return PortStateClosed
+			}
+		}
+		return PortStateFiltered
+	}
+	if n > 0 {
+		return PortStateClosed
+	}
+	return PortStateOpenFiltered
+}
+
+// windowScan TCP窗口扫描
+func windowScan(ip string, port int, timeout time.Duration) string {
+	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+	if err != nil {
+		return PortStateFiltered
+	}
+	defer connCloseWithoutError(conn)
+
+	windowData := []byte{0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	conn.SetWriteDeadline(time.Now().Add(timeout))
+	_, err = conn.Write(windowData)
+	if err != nil {
+		return PortStateFiltered
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return PortStateFiltered
+		}
+		if opErr, ok := err.(*net.OpError); ok {
+			if opErr.Err.Error() == "connection reset by peer" {
+				return PortStateClosed
+			}
+		}
+		return PortStateFiltered
+	}
+	if n > 0 {
+		return PortStateClosed
+	}
+	return PortStateFiltered
+}
+
+// connCloseWithoutError 安全关闭连接
+func connCloseWithoutError(conn net.Conn) {
+	if conn != nil {
+		conn.Close()
+	}
 }
 
 // getUDPBanner 获取UDP服务banner
@@ -942,14 +1212,23 @@ func getUDPProbeData(port int) []byte {
 	}
 }
 
-// tcpConnect TCP连接测试
+// tcpConnect TCP连接测试（带重试机制）
 func tcpConnect(ip string, port int, timeout time.Duration) bool {
-	conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
-	if err != nil {
-		return false
+	maxRetries := 2
+	retryDelay := 50 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		conn, err := net.DialTimeout("tcp", formatIPForConnection(ip, port), timeout)
+		if err != nil {
+			if i < maxRetries-1 {
+				time.Sleep(retryDelay)
+				continue
+			}
+			return false
+		}
+		conn.Close()
+		return true
 	}
-	conn.Close()
-	return true
+	return false
 }
 
 // tcpConnectFragmented 碎片化TCP连接测试（规避防火墙/IDS）
@@ -978,7 +1257,6 @@ func udpConnect(ip string, port int, timeout time.Duration) bool {
 	}
 	defer conn.Close()
 
-	// 发送测试数据
 	testData := []byte("GYscan-UDP-Test")
 	conn.SetWriteDeadline(time.Now().Add(timeout))
 	_, err = conn.Write(testData)
@@ -986,13 +1264,19 @@ func udpConnect(ip string, port int, timeout time.Duration) bool {
 		return false
 	}
 
-	// 尝试接收响应
-	conn.SetReadDeadline(time.Now().Add(timeout))
 	buf := make([]byte, 1024)
-	_, _ = conn.Read(buf)
-
-	// 即使没有响应，也可能表示端口开放（UDP特性）
-	return true
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	n, err := conn.Read(buf)
+	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return false
+		}
+		return false
+	}
+	if n > 0 {
+		return true
+	}
+	return false
 }
 
 // getBanner 获取服务banner

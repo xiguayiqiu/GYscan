@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"GYscan/internal/csrf"
+	"GYscan/internal/exp"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
 	"GYscan/internal/utils"
@@ -16,7 +17,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.7.2"
+	Version = "v2.8.0"
 )
 
 // rootCmd 表示基础命令
@@ -265,11 +266,12 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(wsCmd)          // WebSocket测试工具
 
 	// ===== 测试阶段命令 =====
-	cmd.AddCommand(csrf.Cmd) // CSRF漏洞检测 [测试阶段]
-	cmd.AddCommand(dcomCmd)  // DCOM远程执行模块 [测试阶段]
-	cmd.AddCommand(ldapCmd)  // LDAP枚举模块 [测试阶段]
-	cmd.AddCommand(mgCmd)    // 蜜罐识别工具 [测试阶段]
-	cmd.AddCommand(adcsCmd)  // AD CS 漏洞检测工具 [测试阶段]
+	cmd.AddCommand(csrf.Cmd)   // CSRF漏洞检测 [测试阶段]
+	cmd.AddCommand(dcomCmd)    // DCOM远程执行模块 [测试阶段]
+	cmd.AddCommand(ldapCmd)    // LDAP枚举模块 [测试阶段]
+	cmd.AddCommand(mgCmd)      // 蜜罐识别工具 [测试阶段]
+	cmd.AddCommand(adcsCmd)    // AD CS 漏洞检测工具 [测试阶段]
+	cmd.AddCommand(exp.ExpCmd) // Exploit-DB 漏洞利用搜索和PoC生成 [测试阶段]
 }
 
 // init 初始化命令

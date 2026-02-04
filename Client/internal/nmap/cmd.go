@@ -61,6 +61,12 @@ func init() {
 		fragmentedScan   bool
 		tcpScan          bool
 		udpScan          bool
+		finScan          bool
+		xmasScan         bool
+		nullScan         bool
+		ackScan          bool
+		windowScan       bool
+		maimonScan       bool
 		hostDiscovery    bool
 		pn               bool
 		ipv6             bool
@@ -100,6 +106,18 @@ func init() {
 			actualScanType = "udp"
 		} else if synScan {
 			actualScanType = "syn"
+		} else if finScan {
+			actualScanType = "fin"
+		} else if xmasScan {
+			actualScanType = "xmas"
+		} else if nullScan {
+			actualScanType = "null"
+		} else if ackScan {
+			actualScanType = "ack"
+		} else if windowScan {
+			actualScanType = "window"
+		} else if maimonScan {
+			actualScanType = "maimon"
 		}
 
 		// 创建扫描配置
@@ -166,6 +184,14 @@ func init() {
 	ScanCmd.Flags().BoolVarP(&udpScan, "sU", "", false, "UDP扫描")
 	ScanCmd.Flags().BoolVarP(&synScan, "sS", "", false, "SYN扫描")
 
+	// 隐蔽扫描类型参数（用于检测filtered状态）
+	ScanCmd.Flags().BoolVarP(&finScan, "sF", "", false, "TCP FIN扫描")
+	ScanCmd.Flags().BoolVarP(&xmasScan, "sX", "", false, "TCP XMAS扫描")
+	ScanCmd.Flags().BoolVarP(&nullScan, "sN", "", false, "TCP NULL扫描")
+	ScanCmd.Flags().BoolVarP(&ackScan, "sA", "", false, "TCP ACK扫描")
+	ScanCmd.Flags().BoolVarP(&windowScan, "sW", "", false, "TCP窗口扫描")
+	ScanCmd.Flags().BoolVarP(&maimonScan, "sM", "", false, "TCP Maimon扫描")
+
 	// 服务识别和系统识别标志（nmap标准参数）
 	ScanCmd.Flags().BoolVarP(&osDetection, "O", "O", false, "启用系统识别")
 	ScanCmd.Flags().BoolVarP(&serviceDetection, "sV", "", false, "启用服务识别")
@@ -208,6 +234,12 @@ func init() {
   --sT: TCP连接扫描 (nmap -sT)
   --sU: UDP扫描
   --sS: SYN扫描
+  --sF: TCP FIN扫描 (检测open|filtered状态)
+  --sX: TCP XMAS扫描 (检测open|filtered状态)
+  --sN: TCP NULL扫描 (检测open|filtered状态)
+  --sA: TCP ACK扫描 (检测unfiltered状态)
+  --sW: TCP窗口扫描
+  --sM: TCP Maimon扫描
 
 服务识别和系统识别:
   --O: 启用系统识别
@@ -227,6 +259,14 @@ func init() {
   仅进行主机存活探测，跳过端口扫描
   采用多协议组合探测（ICMP Ping + TCP SYN/ACK + UDP），提高准确性
   适用于快速发现网络中的在线主机，效率远高于全端口扫描
+
+端口状态说明:
+  open: 端口开放，有服务监听
+  closed: 端口关闭，无服务监听
+  filtered: 端口被过滤，无法确定状态
+  unfiltered: 端口可达，但无法判断开放/关闭（ACK扫描）
+  open|filtered: 开放或过滤状态（FIN/XMAS/NULL/UDP扫描）
+  closed|filtered: 关闭或过滤状态（IP ID空闲扫描）
 `)
 
 	// 添加help子命令

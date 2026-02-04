@@ -1,4 +1,4 @@
-.TH GYSCAN "1" "2026年2月1日" "GYscan v2.7.2" "用户命令手册"
+.TH GYSCAN "1" "2026年2月4日" "GYscan v2.8.0" "用户命令手册"
 .SH 名称
 GYscan \- Go语言内网横向边界安全测试工具
 .SH 总览
@@ -82,6 +82,9 @@ GYscan \- Go语言内网横向边界安全测试工具
 .PP
 .B GYscan
 \fBwwifi\fR [\fI选项\fR]
+.PP
+.B GYscan
+\fBexp\fR \fI子命令\fR [\fI选项\fR]
 .PP
 .B GYscan
 \fBws\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
@@ -1233,6 +1236,119 @@ UDP扫描 (nmap -sU)
 TCP SYN扫描 (nmap -sS)
 .RE
 .PP
+\fB--sF\fR
+.RS 4
+TCP FIN扫描 (nmap -sF)
+.RS 4
+发送FIN数据包到目标端口
+.RE
+.RS 4
+根据RFC 793，关闭的端口会响应RST包，开放或过滤的端口不响应
+.RE
+.RS 4
+可用于检测open|filtered状态
+.RE
+.RE
+.PP
+\fB--sX\fR
+.RS 4
+TCP XMAS扫描 (nmap -sX)
+.RS 4
+发送FIN、URG、PSH标志位同时置位的数据包
+.RE
+.RS 4
+根据RFC 793，关闭的端口会响应RST包，开放或过滤的端口不响应
+.RE
+.RS 4
+可用于检测open|filtered状态
+.RE
+.RE
+.PP
+\fB--sN\fR
+.RS 4
+TCP NULL扫描 (nmap -sN)
+.RS 4
+发送不含任何标志位的数据包
+.RE
+.RS 4
+根据RFC 793，关闭的端口会响应RST包，开放或过滤的端口不响应
+.RE
+.RS 4
+可用于检测open|filtered状态
+.RE
+.RE
+.PP
+\fB--sA\fR
+.RS 4
+TCP ACK扫描 (nmap -sA)
+.RS 4
+发送ACK数据包到目标端口
+.RE
+.RS 4
+用于判断端口是否被过滤（返回RST表示可达，无法判断开放/关闭）
+.RE
+.RS 4
+可用于检测unfiltered状态
+.RE
+.RE
+.PP
+\fB--sW\fR
+.RS 4
+TCP窗口扫描 (nmap -sW)
+.RS 4
+通过检查TCP窗口大小判断端口状态
+.RE
+.RS 4
+某些系统开放端口会返回正的窗口值，关闭端口返回0
+.RE
+.RE
+.PP
+\fB--sM\fR
+.RS 4
+TCP Maimon扫描 (nmap -sM)
+.RS 4
+发送FIN/ACK标志位的数据包
+.RE
+.RS 4
+类似于FIN扫描，用于检测BSD系统
+.RE
+.RS 4
+可用于检测open|filtered状态
+.RE
+.RE
+.PP
+\fB端口状态说明\fR：
+.PP
+\fBopen（开放）\fR
+.RS 4
+目标端口正在运行服务并监听流量，是扫描中最受关注的状态，说明该端口可被外部访问并响应请求。
+.RE
+.PP
+\fBclosed（关闭）\fR
+.RS 4
+目标端口没有服务监听，但主机可达，会响应探测报文。关闭的端口不代表主机不存在，只是该端口当前无应用占用。
+.RE
+.PP
+\fBfiltered（过滤）\fR
+.RS 4
+探测报文被防火墙、路由器ACL或其他网络安全设备拦截，nmap无法确定端口的真实状态（开放/关闭）。通常表现为无响应或返回ICMP不可达错误。
+.RE
+.PP
+\fBunfiltered（未过滤）\fR
+.RS 4
+仅在使用ACK扫描时出现，nmap能与端口通信，但无法判断端口是开放还是关闭。这类端口未被过滤设备拦截，但缺乏足够信息确定状态。
+.RE
+.PP
+\fBopen|filtered（开放或过滤）\fR
+.RS 4
+nmap无法区分端口是开放还是被过滤。常见于UDP、IP协议、FIN/Xmas/Null等扫描类型，因为这些扫描的开放端口和过滤端口都可能不返回响应。
+.RE
+.PP
+\fBclosed|filtered（关闭或过滤）\fR
+.RS 4
+仅在使用IP ID空闲扫描时出现，nmap无法区分端口是关闭还是被过滤，两种状态下的探测结果特征一致。
+.RE
+.PP
 \fB--6\fR, \fB--ipv6\fR
 .RS 4
 启用IPv6扫描模式 (nmap -6参数)
@@ -1309,6 +1425,104 @@ TCP SYN扫描 (nmap -sS)
 .RE
 .RS 4
 扫描单个IPv4地址
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.0/24
+.RE
+.RS 4
+扫描整个网段
+.RE
+.PP
+.RS 4
+.B GYscan scan "::1" --ipv6 -p 22,80
+.RE
+.RS 4
+扫描IPv6本地回环地址
+.RE
+.PP
+.RS 4
+.B GYscan scan 2001:db8::1 --ipv6 -p 1-1000
+.RE
+.RS 4
+扫描IPv6地址
+.RE
+.PP
+.RS 4
+.B GYscan scan --target 192.168.1.100 --ports 80,443,22,21
+.RE
+.RS 4
+扫描指定端口
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.0/24 -T 4 --sn
+.RE
+.RS 4
+快速主机发现模式
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 -O -sV
+.RE
+.RS 4
+启用系统识别和服务版本检测
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 -A -o result.txt
+.RE
+.RS 4
+全面扫描并保存结果
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 --sF
+.RE
+.RS 4
+使用TCP FIN扫描检测过滤端口
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 --sA
+.RE
+.RS 4
+使用TCP ACK扫描检测端口过滤状态
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 --sU
+.RE
+.RS 4
+使用UDP扫描检测UDP端口状态
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 --sX
+.RE
+.RS 4
+使用TCP XMAS扫描进行隐蔽探测
+.RE
+.PP
+.RS 4
+.B GYscan scan 192.168.1.100 --sN
+.RE
+.RS 4
+使用TCP NULL扫描进行隐蔽探测
+.RE
+.PP
+.RS 4
+.B GYscan scan www.example.com -T4 --sV
+.RE
+.RS 4
+对域名进行快速服务版本检测
+.RE
+.PP
+.RS 4
+.B GYscan scan 10.0.0.0/24 -p 1-1024 --sS
+.RE
+.RS 4
+对网段进行SYN扫描，检测常见端口
 .RE
 .PP
 .RS 4
@@ -2636,6 +2850,230 @@ LDAP服务器地址（必需参数）
 .RE
 .RS 4
 检测目标是否为蜜罐
+.RE
+.SS exp（Exploit-DB漏洞利用管理工具）
+.PP
+\fBGYscan exp\fR \fI子命令\fR [\fI选项\fR]
+.PP
+Exploit-DB漏洞利用管理工具，集成Exploit-DB数据库，包含46,928条漏洞利用和1,065条shellcode。支持漏洞搜索、PoC查看、代码复制、PoC生成、Nmap脚本生成等功能。
+.PP
+\fB子命令\fR：
+.PP
+\fBsearch\fR
+.RS 4
+搜索漏洞利用和Shellcode
+.RE
+.PP
+\fBlist\fR
+.RS 4
+列出可用的平台和漏洞类型
+.RE
+.PP
+\fBinfo\fR
+.RS 4
+显示漏洞利用详细信息
+.RE
+.PP
+\fBshow\fR
+.RS 4
+显示漏洞利用代码内容
+.RE
+.PP
+\fBcopy\fR
+.RS 4
+复制漏洞利用代码到指定目录
+.RE
+.PP
+\fBgenerate\fR
+.RS 4
+生成带GYscan头部的PoC代码
+.RE
+.PP
+\fBsimple\fR
+.RS 4
+生成简单的Python PoC模板
+.RE
+.PP
+\fBnmap\fR
+.RS 4
+生成Nmap NSE脚本
+.RE
+.PP
+\fBstats\fR
+.RS 4
+显示数据库统计信息
+.RE
+.PP
+\fBreload\fR
+.RS 4
+重新加载数据库
+.RE
+.PP
+\fBsearch选项\fR：
+.PP
+\fB-k\fR, \fB--keyword\fR \fI关键词\fR
+.RS 4
+搜索关键词
+.RE
+.PP
+\fB--cve\fR \fICVE编号\fR
+.RS 4
+按CVE编号搜索
+.RE
+.PP
+\fB--platform\fR \fI平台\fR
+.RS 4
+按平台筛选，如：windows/linux/php
+.RE
+.PP
+\fB--type\fR \fI类型\fR
+.RS 4
+按漏洞类型筛选，如：local/remote/dos/webapps
+.RE
+.PP
+\fB--exact\fR
+.RS 4
+精确匹配模式
+.RE
+.PP
+\fB-c\fR, \fB--case\fR
+.RS 4
+大小写敏感搜索
+.RE
+.PP
+\fB-o\fR, \fB--output\fR \fI文件路径\fR
+.RS 4
+输出结果到文件
+.RE
+.PP
+\fB--format\fR \fI格式\fR
+.RS 4
+输出格式：text/json
+.RE
+.PP
+\fB-v\fR, \fB--verbose\fR
+.RS 4
+详细输出模式
+.RE
+.PP
+\fBgenerate/simple选项\fR：
+.PP
+\fB-t\fR, \fB--target\fR \fI目标\fR
+.RS 4
+目标IP地址或主机名
+.RE
+.PP
+\fB-p\fR, \fB--port\fR \fI端口\fR
+.RS 4
+目标端口号
+.RE
+.PP
+\fB--ssl\fR
+.RS 4
+使用SSL/HTTPS
+.RE
+.PP
+\fB-o\fR, \fB--output\fR \fI目录路径\fR
+.RS 4
+输出目录路径
+.RE
+.PP
+\fBinfo/show/copy/nmap选项\fR：
+.PP
+\fB<EDB-ID>\fR
+.RS 4
+Exploit-DB ID（必需参数）
+.RE
+.PP
+\fB-v\fR, \fB--verbose\fR
+.RS 4
+详细输出模式（仅info命令）
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan exp search "apache struts"
+.RE
+.RS 4
+搜索Apache Struts相关漏洞
+.RE
+.PP
+.RS 4
+.B GYscan exp search --cve CVE-2021-44228
+.RE
+.RS 4
+按CVE编号搜索漏洞
+.RE
+.PP
+.RS 4
+.B GYscan exp search --platform windows --type local
+.RE
+.RS 4
+搜索Windows本地提权漏洞
+.RE
+.PP
+.RS 4
+.B GYscan exp info 40564
+.RE
+.RS 4
+查看EDB-ID 40564漏洞详情
+.RE
+.PP
+.RS 4
+.B GYscan exp show 40564 > poc.py
+.RE
+.RS 4
+查看并保存PoC代码
+.RE
+.PP
+.RS 4
+.B GYscan exp copy 40564 /tmp/exploits/
+.RE
+.RS 4
+复制PoC到指定目录
+.RE
+.PP
+.RS 4
+.B GYscan exp generate 40564 -t 192.168.1.100 -p 8080 -o /tmp/pocs/
+.RE
+.RS 4
+生成带目标参数的PoC
+.RE
+.PP
+.RS 4
+.B GYscan exp simple 40564 -t 192.168.1.100 -o poc.py
+.RE
+.RS 4
+生成简单Python PoC模板
+.RE
+.PP
+.RS 4
+.B GYscan exp nmap 40564 -o /usr/share/nmap/scripts/
+.RE
+.RS 4
+生成Nmap NSE检测脚本
+.RE
+.PP
+.RS 4
+.B GYscan exp stats
+.RE
+.RS 4
+显示数据库统计信息
+.RE
+.PP
+.RS 4
+.B GYscan exp list platforms
+.RE
+.RS 4
+列出所有可用平台
+.RE
+.PP
+.RS 4
+.B GYscan exp reload
+.RE
+.RS 4
+重新加载数据库
 .RE
 .SH 退出状态码
 .PP

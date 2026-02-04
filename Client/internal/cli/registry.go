@@ -2,6 +2,7 @@ package cli
 
 import (
 	"GYscan/internal/csrf"
+	"GYscan/internal/exp"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
 	"GYscan/internal/xss"
@@ -106,6 +107,7 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(ldapCmd, GroupTesting)
 	r.Register(mgCmd, GroupTesting)
 	r.Register(adcsCmd, GroupTesting)
+	r.Register(exp.ExpCmd, GroupTesting)
 
 	return r
 }
