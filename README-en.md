@@ -15,6 +15,14 @@ Please make sure to visit the official website of this project. This software ha
 
 [GYscan - 内网安全测试工具](https://www.gyscan.dpdns.org/)（https://www.gyscan.dpdns.org/）
 
+## Website Migration Notice
+
+⚠️ GYscan is undergoing migration to Amazon Web Services, expected to complete on February 5, 2026! Thank you for your patience~
+
+📅 The website will be inaccessible from 21:30 (Beijing Time) on February 4, 2026 to 21:30 (Beijing Time) on February 5, 2026!
+
+We will notify everyone as soon as the migration is complete. Thank you for your understanding and support!
+
 ## Core Advantages
 
 - **Focused on Internal Network Security**: Specifically optimized for internal network lateral movement and boundary security testing scenarios
