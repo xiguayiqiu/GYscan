@@ -107,7 +107,7 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(ldapCmd, GroupTesting)
 	r.Register(mgCmd, GroupTesting)
 	r.Register(adcsCmd, GroupTesting)
-	r.Register(exp.ExpCmd, GroupTesting)
+	r.Register(exp.ExpCmd, GroupWeb)
 
 	return r
 }
