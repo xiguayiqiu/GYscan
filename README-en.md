@@ -10,6 +10,11 @@
 
 GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed using Go language. This tool integrates rich internal network penetration testing capabilities, including port scanning, service identification, vulnerability detection, remote command execution, and weak password brute-forcing, providing security researchers and penetration testers with efficient and reliable internal network security assessment solutions.
 
+## GYscan Official Website 
+Please make sure to visit the official website of this project. This software has only this one website; all the others are fake! Please pay attention!
+
+[GYscan - 内网安全测试工具](https://www.gyscan.dpdns.org/)（https://www.gyscan.dpdns.org/）
+
 ## Core Advantages
 
 - **Focused on Internal Network Security**: Specifically optimized for internal network lateral movement and boundary security testing scenarios
@@ -43,6 +48,7 @@ GYscan is a professional tool focused on internal network lateral movement and b
   - Supports JSON and text format output
   - Supports saving search results to files
 
+<<<<<<< HEAD
 - **Exploit Details Viewing**
   - Query vulnerability details by EDB-ID
   - Displays vulnerability description, platform, type, author, publication date, CVE, etc.
@@ -53,6 +59,16 @@ GYscan is a professional tool focused on internal network lateral movement and b
   - `copy` subcommand: Copy exploit code to specified directory
   - `generate` subcommand: Generate PoC code with GYscan headers
   - Supports custom target parameters (-t target address, -p port, --ssl)
+=======
+1. **Install Go Environment** (Version 1.18+)
+   ```bash
+   # Download and install Go
+   https://golang.org/dl/
+   
+   # Verify installation
+   go version
+   ```
+>>>>>>> c0bf3fe3433b5e5d957810a5cc0abd21d3a67b97
 
 - **PoC Template Generation**
   - `simple` subcommand: Generate simple Python PoC templates
