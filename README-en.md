@@ -2,26 +2,61 @@
 
 # GYscan - Internal Network Lateral Boundary Security Testing Tool
 
-**For this project, when sharing, whether it's an article, tool introduction, or video introduction, please make sure to keep the original author's repository name! Thank you for your cooperation!**
+## ⚠️ Copyright Notice & Anti-Piracy Warning
 
-**To those who replace or alter the original author's work, you might receive a legal summons one day~~**
+**【IMPORTANT】When sharing this project, whether in articles, tool introductions, or video content, you MUST preserve the original author's repository name and credit! Unauthorized reproduction, modification, or redistribution constitutes copyright infringement!**
+
+### Legal Consequences of Infringement
+
+Unauthorized use of this tool for unauthorized testing, modifying source code, or repackaging may result in:
+- **Civil Liability**: Copyright infringement, requiring compensation and corrective actions
+- **Administrative Liability**: Violation of cybersecurity laws and regulations
+- **Criminal Liability**: Severe cases may constitute illegal computer system intrusion
+
+**We have implemented technical traceability for all modified versions - plagiarizers will be prosecuted!**
+
+## 🔒 Anti-Piracy Statement
+
+This project is ONLY released through the following official channels. All other sources are pirated:
+
+### Official Distribution Channels
+- **GitHub Main Repository**: https://github.com/gyscan/GYscan
+- **Gitee Main Repository**：https://gitee.com/bzhanyiqiua/GYscan
+- **Official Website**: https://gyscan.space
+- **Official Communication Group**: See website for details
+
+### How to Identify Pirated Copies
+1. **Non-Official Domains**: All domains other than gyscan.space are pirated
+2. **Modified Author Info**: Removal or modification of original project credits
+3. **Redistribution**: Unauthorized reproduction and republication
+4. **Paid Sales**: This project is completely FREE - any paid offering is a scam
+
+**If you discover pirated copies, please report via the website contact. We will pursue legal action!**
+
+## 📢 Website Migration Notice
+
+GYscan official website has migrated to the new domain **gyscan.space**. The old domain is no longer active.
+
+## 🏢 Official Website
+
+**Please use the only official website! This software has ONLY ONE official website - all others are impersonations!**
+
+> **⚠️ Beware of Fake Websites**  
+> We will NEVER ask for your account credentials, passwords, or payments through unofficial channels  
+> If you encounter a fake website, stop immediately and report it via the official website
+
+**GYscan Official Website**: [https://gyscan.space](https://gyscan.space/)
 
 ## Project Overview
 
-GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed using Go language. This tool integrates rich internal network penetration testing capabilities, including port scanning, service identification, vulnerability detection, remote command execution, and weak password brute-forcing, providing security researchers and penetration testers with efficient and reliable internal network security assessment solutions.
+GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed using Go language. This tool integrates rich internal network penetration testing capabilities, including:
 
-## GYscan Official Website 
-Please make sure to visit the official website of this project. This software has only this one website; all the others are fake! Please pay attention!
-
-[GYscan - 内网安全测试工具](https://www.gyscan.dpdns.org/)（https://www.gyscan.dpdns.org/）
-
-## Website Migration Notice
-
-⚠️ GYscan is undergoing migration to Amazon Web Services, expected to complete on February 5, 2026! Thank you for your patience~
-
-📅 The website will be inaccessible from 21:30 (Beijing Time) on February 4, 2026 to 21:30 (Beijing Time) on February 5, 2026!
-
-We will notify everyone as soon as the migration is complete. Thank you for your understanding and support!
+- **Port Scanning**: Fast and accurate network port discovery
+- **Service Identification**: Detailed service and version fingerprinting
+- **Vulnerability Detection**: Integration with CVE databases and exploit frameworks
+- **Remote Command Execution**: Secure command execution capabilities
+- **Weak Password Brute-Forcing**: Multi-protocol credential testing
+- **Configuration Auditing**: CIS Benchmark-based security checks
 
 ## Core Advantages
 
@@ -56,29 +91,12 @@ We will notify everyone as soon as the migration is complete. Thank you for your
   - Supports JSON and text format output
   - Supports saving search results to files
 
-<<<<<<< HEAD
 - **Exploit Details Viewing**
   - Query vulnerability details by EDB-ID
   - Displays vulnerability description, platform, type, author, publication date, CVE, etc.
   - Supports verbose mode to show tags and aliases
 
 - **PoC Code Management**
-  - `show` subcommand: View exploit code content
-  - `copy` subcommand: Copy exploit code to specified directory
-  - `generate` subcommand: Generate PoC code with GYscan headers
-  - Supports custom target parameters (-t target address, -p port, --ssl)
-=======
-1. **Install Go Environment** (Version 1.18+)
-   ```bash
-   # Download and install Go
-   https://golang.org/dl/
-   
-   # Verify installation
-   go version
-   ```
->>>>>>> c0bf3fe3433b5e5d957810a5cc0abd21d3a67b97
-
-- **PoC Template Generation**
   - `simple` subcommand: Generate simple Python PoC templates
   - Supports rapid testing and custom development
   - Supports parameterized target address and port
@@ -320,13 +338,41 @@ Welcome to submit Issues and Pull Requests to improve the project. Please ensure
 3. Update relevant documentation
 4. Follow secure development specifications
 
-## License
+## ⚖️ Disclaimer
 
-This project uses MIT license. See LICENSE file for details.
+**【Please Read Before Use】**
 
-## Disclaimer
+1. **Usage Restrictions**: This tool is strictly limited to:
+   - Security testing projects with explicit authorization
+   - Network security research and educational purposes
+   - Internal enterprise security assessments (requires written authorization)
 
-**Important Notice**: This tool is for security research and authorized testing only. Any unauthorized use is illegal, and users bear corresponding legal responsibilities. The author does not assume any direct or indirect liability arising from the use of this tool.
+2. **Prohibited Activities**:
+   - ❌ Unauthorized penetration of any systems
+   - ❌ Illegal access or damage to others' computer systems
+   - ❌ Use for any illegal activities
+   - ❌ Using this tool on targets without authorization
+
+3. **Liability Statement**:
+   - Users must ensure they have obtained all necessary authorizations
+   - Authors and contributors accept no legal responsibility for misuse
+   - This tool provides NO warranty of any kind
+
+4. **Compliance Requirements**: Before using this tool, ensure compliance with:
+   - Local laws and regulations
+   - Written authorization from target system owners
+   - Use only within authorized scope
+
+## 📄 License
+
+This project is licensed under the **Apache License 2.0**.
+
+**You are free to**: freely use, modify, and distribute this project's code, subject to:
+- Preserving the original copyright notice
+- Adding notices to modified files
+- Derivative works must use the same license
+
+**See**: [LICENSE](LICENSE) file for details.
 
 ---
 
