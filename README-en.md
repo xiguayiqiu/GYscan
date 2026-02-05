@@ -1,6 +1,12 @@
-[中文文档](README.md)
+[**中文文档**](README.md)
 
 # GYscan - Internal Network Lateral Boundary Security Testing Tool
+
+[![Version](https://img.shields.io/badge/Version-v2.8.0-blue)](https://gyscan.space)
+[![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
+
+---
 
 ## ⚠️ Copyright Notice & Anti-Piracy Warning
 
@@ -15,68 +21,295 @@ Unauthorized use of this tool for unauthorized testing, modifying source code, o
 
 **We have implemented technical traceability for all modified versions - plagiarizers will be prosecuted!**
 
+---
+
 ## 🔒 Anti-Piracy Statement
 
 This project is ONLY released through the following official channels. All other sources are pirated:
 
-### Official Distribution Channels
-- **GitHub Main Repository**: https://github.com/gyscan/GYscan
-- **Gitee Main Repository**：https://gitee.com/bzhanyiqiua/GYscan
-- **Official Website**: https://gyscan.space
-- **Official Communication Group**: See website for details
+| Channel | Address |
+|---------|---------|
+| **GitHub Main Repository** | https://github.com/gyscan/GYscan |
+| **Gitee Main Repository** | https://gitee.com/bzhanyiqiua/GYscan |
+| **Official Website** | https://gyscan.space |
 
 ### How to Identify Pirated Copies
+
 1. **Non-Official Domains**: All domains other than gyscan.space are pirated
 2. **Modified Author Info**: Removal or modification of original project credits
 3. **Redistribution**: Unauthorized reproduction and republication
 4. **Paid Sales**: This project is completely FREE - any paid offering is a scam
 
-**If you discover pirated copies, please report via the website contact. We will pursue legal action!**
+> **If you discover pirated copies, please report via the website contact. We will pursue legal action!**
+
+---
 
 ## 📢 Website Migration Notice
 
 GYscan official website has migrated to the new domain **gyscan.space**. The old domain is no longer active.
 
+---
+
 ## 🏢 Official Website
 
 **Please use the only official website! This software has ONLY ONE official website - all others are impersonations!**
 
-> **⚠️ Beware of Fake Websites**  
-> We will NEVER ask for your account credentials, passwords, or payments through unofficial channels  
+> **⚠️ Beware of Fake Websites**
+> We will NEVER ask for your account credentials, passwords, or payments through unofficial channels
 > If you encounter a fake website, stop immediately and report it via the official website
 
-**GYscan Official Website**: [https://gyscan.space](https://gyscan.space/)
+**[GYscan Official Website](https://gyscan.space/)**
+
+---
+
+## 📋 Table of Contents
+
+- [Project Overview](#project-overview)
+- [Core Features](#core-features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Command List](#command-list)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [License](#license)
+- [Disclaimer](#disclaimer)
+
+---
 
 ## Project Overview
 
-GYscan is a professional tool focused on internal network lateral movement and boundary security testing, developed using Go language. This tool integrates rich internal network penetration testing capabilities, including:
+GYscan is a professional internal network lateral movement and boundary security testing tool developed using Go language. Based on Go's high-performance characteristics, GYscan offers excellent concurrent processing capabilities and cross-platform compatibility, efficiently assisting security researchers and penetration testers in completing internal network security assessments.
 
-- **Port Scanning**: Fast and accurate network port discovery
-- **Service Identification**: Detailed service and version fingerprinting
-- **Vulnerability Detection**: Integration with CVE databases and exploit frameworks
-- **Remote Command Execution**: Secure command execution capabilities
-- **Weak Password Brute-Forcing**: Multi-protocol credential testing
-- **Configuration Auditing**: CIS Benchmark-based security checks
-
-## Core Advantages
-
-- **Focused on Internal Network Security**: Specifically optimized for internal network lateral movement and boundary security testing scenarios
-- **Feature-Rich**: Integrates port scanning, service identification, remote command execution, weak password brute-forcing, configuration auditing, and more
-- **Cross-Platform Support**: Supports Windows, Linux, and macOS three major operating systems
-- **Modular Design**: Plugin-based architecture, supporting functional extensions and custom module development
-- **Configuration Auditing**: Based on CIS Benchmark security baseline, supporting 58 checks across five major categories
-- **Evidence Tracking**: Audit checks display specific configuration files, configuration items, current values, and remediation suggestions
-- **High Performance**: Developed with Go language, featuring excellent concurrent processing capabilities
+The tool integrates rich internal network penetration testing function modules, covering port scanning, service identification, vulnerability detection, remote command execution, weak password brute-forcing, configuration auditing, and other core capabilities, providing users with a one-stop internal network security assessment solution.
 
 ### Basic Information
 
-| Item | Information |
-|------|-------------|
+| Attribute | Value |
+|-----------|-------|
 | **Project Name** | GYscan |
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
 | **Latest Version** | v2.8.0 |
+| **Author** | BiliBili-弈秋啊 |
+
+---
+
+## Core Features
+
+### 🔍 Network Discovery & Scanning
+
+| Feature | Description |
+|---------|-------------|
+| **Port Scanning** | Multiple scanning techniques: TCP SYN/Connect/ACK/FIN/XMAS/NULL |
+| **Service Identification** | Fingerprint-based service version detection, 1999+ web fingerprints |
+| **Host Discovery** | ICMP/ARP/TCP/UDP multi-protocol discovery, IPv4/IPv6 support |
+| **OS Detection** | Remote operating system fingerprinting |
+
+### 🔐 Password Attacks & Credential Harvesting
+
+| Feature | Description |
+|---------|-------------|
+| **SSH Brute-Force** | Hydra-style multi-threaded SSH password cracking |
+| **SMB Attacks** | SMB connection testing, share enumeration, remote command execution |
+| **FTP Brute-Force** | FTP server password cracking |
+| **Database Brute-Force** | MySQL, PostgreSQL, Oracle, MSSQL weak password detection |
+
+### 🌐 Web Application Security
+
+| Feature | Description |
+|---------|-------------|
+| **XSS Detection** | Reflected, Stored, DOM XSS vulnerability detection |
+| **CSRF Detection** | Cross-Site Request Forgery vulnerability detection |
+| **WAF Identification** | Detect if target is behind WAF and identify WAF type |
+| **Directory Scanning** | Web path enumeration with custom dictionaries and extensions |
+| **File Upload Testing** | File upload vulnerability detection with bypass techniques |
+| **WebSocket Testing** | WebSocket connection testing and protocol analysis |
+
+### 🏢 Active Directory Security
+
+| Feature | Description |
+|---------|-------------|
+| **AD CS Vulnerability** | ESC1-ESC8 certificate template vulnerability detection |
+| **LDAP Enumeration** | Domain users, groups, computers, organizational units enumeration |
+| **Kerberoasting** | SPN account discovery for ticket attacks |
+| **AS-REP Roasting** | Pre-authentication bypass account detection |
+
+### 📡 Remote Management
+
+| Feature | Description |
+|---------|-------------|
+| **PowerShell** | PowerShell remote command execution |
+| **WMI** | WMI remote management tool |
+| **RDP** | RDP remote desktop related functions |
+| **DCOM** | DCOM remote execution |
+
+### 🔎 Security Assessment
+
+| Feature | Description |
+|---------|-------------|
+| **Configuration Auditing** | CIS Benchmark-based 58 configuration checks |
+| **Honeypot Detection** | Identify if target is a honeypot system |
+| **Patch Detection** | Remote system patch status detection |
+| **Exploit-DB** | Integrated 46,928 exploit entries |
+
+### 💻 System Information Gathering
+
+| Feature | Description |
+|---------|-------------|
+| **Process Info** | Remote system process and service enumeration |
+| **User Enumeration** | Local user and group information gathering |
+| **Windows Logs** | Windows event log viewing |
+| **Linux Enumeration** | Linux local information and privilege escalation detection |
+| **WiFi Password** | Windows system WiFi password retrieval |
+
+---
+
+## Installation
+
+### Requirements
+
+- **Operating System**: Windows 7+/Linux/macOS
+- **Go Version**: Go 1.24 or higher
+- **Dependencies**: Nmap (required for some features)
+
+### Linux Installation
+
+```bash
+# Clone the project
+git clone https://github.com/gyscan/GYscan.git
+cd GYscan/Client
+
+# Install dependencies
+go mod download
+
+# Build the project
+go build -o GYscan .
+
+# Copy to system path (optional)
+sudo cp GYscan /usr/local/bin/
+```
+
+### Windows Installation
+
+```powershell
+# Build using PowerShell
+cd GYscan
+.\build.ps1
+```
+
+### Dependency Installation (Linux)
+
+```bash
+# Debian/Ubuntu/Kali
+sudo apt install -y libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev \
+    libxi-dev libxxf86vm-dev libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev \
+    build-essential pkg-config dbus-x11 libdbus-1-dev libpcap-dev
+
+# RedHat/CentOS/Fedora
+sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-devel \
+    libXi-devel libXxf86vm-devel mesa-libGL-devel mesa-libGLU-devel \
+    gcc-c++ pkgconfig dbus-x11 dbus-devel libpcap-devel
+```
+
+---
+
+## Quick Start
+
+### Basic Usage
+
+```bash
+# Display help information
+./GYscan help
+
+# Display version information
+./GYscan --version
+
+# Disable color output
+./GYscan --no-color
+
+# Use proxy
+./GYscan --proxy socks5://127.0.0.1:1080
+```
+
+### Common Command Examples
+
+```bash
+# Port scanning
+./GYscan scan -t 192.168.1.1 -p 1-1000
+
+# SSH password brute-forcing
+./GYscan ssh -t 192.168.1.1 -u root -P /path/to/passwords.txt
+
+# Web directory scanning
+./GYscan dirscan -u http://example.com -w dirmap/dicc.txt
+
+# XSS vulnerability detection
+./GYscan xss -u "http://example.com/?id=1"
+
+# WAF identification
+./GYscan waf -u http://example.com
+
+# Honeypot detection
+./GYscan mg -t 192.168.1.1
+
+# AD CS vulnerability detection
+./GYscan adcs -t dc.example.com
+
+# Configuration auditing
+./GYscan ca -t 192.168.1.1
+```
+
+---
+
+## Command List
+
+### Stable Commands
+
+| Command | Group | Description |
+|---------|-------|-------------|
+| `scan` | Network | Comprehensive port scanner |
+| `nmap` | Network | Nmap scan result parsing |
+| `dirscan` | Network | Web directory enumeration |
+| `route` | Network | Route hop detection |
+| `whois` | Network | Whois domain query |
+| `scapy` | Network | Advanced packet manipulation |
+| `ssh` | Password | SSH password brute-forcing |
+| `ftp` | Password | FTP password cracking |
+| `database` | Password | Database password cracking |
+| `crunch` | Password | Password dictionary generation |
+| `smb` | Remote | SMB protocol operations |
+| `rdp` | Remote | RDP remote desktop |
+| `powershell` | Remote | PowerShell execution |
+| `wmi` | Remote | WMI remote management |
+| `webshell` | Web | WebShell generation |
+| `waf` | Web | WAF detection |
+| `xss` | Web | XSS vulnerability detection |
+| `fu` | Web | File upload testing |
+| `ws` | Web | WebSocket testing |
+| `exp` | Web | Exploit-DB search |
+| `process` | Info | Process enumeration |
+| `userinfo` | Info | User information gathering |
+| `winlog` | Info | Windows log viewing |
+| `pc` | Info | Patch detection |
+| `linenum` | General | Linux information enumeration |
+| `linux-kernel` | General | Linux kernel vulnerabilities |
+| `wwifi` | General | WiFi password retrieval |
+| `about` | General | Tool information |
+
+### Beta Commands
+
+| Command | Description |
+|---------|-------------|
+| `csrf` | CSRF vulnerability detection |
+| `dcom` | DCOM remote execution |
+| `ldap` | LDAP enumeration |
+| `mg` | Honeypot identification |
+| `adcs` | AD CS vulnerability detection |
+
+---
+
+## Changelog
 
 ### v2.8.0
 
@@ -97,6 +330,12 @@ GYscan is a professional tool focused on internal network lateral movement and b
   - Supports verbose mode to show tags and aliases
 
 - **PoC Code Management**
+  - `show` subcommand: View exploit code content
+  - `copy` subcommand: Copy exploit code to specified directory
+  - `generate` subcommand: Generate PoC code with GYscan header
+  - Supports custom target parameters (-t target, -p port, --ssl)
+
+- **PoC Template Generation**
   - `simple` subcommand: Generate simple Python PoC templates
   - Supports rapid testing and custom development
   - Supports parameterized target address and port
@@ -167,11 +406,9 @@ GYscan is a professional tool focused on internal network lateral movement and b
 #### Technical Improvements
 
 - Added `isIPv6()` function for IPv6 address detection
-- Added `isPrivateIPv6()` function for IPv6 private address ranges (RFC 4193 ULA, RFC 3879 link-local)
-- Added `formatIPForConnection()` function to handle IPv6 address formatting (bracket wrapping)
-- Updated `RemoveProtocolPrefix()` to properly handle IPv6 addresses
+- Added `isPrivateIPv6()` function for IPv6 private address ranges
+- Added `formatIPForConnection()` function for IPv6 address formatting
 - Added `icmpv6Ping()` and `systemPing6()` functions for ICMPv6 detection
-- Added `isLinux()` and `isMacOS()` helper functions
 - Updated `hostDiscovery()` to skip ARP detection for IPv6 targets
 
 - **WebSocket Testing Tool (ws command)**
@@ -181,94 +418,70 @@ GYscan is a professional tool focused on internal network lateral movement and b
   - Supports WSS TLS certificate verification skip
   - Supports WebSocket subprotocols
   - Supports auto-reconnect mechanism (exponential backoff + jitter)
-  - Supports response assertion validation (contains/regex/json/length_greater)
+  - Supports response assertion validation
   - Supports heartbeat detection (Ping/Pong)
-  - Supports message count and interval control
-  - Supports verbose output and performance monitoring
 
-- **Scan Module Port Scanning Optimization and Enhancement**
-  - **Port State Detection Enhancement**
-    - Supports six complete port states: open, closed, filtered, unfiltered, open|filtered, closed|filtered
-    - Added constants: `PortStateOpen`, `PortStateClosed`, `PortStateFiltered`, `PortStateUnfiltered`, `PortStateOpenFiltered`, `PortStateClosedFiltered`
-    - Updated `PortInfo` struct to support complete port state fields
-
-  - **New Covert Scanning Types**
-    - `--sF` TCP FIN scan: Sends FIN packets, determines port state per RFC 793
-    - `--sX` TCP XMAS scan: Sends FIN/URG/PSH flag packets
-    - `--sN` TCP NULL scan: Sends packets with no flags set
-    - `--sA` TCP ACK scan: Determines if port is filtered
-    - `--sW` TCP window scan: Determines state via TCP window size
-    - `--sM` TCP Maimon scan: Sends FIN/ACK flag packets
-
-  - **Scanning Function Enhancements**
-    - Added `finScan()` function for TCP FIN scanning
-    - Added `xmasScan()` function for TCP XMAS scanning
-    - Added `nullScan()` function for TCP NULL scanning
-    - Added `ackScan()` function for TCP ACK scanning
-    - Added `windowScan()` function for TCP window scanning
-    - Added `maimonScan()` function for TCP Maimon scanning
-    - Added `connCloseWithoutError()` safe connection close helper function
-    - Updated `detectUDPPortState()` to support open|filtered state
-
-  - **UDP Scanning Accuracy Fix**
-    - Fixed `udpConnect()` function bug: previously returned true regardless of response
-    - Now correctly distinguishes open (response received), filtered (timeout, no response), closed (connection failed)
-    - Significantly improves UDP port scanning accuracy
-
-  - **Host Discovery Optimization**
-    - Optimized timeout allocation strategy: public hosts use 2/3 timeout per probe method (was 1/3)
-    - Simplified public host probing methods: only 3 efficient methods (tcpPing, icmpPing, tcpSynPing)
-    - Lowered public host confirmation threshold: only 1 method needed to confirm alive (was 2)
-    - Reduced TCP ping port count: from 16 to 5 common ports (80, 443, 8080, 22, 53)
-    - Optimized retry wait time: from 100ms to 50ms
-    - Improves public target host discovery success rate and speed
+- **Scan Module Port Scanning Optimization**
+  - Supports six complete port state detection
+  - Added covert scanning types: TCP FIN/XMAS/NULL/ACK/Window/Maimon scan
+  - Fixed UDP scanning accuracy bug
+  - Optimized host discovery strategy
 
 ### v2.7.1
 
 **SSH Module Enhancement and Bug Fixes**
 
-#### Feature Improvements
-
 - **SSH Batch Target Brute Force Optimization**
   - Supports loading target IPs from file via `--file` parameter
   - Optimized multi-target concurrent brute force logic
-  - Added real-time progress display, similar to Hydra-style output
+  - Added real-time progress display, similar to Hydra-style output format
 
-#### Bug Fixes
+- **Bug Fixes**
+  - Fixed SSH target file parsing issue
+  - Fixed incorrect result statistics in multi-target mode
+  - Fixed real-time progress not displaying during batch brute force
+  - Optimized SSH connection algorithm configuration for better compatibility
 
-- Fixed SSH target file parsing issue, supports loading multiple targets from text file
-- Fixed incorrect result statistics in multi-target mode
-- Fixed real-time progress not displaying during batch brute force
-- Optimized SSH connection algorithm configuration for better compatibility
+### v2.7
 
-#### SSH Module Enhancements
+**Version Update and Configuration Auditing**
 
-- Added `--file` parameter support: load target IPs from text file in batch
-- Added `--verbose` mode: display each authentication attempt in real-time
-- Optimized error handling and logging for better debugging
-- Supports multi-target concurrent brute force, significantly improving batch testing efficiency
+#### New Features
 
-### v2.7-beta
+- **pc command - Remote Patch Detection Tool**
+  - Based on WhatWeb fingerprint recognition technology, supports 1999+ web fingerprints
+  - Supports Web servers, databases, messaging, middleware, CMS system identification
+  - Component version correlation with official vulnerability database
 
-**Version Update and Command Adjustments**
+- **Configuration Auditing (CA) Module**
+  - CIS Benchmark-based configuration compliance checking
+  - Supports five audit categories: Windows, Linux, Web, SSH, Middleware
+  - 58 configuration check items
+  - Supports JSON, HTML, Text output formats
 
-- **Version Upgrade**: GYscan upgraded from v2.6.3 to v2.7-beta
-- **Command Adjustment**: Moved mg (honeypot identification tool) from stable to beta commands
-- **Command Adjustment**: Moved tui (start TUI mode) from stable to beta commands, planned for removal in subsequent versions
-- **Honeypot Identification Optimization**: Honeypot identification tool added HFish honeypot support
-- **Code Structure Optimization**: Adjusted command classification to make stable commands more stable and reliable
+- **Configuration Evidence Feature**
+  - Displays specific configuration file paths
+  - Displays configuration item names and current values
+  - Provides expected values and remediation suggestions
+
+#### Command Adjustments
+
+- Added `ca` command - Configuration auditing tool
+- Added `pc` command - Remote patch detection tool
+- Moved `mg` (honeypot identification) from stable to beta commands
+- Removed `tui` (start TUI mode)
 
 ### v2.6.3
 
 **Feature Optimization and Enhancement**
 
-- **File Upload Vulnerability Check Mechanism Optimization**
+- **File Upload Vulnerability Check Optimization**
   - Frontend validation bypass detection
   - Filename bypass detection enhanced
   - MIME type bypass detection new
   - Race condition detection new
 
-- **Website Directory Scanning Feature Optimization**
+- **Website Directory Scanning Optimization**
   - File extension scanning support
   - Ctrl+C interrupt handling optimization
   - Cross-platform clear screen function
@@ -276,17 +489,8 @@ GYscan is a professional tool focused on internal network lateral movement and b
 
 ### v2.6.2
 
-- **New pc command** - Remote patch detection tool, remotely query target system middleware component versions and patch status without login
-  - Based on WhatWeb fingerprint recognition technology, supports 1999+ web fingerprints
-  - Supports Web servers: Nginx, Apache, Tomcat, IIS
-  - Supports databases: MySQL, SQL Server, Oracle, PostgreSQL
-  - Supports cache/messaging: Redis, Memcached, RabbitMQ
-  - Supports middleware: WebLogic, JBoss, GlassFish
-  - Supports CMS systems: WordPress, Drupal, Joomla
-  - Component version correlation analysis with official vulnerability database
-  - Supports multiple output formats and filtering options
-
-- **New fu command** - File upload vulnerability check feature, supports multiple bypass techniques
+- **New pc command** - Remote patch detection tool
+- **New fu command** - File upload vulnerability check feature
 - **New wwifi command** - Windows system WiFi cracking functionality
 
 ### v2.6.0
@@ -294,7 +498,6 @@ GYscan is a professional tool focused on internal network lateral movement and b
 - **New scapy module** - Integrated advanced network packet manipulation tool
   - Raw network packet construction and sending functionality
   - Network interface detection and status analysis
-  - Feature demonstration and example code
 
 ### v2.5.4
 
@@ -304,12 +507,10 @@ GYscan is a professional tool focused on internal network lateral movement and b
 ### v2.5.2
 
 - **New winlog command** - Windows log viewing tool
-- Optimized log entry display format
 
 ### v2.5.1
 
 - **New waf command** - WAF detection tool
-- Optimized WAF detection module code
 
 ### v2.5.0
 
@@ -330,19 +531,37 @@ GYscan is a professional tool focused on internal network lateral movement and b
 - Weak password brute-forcing framework
 - Basic vulnerability detection functionality
 
-## Contributing Guide
+---
+
+## Contributing
 
 Welcome to submit Issues and Pull Requests to improve the project. Please ensure:
+
 1. Code complies with Go language specifications
 2. Add appropriate test cases
 3. Update relevant documentation
 4. Follow secure development specifications
 
+---
+
+## License
+
+This project is licensed under the **Apache License 2.0**.
+
+**You are free to**: freely use, modify, and distribute this project's code, subject to:
+- Preserving the original copyright notice
+- Adding notices to modified files
+- Derivative works must use the same license
+
+**See**: [LICENSE](LICENSE) file for details
+
+---
+
 ## ⚖️ Disclaimer
 
 **【Please Read Before Use】**
 
-1. **Usage Restrictions**: This tool is strictly limited to:
+1. **Usage Restrictions**: This tool is strictly limited to:Authorised security testing
    - Security testing projects with explicit authorization
    - Network security research and educational purposes
    - Internal enterprise security assessments (requires written authorization)
@@ -362,17 +581,6 @@ Welcome to submit Issues and Pull Requests to improve the project. Please ensure
    - Local laws and regulations
    - Written authorization from target system owners
    - Use only within authorized scope
-
-## 📄 License
-
-This project is licensed under the **Apache License 2.0**.
-
-**You are free to**: freely use, modify, and distribute this project's code, subject to:
-- Preserving the original copyright notice
-- Adding notices to modified files
-- Derivative works must use the same license
-
-**See**: [LICENSE](LICENSE) file for details.
 
 ---
 
