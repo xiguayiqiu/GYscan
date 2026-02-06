@@ -1,0 +1,102 @@
+{
+  "technologies": {
+    "Nginx": {
+      "headers": {
+        "Server": "Nginx"
+      },
+      "category": "Web Servers"
+    },
+    "Apache": {
+      "headers": {
+        "Server": "Apache"
+      },
+      "category": "Web Servers"
+    },
+    "Microsoft IIS": {
+      "headers": {
+        "Server": "IIS"
+      },
+      "category": "Web Servers"
+    },
+    "React": {
+      "scripts": ["react", "reactjs"],
+      "html": {
+        "selector": "*",
+        "pattern": "data-reactroot"
+      },
+      "category": "JavaScript Frameworks"
+    },
+    "Vue.js": {
+      "scripts": ["vue", "vuejs"],
+      "html": {
+        "selector": "*",
+        "pattern": "data-v-"
+      },
+      "category": "JavaScript Frameworks"
+    },
+    "AngularJS": {
+      "scripts": ["angular", "angularjs"],
+      "html": {
+        "selector": "*",
+        "pattern": "ng-app"
+      },
+      "category": "JavaScript Frameworks"
+    },
+    "jQuery": {
+      "scripts": ["jquery"],
+      "category": "JavaScript Libraries"
+    },
+    "Bootstrap": {
+      "scripts": ["bootstrap"],
+      "css": ["bootstrap"],
+      "category": "UI Frameworks"
+    },
+    "WordPress": {
+      "headers": {
+        "X-Powered-By": "WordPress"
+      },
+      "meta": {
+        "generator": "WordPress"
+      },
+      "category": "CMS"
+    },
+    "Drupal": {
+      "headers": {
+        "X-Powered-By": "Drupal"
+      },
+      "category": "CMS"
+    },
+    "Laravel": {
+      "headers": {
+        "X-Powered-By": "Laravel"
+      },
+      "cookies": {
+        "laravel_session": ""
+      },
+      "category": "Web Frameworks"
+    },
+    "Express": {
+      "headers": {
+        "X-Powered-By": "Express"
+      },
+      "category": "Web Frameworks"
+    },
+    "Django": {
+      "headers": {
+        "X-Generator": "Django"
+      },
+      "category": "Web Frameworks"
+    },
+    "Cloudflare": {
+      "headers": {
+        "Server": "cloudflare",
+        "CF-RAY": ""
+      },
+      "category": "CDN"
+    },
+    "Google Analytics": {
+      "scripts": ["google-analytics.com", "googletagmanager"],
+      "category": "Analytics"
+    }
+  }
+}

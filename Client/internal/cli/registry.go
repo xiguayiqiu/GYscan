@@ -5,6 +5,8 @@ import (
 	"GYscan/internal/exp"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
+	"GYscan/internal/subdomain"
+	"GYscan/internal/webfp"
 	"GYscan/internal/xss"
 
 	"github.com/spf13/cobra"
@@ -91,12 +93,14 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(userinfoCmd, GroupInfo)
 	r.Register(winlogCmd, GroupInfo)
 	r.Register(pcCmd, GroupInfo)
+	r.Register(subdomain.SubCmd, GroupInfo)
 
 	r.Register(webshellCmd, GroupWeb)
 	r.Register(wafCmd, GroupWeb)
 	r.Register(xss.XssCmd, GroupWeb)
 	r.Register(fuCmd, GroupWeb)
 	r.Register(wsCmd, GroupWeb)
+	r.Register(webfp.WebfpCmd, GroupWeb)
 
 	r.Register(linenumCmd, GroupGeneral)
 	r.Register(linuxKernelCmd, GroupGeneral)

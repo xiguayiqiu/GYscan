@@ -1,8 +1,8 @@
 [**English**](README-en.md)
 
-# GYscan - 内网横向边界安全测试工具
+# GYscan - 综合渗透测试工具
 
-[![Version](https://img.shields.io/badge/Version-v2.8.0-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.1-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -78,9 +78,9 @@ GYscan官方网站已正式迁移至新域名 **gyscan.space**，旧域名已停
 
 ## 项目简介
 
-GYscan 是一款用 Go 语言开发的专业内网横向移动和边界安全测试工具。基于 Go 语言的高性能特性，GYscan 具备出色的并发处理能力和跨平台兼容性，能够高效地协助安全研究人员和渗透测试人员完成内网安全评估工作。
+GYscan 是一款用 Go 语言开发的专业综合渗透测试工具。基于 Go 语言的高性能特性，GYscan 具备出色的并发处理能力和跨平台兼容性，能够高效地协助安全研究人员和渗透测试人员完成安全评估工作。
 
-该工具集成了丰富的内网渗透测试功能模块，涵盖端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破、配置审计等核心能力，为用户提供了一站式的内网安全评估解决方案。
+该工具集成了丰富的渗透测试功能模块，涵盖端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破、配置审计等核心能力，为用户提供了一站式的安全评估解决方案。
 
 ### 基本信息
 
@@ -90,7 +90,7 @@ GYscan 是一款用 Go 语言开发的专业内网横向移动和边界安全测
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache 2.0 |
-| **最新版本** | v2.8.0 |
+| **最新版本** | v2.8.1 |
 | **作者** | BiliBili-弈秋啊 |
 
 ---
@@ -119,6 +119,7 @@ GYscan 是一款用 Go 语言开发的专业内网横向移动和边界安全测
 
 | 功能 | 描述 |
 |------|------|
+| **Web指纹识别** | 网站技术栈识别，支持105+技术指纹检测 |
 | **XSS检测** | 反射型、存储型、DOM型XSS漏洞检测 |
 | **CSRF检测** | 跨站请求伪造漏洞检测 |
 | **WAF识别** | 检测目标是否部署WAF及其类型 |
@@ -157,6 +158,7 @@ GYscan 是一款用 Go 语言开发的专业内网横向移动和边界安全测
 
 | 功能 | 描述 |
 |------|------|
+| **子域名挖掘** | 基于DNS查询的子域名枚举，支持字典爆破和通配符检测 |
 | **进程信息** | 远程系统进程和服务枚举 |
 | **用户枚举** | 本地用户和组信息收集 |
 | **Windows日志** | Windows事件日志查看 |
@@ -310,6 +312,62 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 ---
 
 ## 更新日志
+
+### v2.8.1
+
+**子域名挖掘与Web指纹识别**
+
+#### 新增功能
+
+- **sub命令 - 子域名挖掘工具**
+  - 基于DNS查询的子域名枚举
+  - 支持自定义字典爆破（默认内置500+常见子域名字典）
+  - DNS记录查询（A/CNAME/MX/TXT/NS）
+  - 高并发扫描（默认50线程）
+  - 自动通配符检测和过滤
+  - HTTP验证确认子域名可用性
+  - 实时进度显示和彩色输出
+  - 支持结果保存到文件
+
+- **webfp命令 - 网站技术指纹识别**
+  - 基于HTTP响应头、HTML内容、资源文件路径的指纹识别
+  - 支持105+技术指纹检测，涵盖20+类别
+  - 前端框架：React、Vue.js、Angular、Svelte、Next.js、Nuxt.js等
+  - 后端框架：Express、NestJS、Django、Flask、Laravel等
+  - CMS系统：WordPress、Drupal、Joomla、Shopify等
+  - UI框架：Bootstrap、Tailwind CSS、Ant Design等
+  - JavaScript库：jQuery、Lodash、Axios等
+  - CDN/托管：Cloudflare、Vercel、Netlify等
+  - 分析工具：Google Analytics、Hotjar等
+  - 置信度评分机制
+  - JSON格式输出支持
+
+#### 技术改进
+
+- HTTP客户端优化，支持超时和重定向控制
+- HTML解析增强，提取脚本、CSS、Meta标签
+- 多维度指纹匹配算法
+- 并发安全的扫描引擎
+- 优雅退出支持（Ctrl+C中断处理）
+
+#### 命令示例
+
+```bash
+# 子域名挖掘
+./GYscan sub example.com
+./GYscan sub example.com -w subdomains.txt
+./GYscan sub example.com -t 100
+./GYscan sub example.com -T CNAME
+./GYscan sub example.com -f results.txt
+./GYscan sub example.com --no-http
+
+# Web指纹识别
+./GYscan webfp https://example.com
+./GYscan webfp https://example.com -v
+./GYscan webfp https://example.com -o result.json
+./GYscan webfp https://example.com -c "Frontend Frameworks"
+./GYscan webfp https://example.com -t 30s
+```
 
 ### v2.8.0
 
@@ -584,4 +642,4 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 
 ---
 
-**GYscan - 专注内网安全，守护网络边界** 🛡️
+**GYscan - 专注渗透测试，守护网络安全** 🛡️

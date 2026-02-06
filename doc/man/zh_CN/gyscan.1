@@ -1,6 +1,6 @@
-.TH GYSCAN "1" "2026年2月4日" "GYscan v2.8.0" "用户命令手册"
+.TH GYSCAN "1" "2026年2月6日" "GYscan v2.8.1" "用户命令手册"
 .SH 名称
-GYscan \- Go语言内网横向边界安全测试工具
+GYscan \- Go语言综合渗透测试工具
 .SH 总览
 .B GYscan
 [\fI帮助选项\fR] [\fI命令\fR] [\fI命令参数\fR]
@@ -60,6 +60,9 @@ GYscan \- Go语言内网横向边界安全测试工具
 \fBssh\fR \fB--target\fR \fI目标\fR [\fI选项\fR]
 .PP
 .B GYscan
+\fBsub\fR \fI目标域名\fR [\fI选项\fR]
+.PP
+.B GYscan
 \fBuserinfo\fR [\fI选项\fR]
 .PP
 .B GYscan
@@ -87,13 +90,18 @@ GYscan \- Go语言内网横向边界安全测试工具
 \fBexp\fR \fI子命令\fR [\fI选项\fR]
 .PP
 .B GYscan
+\fBwebfp\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
+.PP
+.B GYscan
 \fBws\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
 .SH 描述
-GYscan是一款专注于内网横向移动和边界安全测试的专业工具，基于Go语言开发。该工具集成了丰富的内网渗透测试功能，包括端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破等核心功能，为安全研究人员和渗透测试人员提供高效、可靠的内网安全评估解决方案。
+GYscan是一款专业的综合渗透测试工具，基于Go语言开发，集成了信息收集、漏洞检测、密码破解、Web安全、远程执行等丰富的测试功能模块，为安全研究人员和渗透测试人员提供高效、可靠的安全评估解决方案。
 .PP
 \fB核心功能模块\fR：
 .PP
-\fB资产探测\fR：存活主机识别、端口扫描、服务指纹识别
+\fB资产探测\fR：存活主机识别、端口扫描，服务指纹识别、子域名枚举
+.PP
+\fBWeb指纹识别\fR：基于HTTP响应头、HTML内容识别网站技术栈
 .PP
 \fB配置审计\fR：基于CIS基线的本地系统配置安全检查，支持Windows、Linux、Web、SSH、中间件五大类审计
 .PP
@@ -2482,6 +2490,190 @@ length_greater:N - 响应长度大于N
 .RS 4
 发送二进制消息（支持base64/hex编码）
 .RE
+.PP
+.SS sub（子域名挖掘工具）
+.PP
+\fBGYscan sub\fR \fI目标域名\fR [\fI选项\fR]
+.PP
+子域名挖掘工具，基于DNS查询的子域名枚举。支持字典爆破、DNS记录查询、高并发扫描、通配符检测和HTTP验证。
+.PP
+\fB选项\fR：
+.PP
+\fB-d\fR, \fB--domain\fR \fI域名\fR
+.RS 4
+目标域名（必需参数）
+.RE
+.PP
+\fB-w\fR, \fB--wordlist\fR \fI文件路径\fR
+.RS 4
+子域名字典文件路径
+.RE
+.PP
+\fB-t\fR, \fB--threads\fR \fI线程数\fR
+.RS 4
+并发线程数，默认50
+.RE
+.PP
+\fB-o\fR, \fB--timeout\fR \fI秒数\fR
+.RS 4
+超时时间，默认3秒
+.RE
+.PP
+\fB-T\fR, \fB--type\fR \fI查询类型\fR
+.RS 4
+DNS查询类型（A/CNAME），默认A
+.RE
+.PP
+\fB-H\fR, \fB--http\fR
+.RS 4
+验证HTTP响应，确认子域名是否可用（默认启用）
+.RE
+.PP
+\fB-f\fR, \fB--output\fR \fI文件路径\fR
+.RS 4
+结果输出文件路径
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan sub example.com
+.RE
+.RS 4
+默认扫描（启用HTTP验证）
+.RE
+.PP
+.RS 4
+.B GYscan sub example.com -w subdomains.txt
+.RE
+.RS 4
+使用自定义字典文件
+.RE
+.PP
+.RS 4
+.B GYscan sub example.com -t 100
+.RE
+.RS 4
+设置100个并发线程
+.RE
+.PP
+.RS 4
+.B GYscan sub example.com -T CNAME
+.RE
+.RS 4
+查询CNAME记录
+.RE
+.PP
+.RS 4
+.B GYscan sub example.com -f results.txt
+.RE
+.RS 4
+保存结果到文件
+.RE
+.PP
+.RS 4
+.B GYscan sub example.com --no-http
+.RE
+.RS 4
+禁用HTTP验证，只进行DNS查询
+.RE
+.PP
+.SS webfp（Web指纹识别工具）
+.PP
+\fBGYscan webfp\fR \fB-u\fR \fIURL\fR [\fI选项\fR]
+.PP
+网站技术指纹识别工具，基于HTTP响应头、HTML内容、资源文件路径进行指纹检测。支持105+技术指纹，涵盖前端框架、后端框架、CMS、UI框架、JavaScript库、CDN、分析工具等20+类别。
+.PP
+\fB支持识别的技术类别\fR：
+.PP
+\fB前端框架\fR：React、Vue.js、Angular、Svelte、Next.js、Nuxt.js、SvelteKit、Gatsby等
+.PP
+\fB后端框架\fR：Express、NestJS、Django、Flask、Laravel、Spring Boot、Gin等
+.PP
+\fBCMS系统\fR：WordPress、Drupal、Joomla、Shopify、Wix等
+.PP
+\fBUI框架\fR：Bootstrap、Tailwind CSS、Ant Design、Element Plus、Vuetify等
+.PP
+\fBJavaScript库\fR：jQuery、Lodash、Axios、Moment.js、Chart.js等
+.PP
+\fBCDN/托管\fR：Cloudflare、Akamai、Fastly、Vercel、Netlify等
+.PP
+\fB分析工具\fR：Google Analytics、Hotjar、Meta Pixel等
+.PP
+\fB选项\fR：
+.PP
+\fB-u\fR, \fB--url\fR \fIURL\fR
+.RS 4
+目标URL（必需参数）
+.RE
+.PP
+\fB-t\fR, \fB--timeout\fR \fI时长\fR
+.RS 4
+请求超时时间，默认10秒
+.RE
+.PP
+\fB-v\fR, \fB--verbose\fR
+.RS 4
+显示详细输出
+.RE
+.PP
+\fB-o\fR, \fB--output\fR \fI文件路径\fR
+.RS 4
+结果输出文件（JSON格式）
+.RE
+.PP
+\fB-U\fR, \fB--user-agent\fR \fI字符串\fR
+.RS 4
+自定义User-Agent
+.RE
+.PP
+\fB-n\fR, \fB--no-redirect\fR
+.RS 4
+禁止重定向
+.RE
+.PP
+\fB-c\fR, \fB--category\fR \fI类别名\fR
+.RS 4
+只显示指定类别的结果
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan webfp https://example.com
+.RE
+.RS 4
+基本扫描
+.RE
+.PP
+.RS 4
+.B GYscan webfp https://example.com -v
+.RE
+.RS 4
+显示详细输出，包括检测依据
+.RE
+.PP
+.RS 4
+.B GYscan webfp https://example.com -o result.json
+.RE
+.RS 4
+输出JSON格式结果到文件
+.RE
+.PP
+.RS 4
+.B GYscan webfp https://example.com -c "Frontend Frameworks"
+.RE
+.RS 4
+只显示前端框架类别
+.RE
+.PP
+.RS 4
+.B GYscan webfp https://example.com -t 30s
+.RE
+.RS 4
+设置30秒超时
+.RE
+.PP
 .SS xss（XSS漏洞检测工具）
 .PP
 \fBGYscan xss\fR \fB--target\fR \fIURL\fR [\fI选项\fR]

@@ -1,8 +1,8 @@
 [**中文文档**](README.md)
 
-# GYscan - Internal Network Lateral Boundary Security Testing Tool
+# GYscan - Comprehensive Penetration Testing Tool
 
-[![Version](https://img.shields.io/badge/Version-v2.8.0-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.1-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -78,9 +78,9 @@ GYscan official website has migrated to the new domain **gyscan.space**. The old
 
 ## Project Overview
 
-GYscan is a professional internal network lateral movement and boundary security testing tool developed using Go language. Based on Go's high-performance characteristics, GYscan offers excellent concurrent processing capabilities and cross-platform compatibility, efficiently assisting security researchers and penetration testers in completing internal network security assessments.
+GYscan is a professional comprehensive penetration testing tool developed using Go language. Based on Go's high-performance characteristics, GYscan offers excellent concurrent processing capabilities and cross-platform compatibility, efficiently assisting security researchers and penetration testers in completing security assessments.
 
-The tool integrates rich internal network penetration testing function modules, covering port scanning, service identification, vulnerability detection, remote command execution, weak password brute-forcing, configuration auditing, and other core capabilities, providing users with a one-stop internal network security assessment solution.
+The tool integrates rich penetration testing function modules, covering port scanning, service identification, vulnerability detection, remote command execution, weak password brute-forcing, configuration auditing, and other core capabilities, providing users with a one-stop security assessment solution.
 
 ### Basic Information
 
@@ -90,7 +90,7 @@ The tool integrates rich internal network penetration testing function modules, 
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
-| **Latest Version** | v2.8.0 |
+| **Latest Version** | v2.8.1 |
 | **Author** | BiliBili-弈秋啊 |
 
 ---
@@ -119,6 +119,7 @@ The tool integrates rich internal network penetration testing function modules, 
 
 | Feature | Description |
 |---------|-------------|
+| **Web Fingerprinting** | Website technology stack detection with 105+ fingerprints |
 | **XSS Detection** | Reflected, Stored, DOM XSS vulnerability detection |
 | **CSRF Detection** | Cross-Site Request Forgery vulnerability detection |
 | **WAF Identification** | Detect if target is behind WAF and identify WAF type |
@@ -157,6 +158,7 @@ The tool integrates rich internal network penetration testing function modules, 
 
 | Feature | Description |
 |---------|-------------|
+| **Subdomain Discovery** | DNS-based subdomain enumeration with dictionary brute-force |
 | **Process Info** | Remote system process and service enumeration |
 | **User Enumeration** | Local user and group information gathering |
 | **Windows Logs** | Windows event log viewing |
@@ -310,6 +312,62 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 ---
 
 ## Changelog
+
+### v2.8.1
+
+**Subdomain Discovery and Web Fingerprinting**
+
+#### New Features
+
+- **sub command - Subdomain Discovery Tool**
+  - DNS-based subdomain enumeration
+  - Custom dictionary brute-force (500+ built-in subdomain entries)
+  - DNS record query (A/CNAME/MX/TXT/NS)
+  - High-concurrency scanning (default 50 threads)
+  - Automatic wildcard detection and filtering
+  - HTTP verification to confirm subdomain availability
+  - Real-time progress display and colored output
+  - Support saving results to files
+
+- **webfp command - Web Technology Fingerprinting**
+  - Fingerprint detection based on HTTP headers, HTML content, and resource paths
+  - Supports 105+ technology fingerprints across 20+ categories
+  - Frontend frameworks: React, Vue.js, Angular, Svelte, Next.js, Nuxt.js
+  - Backend frameworks: Express, NestJS, Django, Flask, Laravel
+  - CMS systems: WordPress, Drupal, Joomla, Shopify
+  - UI frameworks: Bootstrap, Tailwind CSS, Ant Design
+  - JavaScript libraries: jQuery, Lodash, Axios
+  - CDN/Hosting: Cloudflare, Vercel, Netlify
+  - Analytics: Google Analytics, Hotjar
+  - Confidence scoring mechanism
+  - JSON format output support
+
+#### Technical Improvements
+
+- HTTP client optimization with timeout and redirect control
+- Enhanced HTML parsing for scripts, CSS, and meta tags
+- Multi-dimensional fingerprint matching algorithm
+- Thread-safe scanning engine
+- Graceful shutdown support (Ctrl+C interrupt handling)
+
+#### Command Examples
+
+```bash
+# Subdomain discovery
+./GYscan sub example.com
+./GYscan sub example.com -w subdomains.txt
+./GYscan sub example.com -t 100
+./GYscan sub example.com -T CNAME
+./GYscan sub example.com -f results.txt
+./GYscan sub example.com --no-http
+
+# Web fingerprinting
+./GYscan webfp https://example.com
+./GYscan webfp https://example.com -v
+./GYscan webfp https://example.com -o result.json
+./GYscan webfp https://example.com -c "Frontend Frameworks"
+./GYscan webfp https://example.com -t 30s
+```
 
 ### v2.8.0
 
@@ -584,4 +642,4 @@ This project is licensed under the **Apache License 2.0**.
 
 ---
 
-**GYscan - Focused on Internal Network Security, Guarding Network Boundaries** 🛡️
+**GYscan - Focused on Penetration Testing, Safeguarding Cybersecurity** 🛡️
