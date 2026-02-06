@@ -171,7 +171,7 @@ The tool integrates rich penetration testing function modules, covering port sca
 
 ### Requirements
 
-- **Operating System**: Windows 7+/Linux/macOS
+- **Operating System**: Windows 10+/Linux/macOS
 - **Go Version**: Go 1.24 or higher
 - **Dependencies**: Nmap (required for some features)
 
