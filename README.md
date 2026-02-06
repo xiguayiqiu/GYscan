@@ -171,7 +171,7 @@ GYscan 是一款用 Go 语言开发的专业综合渗透测试工具。基于 Go
 
 ### 环境要求
 
-- **操作系统**：Windows 7+/Linux/macOS
+- **操作系统**：Windows 10+/Linux/macOS
 - **Go版本**：Go 1.24 或更高版本
 - **依赖**：Nmap（部分功能需要）
 
