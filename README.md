@@ -44,16 +44,9 @@
 
 ---
 
-## 📢 官网暂停服务公告
+## 📢 官网恢复公告
 
-因域名平台问题，GYscan官方网站（gyscan.space）目前已暂停服务，预计一周后恢复正常。
-
-在此期间，您可以通过以下渠道获取项目信息：
-
-| 渠道 | 地址 |
-|------|------|
-| **GitHub主仓库** | https://github.com/gyscan/GYscan |
-| **Gitee主仓库** | https://gitee.com/bzhanyiqiua/GYscan |
+GYscan官方网站（gyscan.space）已恢复正常服务。
 
 ---
 
