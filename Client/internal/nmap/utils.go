@@ -14,6 +14,31 @@ import (
 	"github.com/fatih/color"
 )
 
+// deduplicateResults 移除IPv4/IPv6重复结果
+func deduplicateResults(results []NmapResult) []NmapResult {
+	if len(results) == 0 {
+		return results
+	}
+
+	seen := make(map[string]bool)
+	var unique []NmapResult
+
+	for _, result := range results {
+		key := result.IP
+
+		if result.Hostname != "" {
+			key = result.Hostname
+		}
+
+		if !seen[key] {
+			seen[key] = true
+			unique = append(unique, result)
+		}
+	}
+
+	return unique
+}
+
 // SaveNmapResult 保存nmap扫描结果
 func SaveNmapResult(results []NmapResult, filePath string) error {
 	if filePath == "" {
@@ -39,6 +64,8 @@ func SaveNmapResult(results []NmapResult, filePath string) error {
 // PrintNmapResult 打印nmap扫描结果
 func PrintNmapResult(results []NmapResult, config ScanConfig) {
 	utils.TitlePrint("\n=== 扫描结果 ===")
+
+	results = deduplicateResults(results)
 
 	activeHosts := 0
 	for _, result := range results {
@@ -181,7 +208,12 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 				}
 			}
 
-			fmt.Println()
+			// 如果没有任何输出（没有端口、没有追踪、没有链接），只打印一个换行
+			if len(result.Ports) == 0 && len(result.Traceroute) == 0 && len(httpPorts) == 0 && len(httpsPorts) == 0 {
+				fmt.Println()
+			} else if len(result.Ports) > 0 || len(httpPorts) > 0 || len(httpsPorts) > 0 {
+				fmt.Println()
+			}
 		} else {
 			// 离线主机使用红色标记
 			utils.ErrorPrint("主机: %s [down]", result.IP)
@@ -334,7 +366,186 @@ func ServiceScan(ctx context.Context, target string) []NmapResult {
 	return NmapScan(ctx, config)
 }
 
-// NetworkDiscovery 网络发现扫描
+// ExportResults 导出扫描结果到多种格式
+func ExportResults(results []NmapResult, format string, filePath string) error {
+	switch format {
+	case "json":
+		return exportToJSON(results, filePath)
+	case "xml":
+		return exportToXML(results, filePath)
+	case "csv":
+		return exportToCSV(results, filePath)
+	case "txt":
+		return exportToTXT(results, filePath)
+	default:
+		return exportToJSON(results, filePath)
+	}
+}
+
+// exportToJSON 导出到JSON格式
+func exportToJSON(results []NmapResult, filePath string) error {
+	jsonData, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		return fmt.Errorf("序列化JSON失败: %v", err)
+	}
+	return os.WriteFile(filePath, jsonData, 0644)
+}
+
+// exportToXML 导出到XML格式
+func exportToXML(results []NmapResult, filePath string) error {
+	xmlData := `<?xml version="1.0" encoding="UTF-8"?>
+<nmap_results>
+`
+	for _, result := range results {
+		xmlData += fmt.Sprintf(`  <host ip="%s" status="%s">
+`, result.IP, result.Status)
+		if result.Hostname != "" {
+			xmlData += fmt.Sprintf(`    <hostname>%s</hostname>
+`, escapeXML(result.Hostname))
+		}
+		if result.OS != "" {
+			xmlData += fmt.Sprintf(`    <os>%s</os>
+`, escapeXML(result.OS))
+		}
+		for port, portInfo := range result.Ports {
+			xmlData += fmt.Sprintf(`    <port number="%d" protocol="%s" state="%s">
+      <service>%s</service>
+    </port>
+`, port, portInfo.Protocol, portInfo.State, escapeXML(portInfo.Service))
+		}
+		xmlData += `  </host>
+`
+	}
+	xmlData += `</nmap_results>`
+	return os.WriteFile(filePath, []byte(xmlData), 0644)
+}
+
+// exportToCSV 导出到CSV格式
+func exportToCSV(results []NmapResult, filePath string) error {
+	csvData := "IP,Hostname,Status,Port,Protocol,State,Service,Version\n"
+	for _, result := range results {
+		for port, portInfo := range result.Ports {
+			csvData += fmt.Sprintf("%s,%s,%s,%d,%s,%s,%s,%s\n",
+				result.IP,
+				escapeCSV(result.Hostname),
+				result.Status,
+				port,
+				portInfo.Protocol,
+				portInfo.State,
+				escapeCSV(portInfo.Service),
+				escapeCSV(portInfo.Version))
+		}
+	}
+	return os.WriteFile(filePath, []byte(csvData), 0644)
+}
+
+// exportToTXT 导出到TXT格式
+func exportToTXT(results []NmapResult, filePath string) error {
+	var sb strings.Builder
+	sb.WriteString("GYscan Nmap扫描报告\n")
+	sb.WriteString("==================\n\n")
+
+	for _, result := range results {
+		sb.WriteString(fmt.Sprintf("主机: %s (%s)\n", result.IP, result.Status))
+		if result.Hostname != "" {
+			sb.WriteString(fmt.Sprintf("主机名: %s\n", result.Hostname))
+		}
+		if result.OS != "" {
+			sb.WriteString(fmt.Sprintf("操作系统: %s\n", result.OS))
+		}
+
+		if len(result.Ports) > 0 {
+			sb.WriteString("开放端口:\n")
+			for port, portInfo := range result.Ports {
+				sb.WriteString(fmt.Sprintf("  %d/%s %s %s\n",
+					port, portInfo.Protocol, portInfo.State, portInfo.Service))
+			}
+		}
+		sb.WriteString("\n")
+	}
+
+	return os.WriteFile(filePath, []byte(sb.String()), 0644)
+}
+
+func escapeXML(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	s = strings.ReplaceAll(s, "\"", "&quot;")
+	s = strings.ReplaceAll(s, "'", "&apos;")
+	return s
+}
+
+func escapeCSV(s string) string {
+	s = strings.ReplaceAll(s, "\"", "\"\"")
+	if strings.Contains(s, ",") || strings.Contains(s, "\"") {
+		s = "\"" + s + "\""
+	}
+	return s
+}
+
+// AnalyzeResults 分析扫描结果
+func AnalyzeResults(results []NmapResult) ScanAnalysis {
+	analysis := ScanAnalysis{
+		TotalHosts: len(results),
+		OpenPorts:  make(map[int]int),
+		Services:   make(map[string]int),
+		OS:         make(map[string]int),
+		Vulnerable: make([]string, 0),
+	}
+
+	for _, result := range results {
+		if result.Status == "up" {
+			analysis.ActiveHosts++
+		}
+
+		for port, portInfo := range result.Ports {
+			if portInfo.State == "open" {
+				analysis.OpenPorts[port]++
+				analysis.TotalOpenPorts++
+				analysis.Services[portInfo.Service]++
+				if portInfo.Service == "unknown" || portInfo.Service == "" {
+					analysis.UnknownServices++
+				}
+			}
+		}
+
+		if result.OS != "" {
+			analysis.OS[result.OS]++
+		}
+
+		for _, port := range result.Ports {
+			if isVulnerablePort(port.Port) {
+				analysis.Vulnerable = append(analysis.Vulnerable,
+					fmt.Sprintf("%s:%d (%s)", result.IP, port.Port, port.Service))
+			}
+		}
+	}
+
+	return analysis
+}
+
+// ScanAnalysis 扫描结果分析
+type ScanAnalysis struct {
+	TotalHosts      int
+	ActiveHosts     int
+	TotalOpenPorts  int
+	OpenPorts       map[int]int
+	Services        map[string]int
+	OS              map[string]int
+	UnknownServices int
+	Vulnerable      []string
+}
+
+func isVulnerablePort(port int) bool {
+	vulnerablePorts := []int{21, 23, 445, 3389, 5900, 6379}
+	for _, p := range vulnerablePorts {
+		if p == port {
+			return true
+		}
+	}
+	return false
+}
 func NetworkDiscovery(ctx context.Context, cidr string) []NmapResult {
 	config := DefaultScanConfig()
 	config.Target = cidr

@@ -1,4 +1,4 @@
-.TH GYSCAN "1" "2026年2月6日" "GYscan v2.8.1" "用户命令手册"
+.TH GYSCAN "1" "2026年2月8日" "GYscan v2.8.2" "用户命令手册"
 .SH 名称
 GYscan \- Go语言综合渗透测试工具
 .SH 总览
@@ -1227,6 +1227,30 @@ IP范围：\fI192.168.1.1-192.168.1.254\fR
 结果输出文件路径
 .RE
 .PP
+\fB--output-format\fR \fI格式\fR
+.RS 4
+输出格式控制：
+.RS 4
+text：文本格式输出（默认）
+.RE
+.RS 4
+xml：XML格式输出，兼容nmap -oX参数
+.RE
+.RS 4
+json：JSON格式输出，兼容nmap -oJ参数
+.RE
+.RE
+.PP
+\fB--save-progress\fR \fI文件路径\fR
+.RS 4
+保存扫描进度到文件，支持中断后恢复扫描
+.RE
+.PP
+\fB--resume\fR \fI文件路径\fR
+.RS 4
+从保存的进度文件恢复扫描
+.RE
+.PP
 \fB扫描类型选项\fR：
 .PP
 \fB--sT\fR
@@ -1426,6 +1450,27 @@ nmap无法区分端口是开放还是被过滤。常见于UDP、IP协议、FIN/X
 .RE
 .RE
 .PP
+\fB--traceroute\fR
+.RS 4
+启用路由追踪功能 (nmap --traceroute参数)
+.RS 4
+扫描完成后显示到达目标的路由路径
+.RE
+.RS 4
+支持Windows/Linux/macOS平台
+.RE
+.RE
+.PP
+\fB--max-trace-hops\fR \fI跳数\fR
+.RS 4
+路由追踪最大跳数，默认30
+.RE
+.PP
+\fB--trace-timeout\fR \fI秒数\fR
+.RS 4
+路由追踪超时时间，默认3秒
+.RE
+.PP
 \fB使用示例\fR：
 .PP
 .RS 4
@@ -1456,130 +1501,148 @@ nmap无法区分端口是开放还是被过滤。常见于UDP、IP协议、FIN/X
 扫描IPv6地址
 .RE
 .PP
+\fB高级功能说明\fR：
+.PP
+\fB服务指纹识别\fR
 .RS 4
-.B GYscan scan --target 192.168.1.100 --ports 80,443,22,21
+GYscan内置了丰富的服务指纹库，支持识别超过100种常见网络服务，包括：
+.RS 4
+HTTP服务（Apache、Nginx、IIS、Lighttpd、Caddy、Tomcat等）
 .RE
 .RS 4
-扫描指定端口
+数据库服务（MySQL、PostgreSQL、MongoDB、Redis、Oracle、MSSQL等）
+.RE
+.RS 4
+邮件服务（SMTP、IMAP、POP3）
+.RE
+.RS 4
+目录服务（LDAP、Active Directory）
+.RE
+.RS 4
+其他服务（SSH、FTP、DNS、NTP、SNMP、SMB、RDP、VNC等）
+.RE
 .RE
 .PP
+\fB服务探测技术\fR
 .RS 4
-.B GYscan scan 192.168.1.0/24 -T 4 --sn
+协议握手探测：发送协议特定的握手包获取服务响应
 .RE
 .RS 4
-快速主机发现模式
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.100 -O -sV
+Banner抓取：获取服务默认页面或响应头信息
 .RE
 .RS 4
-启用系统识别和服务版本检测
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.100 -A -o result.txt
+正则匹配：使用预编译正则表达式进行版本提取
 .RE
 .RS 4
-全面扫描并保存结果
+多项式匹配：支持软匹配（Softmatch）提高识别覆盖率
 .RE
 .PP
+\fB操作系统识别\fR
 .RS 4
-.B GYscan scan 192.168.1.100 --sF
+基于TTL值分析
 .RE
 .RS 4
-使用TCP FIN扫描检测过滤端口
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.100 --sA
+基于TCP窗口大小特征
 .RE
 .RS 4
-使用TCP ACK扫描检测端口过滤状态
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.100 --sU
+基于服务端口组合
 .RE
 .RS 4
-使用UDP扫描检测UDP端口状态
+基于Banner信息提取
+.RE
+.RS 4
+支持识别Windows、Linux、macOS、FreeBSD、OpenBSD、Cisco IOS、Juniper JunOS、Android等系统
 .RE
 .PP
+\fB连接池优化\fR
 .RS 4
-.B GYscan scan 192.168.1.100 --sX
+GYscan采用高效的TCP连接池管理，减少重复连接开销
 .RE
 .RS 4
-使用TCP XMAS扫描进行隐蔽探测
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.100 --sN
+支持连接复用和预热机制
 .RE
 .RS 4
-使用TCP NULL扫描进行隐蔽探测
+内置结果缓存，加速批量扫描
 .RE
 .PP
+\fB扫描策略模板\fR
 .RS 4
-.B GYscan scan www.example.com -T4 --sV
+Paranoid (T0)：极慢速扫描，每包间隔5分钟，用于IDS规避
 .RE
 .RS 4
-对域名进行快速服务版本检测
-.RE
-.PP
-.RS 4
-.B GYscan scan 10.0.0.0/24 -p 1-1024 --sS
+Sneaky (T1)：慢速扫描，每包间隔15秒
 .RE
 .RS 4
-对网段进行SYN扫描，检测常见端口
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.0/24
+Polite (T2)：降低速度，减少对目标的影响
 .RE
 .RS 4
-扫描整个网段
-.RE
-.PP
-.RS 4
-.B GYscan scan "::1" --ipv6 -p 22,80
+Normal (T3)：默认速度，平衡性能和隐蔽性
 .RE
 .RS 4
-扫描IPv6本地回环地址
+Aggressive (T4)：快速扫描，减少超时等待
+.RE
+.RS 4
+Insane (T5极速扫描，最大并发，最小超时
 .RE
 .PP
+\fB输出格式说明\fR
+.PP
+\fB文本格式（text）\fR
 .RS 4
-.B GYscan scan 2001:db8::1 --ipv6 -p 1-1000
+适合快速查看和初步分析
 .RE
 .RS 4
-扫描IPv6地址
+显示主机、端口、服务、状态等基本信息
 .RE
 .PP
+\fBXML格式（xml）\fR
 .RS 4
-.B GYscan scan --target 192.168.1.100 --ports 80,443,22,21
+完全兼容nmap XML输出格式
 .RE
 .RS 4
-扫描指定端口
-.RE
-.PP
-.RS 4
-.B GYscan scan 192.168.1.0/24 -T 4 --sn
+支持导入其他安全工具（如Metasploit、Nessus）
 .RE
 .RS 4
-快速主机发现模式
+包含完整的扫描元数据（时间戳、参数、统计信息）
 .RE
 .PP
+\fBJSON格式（json）\fR
 .RS 4
-.B GYscan scan 192.168.1.100 -O -sV
+便于程序化处理和API集成
 .RE
 .RS 4
-启用系统识别和服务版本检测
+包含完整的结构化扫描结果
+.RE
+.RS 4
+适合大数据分析和自动化流程
 .RE
 .PP
+\fB进度保存与恢复\fR
 .RS 4
-.B GYscan scan 192.168.1.100 -A -o result.txt
+支持扫描进度实时保存
 .RE
 .RS 4
-全面扫描并保存结果
+支持从保存进度恢复扫描
+.RE
+.RS 4
+适用于大规模网段扫描场景
+.RE
+.RS 4
+保留已完成的扫描结果，避免重复工作
+.RE
+.PP
+\fB路由追踪\fR
+.RS 4
+跨平台支持（Windows tracert、Linux tracepath、macOS traceroute）
+.RE
+.RS 4
+可配置最大跳数和超时时间
+.RE
+.RS 4
+与端口扫描集成，一次完成
+.RE
+.RS 4
+显示每跳的IP地址和主机名
 .RE
 .SS scapy（高级网络包操作工具）
 .PP

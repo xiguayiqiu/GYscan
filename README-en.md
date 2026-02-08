@@ -44,9 +44,16 @@ This project is ONLY released through the following official channels. All other
 
 ---
 
-## 📢 Website Migration Notice
+## 📢 Website Suspension Notice
 
-GYscan official website has migrated to the new domain **gyscan.space**. The old domain is no longer active.
+Due to domain platform issues, the GYscan official website (gyscan.space) is currently suspended. Service is expected to resume in approximately one week.
+
+During this period, you can obtain project information through the following channels:
+
+| Channel | Address |
+|---------|---------|
+| **GitHub Main Repository** | https://github.com/gyscan/GYscan |
+| **Gitee Main Repository** | https://gitee.com/bzhanyiqiua/GYscan |
 
 ---
 

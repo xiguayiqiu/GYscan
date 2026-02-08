@@ -7,11 +7,260 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
+
+// ConnectionPool TCP连接池
+type ConnectionPool struct {
+	pool    chan net.Conn
+	maxSize int
+	timeout time.Duration
+	ip      string
+	port    int
+	mu      sync.Mutex
+	created int
+}
+
+func NewConnectionPool(ip string, port int, maxSize int, timeout time.Duration) *ConnectionPool {
+	return &ConnectionPool{
+		pool:    make(chan net.Conn, maxSize),
+		maxSize: maxSize,
+		timeout: timeout,
+		ip:      ip,
+		port:    port,
+	}
+}
+
+func (p *ConnectionPool) Get() (net.Conn, error) {
+	select {
+	case conn := <-p.pool:
+		return conn, nil
+	default:
+		p.mu.Lock()
+		if p.created >= p.maxSize {
+			p.mu.Unlock()
+			return nil, fmt.Errorf("连接池已满")
+		}
+		p.created++
+		p.mu.Unlock()
+		return net.DialTimeout("tcp", formatIPForConnection(p.ip, p.port), p.timeout)
+	}
+}
+
+func (p *ConnectionPool) Put(conn net.Conn) {
+	if conn == nil {
+		return
+	}
+	select {
+	case p.pool <- conn:
+	default:
+		conn.Close()
+	}
+}
+
+func (p *ConnectionPool) Close() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for p.created > 0 {
+		select {
+		case conn := <-p.pool:
+			conn.Close()
+			p.created--
+		default:
+			break
+		}
+		p.created--
+	}
+}
+
+// ScanResultCache 扫描结果缓存
+type ScanResultCache struct {
+	mu     sync.RWMutex
+	cache  map[string]*NmapResult
+	maxAge time.Duration
+}
+
+func NewScanResultCache(maxAge time.Duration) *ScanResultCache {
+	return &ScanResultCache{
+		cache:  make(map[string]*NmapResult),
+		maxAge: maxAge,
+	}
+}
+
+func (c *ScanResultCache) Get(ip string) (*NmapResult, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if result, ok := c.cache[ip]; ok {
+		return result, true
+	}
+	return nil, false
+}
+
+func (c *ScanResultCache) Set(ip string, result *NmapResult) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache[ip] = result
+}
+
+func (c *ScanResultCache) Cleanup() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	cutoff := time.Now().Add(-c.maxAge)
+	for ip, result := range c.cache {
+		if result.IP != "" && time.Now().Sub(cutoff) > c.maxAge {
+			delete(c.cache, ip)
+		}
+	}
+}
+
+// QuickBatchScan 快速批量扫描（优化版本）
+func QuickBatchScan(ctx context.Context, targets []string, ports string, threads int) []NmapResult {
+	config := ScanConfig{
+		Target:   strings.Join(targets, ","),
+		Ports:    ports,
+		Threads:  threads,
+		Timeout:  2 * time.Second,
+		ScanType: "connect",
+	}
+
+	return NmapScan(ctx, config)
+}
+
+// PortScanWithProgressEnhanced 带增强进度显示的端口扫描
+func PortScanWithProgressEnhanced(ctx context.Context, ip string, ports []int, config ScanConfig) map[int]PortInfo {
+	results := make(map[int]PortInfo)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	totalPorts := len(ports)
+	completedPorts := int32(0)
+	openPorts := int32(0)
+
+	semaphore := make(chan struct{}, config.Threads)
+
+	fmt.Printf("[进度] 主机 %s 开始扫描 %d 个端口\n", ip, totalPorts)
+
+	progressTicker := time.NewTicker(500 * time.Millisecond)
+	var lastProgress float64
+
+	go func() {
+		for range progressTicker.C {
+			progress := float64(atomic.LoadInt32(&completedPorts)) / float64(totalPorts) * 100
+			if progress-lastProgress >= 5 || progress >= 100 {
+				fmt.Printf("[进度] 主机 %s 扫描进度: %.1f%% - 发现 %d 个开放端口\n",
+					ip, progress, atomic.LoadInt32(&openPorts))
+				lastProgress = progress
+			}
+		}
+	}()
+
+	for _, port := range ports {
+		wg.Add(1)
+		go func(p int) {
+			defer wg.Done()
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			var portInfo PortInfo
+
+			switch config.ScanType {
+			case "syn":
+				portInfo = synScan(ip, p, config.Timeout, config.FragmentedScan)
+			case "udp":
+				portInfo = udpScan(ip, p, config.Timeout)
+			case "fin":
+				state := finScan(ip, p, config.Timeout)
+				portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+			case "xmas":
+				state := xmasScan(ip, p, config.Timeout)
+				portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+			case "null":
+				state := nullScan(ip, p, config.Timeout)
+				portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+			case "ack":
+				state := ackScan(ip, p, config.Timeout)
+				portInfo = PortInfo{Port: p, Protocol: "tcp", State: state}
+			default:
+				portInfo = connectScan(ip, p, config.Timeout, config.FragmentedScan)
+			}
+
+			mu.Lock()
+			atomic.AddInt32(&completedPorts, 1)
+			if portInfo.State == PortStateOpen {
+				results[p] = portInfo
+				atomic.AddInt32(&openPorts, 1)
+			}
+			mu.Unlock()
+		}(port)
+	}
+
+	wg.Wait()
+	progressTicker.Stop()
+
+	fmt.Printf("[进度] 主机 %s 端口扫描完成: %d 开放\n", ip, atomic.LoadInt32(&openPorts))
+	return results
+}
+
+// SmartPortScan 智能端口扫描（优先扫描常见端口）
+func SmartPortScan(ctx context.Context, ip string, config ScanConfig) map[int]PortInfo {
+	commonPorts := []int{
+		21, 22, 23, 25, 53, 80, 110, 135, 139, 143,
+		443, 445, 993, 995, 1433, 1521, 1723, 3306, 3389, 5432,
+		5900, 6379, 8080, 8443, 27017,
+	}
+
+	allPorts := parsePorts(config.Ports)
+	if len(allPorts) == 0 {
+		allPorts = commonPorts
+	}
+
+	sortedPorts := prioritizePorts(allPorts, commonPorts)
+
+	return PortScanWithProgressEnhanced(ctx, ip, sortedPorts, config)
+}
+
+// prioritizePorts 根据常见程度排序端口
+func prioritizePorts(ports []int, commonPorts []int) []int {
+	priorityMap := make(map[int]int)
+	for i, port := range commonPorts {
+		priorityMap[port] = i
+	}
+
+	sorted := make([]int, 0, len(ports))
+	common := make([]int, 0)
+	others := make([]int, 0)
+
+	for _, port := range ports {
+		if _, ok := priorityMap[port]; ok {
+			common = append(common, port)
+		} else {
+			others = append(others, port)
+		}
+	}
+
+	sort.Ints(common)
+	sort.Ints(others)
+
+	sorted = append(sorted, common...)
+	sorted = append(sorted, others...)
+
+	return sorted
+}
+
+type BatchScanResult struct {
+	TotalHosts    int
+	ScannedHosts  int
+	OpenPorts     int
+	FilteredPorts int
+	ClosedPorts   int
+	Results       []NmapResult
+	mu            sync.Mutex
+}
 
 // Pre-compiled regular expressions for performance optimization
 var (
@@ -25,7 +274,60 @@ var (
 	}
 
 	macAddressRegex = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
+
+	// Service version detection regex patterns
+	serviceVersionRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`(?i)(apache[\s\-]*(\d+\.\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(nginx[\s\-]*(\d+\.\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(openssh[\s\-]*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(ssh-(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(microsoft[\s\-]*iis[\s\-]*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(tomcat[\s\-]*(\d+\.\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(postgresql[\s\-]*(\d+\.\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(redis[\s\-]*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(mongodb[\s\-]*(\d+\.\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(oracle[\s\-]*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(windows[\s\-]*server[\s\-]*(\d{4}))`),
+		regexp.MustCompile(`(?i)(ubuntu[\s\-]*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(centos[\s\-]*(\d+))`),
+		regexp.MustCompile(`(?i)(debian[\s\-]*(\d+))`),
+	}
+
+	// OS fingerprint regex patterns
+	osFingerprintRegexes = []*regexp.Regexp{
+		regexp.MustCompile(`(?i)windows\s*(10|11|7|8|xp|2003|2008|2012|2016|2019|2022)`),
+		regexp.MustCompile(`(?i)linux\s*(kernel\s*(\d+\.\d+))`),
+		regexp.MustCompile(`(?i)(ubuntu|debian|centos|fedora|redhat|rhel|arch|opensuse)`),
+		regexp.MustCompile(`(?i)(freebsd|openbsd|netbsd)`),
+		regexp.MustCompile(`(?i)(cisco|ios)`),
+	}
 )
+
+func (b *BatchScanResult) AddResult(result NmapResult) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.ScannedHosts++
+	if result.Status == "up" {
+		for _, port := range result.Ports {
+			switch port.State {
+			case PortStateOpen:
+				b.OpenPorts++
+			case PortStateFiltered, PortStateOpenFiltered:
+				b.FilteredPorts++
+			default:
+				b.ClosedPorts++
+			}
+		}
+	}
+	b.Results = append(b.Results, result)
+}
+
+func (b *BatchScanResult) Progress() float64 {
+	if b.TotalHosts == 0 {
+		return 0
+	}
+	return float64(b.ScannedHosts) / float64(b.TotalHosts) * 100
+}
 
 // Port state constants (matching nmap port states)
 const (
@@ -267,17 +569,14 @@ func applyTimingTemplate(config *ScanConfig) {
 	}
 }
 
-// NmapScan 执行完整的nmap扫描
+// NmapScan 执行完整的nmap扫描（优化版本）
 func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
-	// 应用扫描速度模板
 	applyTimingTemplate(&config)
 
-	// 如果启用了全面扫描模式且未指定端口，扫描更多端口
 	if config.AggressiveScan && config.Ports == "" {
-		config.Ports = "1-10000" // 全面扫描模式下扫描前10000个端口
+		config.Ports = "1-10000"
 	}
 
-	// 主机存活探测模式（-sn参数）
 	if config.HostDiscovery {
 		fmt.Printf("[GYscan-Nmap] 主机存活探测模式 (-sn): 目标=%s, 线程=%d, 速度级别=%d\n",
 			config.Target, config.Threads, config.TimingTemplate)
@@ -287,7 +586,6 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 	fmt.Printf("[GYscan-Nmap] 开始扫描: 目标=%s, 端口=%s, 线程=%d, 类型=%s, 速度级别=%d\n",
 		config.Target, config.Ports, config.Threads, config.ScanType, config.TimingTemplate)
 
-	// 解析目标
 	hosts := parseTarget(config.Target)
 	portList := parsePorts(config.Ports)
 
@@ -295,40 +593,46 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
-	// 进度统计变量
+	semaphore := make(chan struct{}, config.Threads)
+	cache := NewScanResultCache(5 * time.Minute)
+
 	totalHosts := len(hosts)
 	totalPorts := len(portList)
 	completedHosts := 0
 	openPortsCount := 0
 
-	// 创建并发控制通道
-	semaphore := make(chan struct{}, config.Threads)
+	batchResult := &BatchScanResult{
+		TotalHosts: totalHosts,
+	}
 
-	// 显示初始进度信息
 	fmt.Printf("[进度] 扫描 %d 个主机，每个主机 %d 个端口，总共 %d 个端口扫描任务\n",
 		totalHosts, totalPorts, totalHosts*totalPorts)
 
 	for _, host := range hosts {
-		// 检查上下文是否已取消
 		select {
 		case <-ctx.Done():
 			fmt.Printf("[GYscan-Nmap] 扫描被用户取消\n")
 			return results
 		default:
 		}
+
 		wg.Add(1)
 		go func(ip string) {
 			defer wg.Done()
 			semaphore <- struct{}{}
 			defer func() { <-semaphore }()
 
-			// 检查主机存活
-			isAlive := false
-			if config.Pn {
-				// 使用-Pn参数，跳过主机发现，直接假设主机存活
-				isAlive = true
-			} else {
-				// 正常进行主机存活检查
+			if cached, ok := cache.Get(ip); ok {
+				mu.Lock()
+				results = append(results, *cached)
+				completedHosts++
+				fmt.Printf("[进度] 主机 %s 使用缓存结果 (%d/%d)\n", ip, completedHosts, totalHosts)
+				mu.Unlock()
+				return
+			}
+
+			isAlive := true
+			if !config.Pn {
 				isAlive = hostDiscovery(ip, config.Timeout)
 			}
 
@@ -339,7 +643,6 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 			}
 
 			if !isAlive {
-				// 静默处理不存活的主机
 				mu.Lock()
 				results = append(results, result)
 				completedHosts++
@@ -351,26 +654,20 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 			fmt.Printf("[进度] 主机 %s 存活，开始端口扫描 (%d/%d)\n", ip, completedHosts+1, totalHosts)
 			result.Status = "up"
 
-			// 端口扫描
 			portResults := portScanWithProgress(ctx, ip, portList, config, &openPortsCount, &mu)
 			result.Ports = portResults
 
-			// 服务识别
 			if config.ServiceDetection && len(portResults) > 0 {
 				result.Services = serviceDetection(ip, portResults)
-
-				// 服务指纹识别（全面扫描模式下）
-				if config.AggressiveScan && len(portResults) > 0 {
+				if config.AggressiveScan {
 					result.ServiceFingerprints = serviceFingerprintDetection(ip, portResults)
 				}
 			}
 
-			// OS识别
 			if config.OSDetection && len(portResults) > 0 {
 				result.OS = osDetection(ip, portResults)
 			}
 
-			// MAC地址识别（仅在全面扫描模式下）
 			if config.AggressiveScan {
 				result.MACAddress = getMACAddress(ip)
 				if result.MACAddress != "" {
@@ -378,7 +675,6 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 				}
 			}
 
-			// 网络距离检测
 			if config.TTLDetection && result.Status == "up" {
 				result.NetworkDistance = detectTTL(ip, config.Timeout)
 				if result.NetworkDistance > 0 {
@@ -386,14 +682,16 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 				}
 			}
 
-			// 路由追踪（仅在全面扫描模式下）
 			if config.AggressiveScan && result.Status == "up" {
 				result.Traceroute = performTraceroute(ip)
 			}
 
+			cache.Set(ip, &result)
+
 			mu.Lock()
 			results = append(results, result)
 			completedHosts++
+			batchResult.AddResult(result)
 			fmt.Printf("[进度] 主机 %s 扫描完成，发现 %d 个开放端口 (%d/%d)\n",
 				ip, len(portResults), completedHosts, totalHosts)
 			mu.Unlock()
@@ -401,8 +699,7 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 	}
 
 	wg.Wait()
-	fmt.Printf("[GYscan-Nmap] 扫描完成，发现 %d 台活跃主机，总共 %d 个开放端口\n",
-		len(results), openPortsCount)
+
 	return results
 }
 
@@ -1690,7 +1987,156 @@ func detectOSByTCPFingerprint(ip string) string {
 	return "Unknown"
 }
 
-// removeDuplicateOSGuesses 去重操作系统猜测
+// EnhancedServiceDetection 增强的服务识别（优化版本）
+func EnhancedServiceDetection(ip string, port int, banner string) ServiceFingerprint {
+	fingerprint := ServiceFingerprint{
+		Port:     port,
+		Protocol: "tcp",
+	}
+
+	fingerprint.Service = identifyService(port, banner)
+	fingerprint.Version = extractServiceVersion(banner, fingerprint.Service)
+
+	// 深度指纹识别
+	if fingerprint.Version == "" {
+		fingerprint.Version = deepServiceFingerprint(banner)
+	}
+
+	// 获取额外信息
+	fingerprint.ExtraInfo = extractExtraServiceInfo(banner, fingerprint.Service)
+
+	return fingerprint
+}
+
+// extractServiceVersion 提取服务版本号
+func extractServiceVersion(banner string, service string) string {
+	for _, re := range serviceVersionRegexes {
+		if match := re.FindStringSubmatch(banner); len(match) > 2 {
+			return match[2]
+		}
+	}
+	return ""
+}
+
+// deepServiceFingerprint 深度服务指纹识别
+func deepServiceFingerprint(banner string) string {
+	bannerLower := strings.ToLower(banner)
+
+	servicePatterns := map[string]string{
+		"ssh":        `openssh[_\s]*([0-9.]+)`,
+		"http":       `(apache|nginx|iis|lighttpd|caddy)[_\s]*([0-9.]+)`,
+		"mysql":      `(mysql|mariadb)[_\s]*([0-9.]+)`,
+		"postgresql": `postgresql[_\s]*([0-9.]+)`,
+		"redis":      `redis[_\s]*([0-9.]+)`,
+		"mongodb":    `mongodb[_\s]*([0-9.]+)`,
+		"oracle":     `oracle[_\s]*([0-9.]+)`,
+		"ftp":        `(vsftpd|proftpd|pure-ftpd|filezilla)[_\s]*([0-9.]+)`,
+		"smtp":       `(postfix|exim|sendmail|qmail)[_\s]*([0-9.]+)`,
+		"dns":        `(bind|named|powerdns)[_\s]*([0-9.]+)`,
+	}
+
+	for _, pattern := range servicePatterns {
+		re := regexp.MustCompile(pattern)
+		if match := re.FindStringSubmatch(bannerLower); len(match) > 1 {
+			return match[1]
+		}
+	}
+
+	return ""
+}
+
+// extractExtraServiceInfo 提取额外服务信息
+func extractExtraServiceInfo(banner string, service string) string {
+	bannerLower := strings.ToLower(banner)
+
+	extraInfoPatterns := map[string][]string{
+		"ssh": {
+			`openssh[_\s]*([0-9.]+)[_\s]*.*?(ubuntu|debian|centos|fedora|rhel|windows)`,
+			`openssh[_\s]*([0-9.]+)[_\s]*.*?_(conf|privsep)`,
+		},
+		"http": {
+			`(apache|nginx)[_\s]*([0-9.]+)[_\s]*.*?(ubuntu|debian|centos|fedora|rhel|windows)`,
+			`server:[^\n]*?(apache|nginx)[^\n]*?([0-9.]+)`,
+		},
+		"mysql": {
+			`([0-9.]+)[-_\s]*(mariadb|mysql)`,
+			`mariadb[_\s]*([0-9.]+)`,
+		},
+	}
+
+	for _, patterns := range extraInfoPatterns {
+		for _, pattern := range patterns {
+			re := regexp.MustCompile(pattern)
+			if match := re.FindStringSubmatch(bannerLower); len(match) > 1 {
+				return match[0]
+			}
+		}
+	}
+
+	return ""
+}
+
+// EnhancedOSDetection 增强的操作系统检测（优化版本）
+func EnhancedOSDetection(ip string, ports map[int]PortInfo) []string {
+	var osGuesses []string
+
+	osGuesses = append(osGuesses, detectOSByServiceCombination(ports))
+
+	if osGuesses[0] == "Unknown" || len(osGuesses[0]) == 0 {
+		osGuesses = append(osGuesses, detectOSByBanner(ports))
+	}
+
+	if len(osGuesses) == 0 || osGuesses[0] == "Unknown" {
+		osGuesses = append(osGuesses, detectOSByTCPFingerprint(ip))
+	}
+
+	osGuesses = append(osGuesses, detectOSBySequenceAnalysis(ports))
+
+	return removeDuplicateOSGuesses(osGuesses)
+}
+
+// detectOSBySequenceAnalysis 基于TCP序列分析检测操作系统
+func detectOSBySequenceAnalysis(ports map[int]PortInfo) string {
+	openPorts := make([]int, 0, len(ports))
+	for port := range ports {
+		openPorts = append(openPorts, port)
+	}
+
+	switch {
+	case len(openPorts) > 5 && containsAll(openPorts, []int{22, 80, 443, 3306, 6379}):
+		return "Linux Server (High Port Count)"
+	case contains(openPorts, 3389) && contains(openPorts, 445):
+		return "Windows Server (RDP+SMB)"
+	case contains(openPorts, 22) && !contains(openPorts, 80):
+		return "Linux/Unix (SSH Only)"
+	case contains(openPorts, 8080) && contains(openPorts, 3306):
+		return "Linux Web Server (LAMP/LEMP)"
+	default:
+		return "Unknown"
+	}
+}
+
+func contains(slice []int, item int) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
+
+func containsAll(slice []int, items []int) bool {
+	itemSet := make(map[int]bool)
+	for _, item := range items {
+		itemSet[item] = true
+	}
+	for _, s := range slice {
+		if itemSet[s] {
+			delete(itemSet, s)
+		}
+	}
+	return len(itemSet) == 0
+}
 func removeDuplicateOSGuesses(guesses []string) []string {
 	seen := make(map[string]bool)
 	result := []string{}
@@ -2104,13 +2550,12 @@ func identifyUDPServiceByBanner(banner string) string {
 
 // parseTarget 解析目标
 func parseTarget(target string) []string {
-	// 移除可能的协议前缀、端口号和路径
 	target = RemoveProtocolPrefix(target)
 
 	if strings.Contains(target, "/") {
-		return parseCIDR(target)
+		return removeDuplicateIPs(parseCIDR(target))
 	} else if strings.Contains(target, "-") {
-		return parseIPRange(target)
+		return removeDuplicateIPs(parseIPRange(target))
 	} else {
 		// 检查是否是IP地址
 		if net.ParseIP(target) != nil {
@@ -2133,9 +2578,22 @@ func parseTarget(target string) []string {
 				return []string{target}
 			}
 
-			return result
+			return removeDuplicateIPs(result)
 		}
 	}
+}
+
+// removeDuplicateIPs 移除重复的IP地址
+func removeDuplicateIPs(ips []string) []string {
+	seen := make(map[string]bool)
+	var result []string
+	for _, ip := range ips {
+		if !seen[ip] {
+			seen[ip] = true
+			result = append(result, ip)
+		}
+	}
+	return result
 }
 
 // parseCIDR 解析CIDR格式
