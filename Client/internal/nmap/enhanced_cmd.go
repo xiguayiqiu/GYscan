@@ -84,6 +84,7 @@ func init() {
 		osDetection      bool
 		serviceDetection bool
 		aggressiveScan   bool
+		pn               bool
 		output           string
 	)
 
@@ -117,6 +118,11 @@ func init() {
 			ServiceDetection: serviceDetection,
 			TimingTemplate:   timingTemplate,
 			AggressiveScan:   aggressiveScan,
+			Pn:               pn,
+		}
+
+		if pn {
+			fmt.Printf("[GYscan-Enhanced] Pn模式: 跳过主机发现\n")
 		}
 
 		fmt.Printf("[GYscan-Enhanced] 开始扫描: %s\n", target)
@@ -144,6 +150,7 @@ func init() {
 	EnhancedScanCmd.Flags().BoolVarP(&osDetection, "O", "O", false, "启用系统识别")
 	EnhancedScanCmd.Flags().BoolVarP(&serviceDetection, "sV", "", false, "启用服务识别")
 	EnhancedScanCmd.Flags().BoolVarP(&aggressiveScan, "A", "A", false, "全面扫描模式")
+	EnhancedScanCmd.Flags().BoolVarP(&pn, "Pn", "", false, "跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)")
 	EnhancedScanCmd.Flags().StringVarP(&output, "output", "o", "", "输出文件")
 
 	// 初始化快速扫描命令

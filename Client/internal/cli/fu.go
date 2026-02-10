@@ -61,9 +61,20 @@ var fuCmd = &cobra.Command{
 	Short: "文件上传漏洞检查工具",
 	Long: `文件上传漏洞检查工具 - 用于检测Web应用中的文件上传漏洞
 支持多种绕过技术，包括文件类型检测绕过、文件名绕过、路径绕过等
-警告：仅用于授权测试，严禁未授权使用！`,
-	Args: cobra.MinimumNArgs(1),
+警告：仅用于授权测试，严禁未授权使用！
+
+用法示例:
+  ./GYscan fu http://example.com/upload         # 基本检测
+  ./GYscan fu http://example.com/upload -v     # 详细输出
+  ./GYscan fu http://example.com/upload -t php # 指定文件类型`,
+	Args: cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		// 无参数时显示帮助信息
+		if len(args) == 0 {
+			cmd.Help()
+			return
+		}
+
 		target := args[0]
 		utils.LogInfo("开始执行文件上传漏洞检查，目标: %s", target)
 

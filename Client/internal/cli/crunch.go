@@ -21,7 +21,7 @@ var (
 // crunchCmd 表示crunch命令
 var crunchCmd = &cobra.Command{
 	Use:   "crunch min max chars [options]",
-	Short: "密码字典生成工具",
+	Short: "计算机根据算法生成的密码字典生成工具",
 	Long: `生成密码字典，模仿crunch工具的功能。
 
 使用示例:

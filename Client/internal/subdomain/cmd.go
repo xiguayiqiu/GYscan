@@ -51,14 +51,12 @@ func init() {
 	)
 
 	SubCmd.Run = func(cmd *cobra.Command, args []string) {
-		if len(args) > 0 && args[0] == "help" {
+		if len(args) == 0 || args[0] == "help" {
 			cmd.Help()
 			return
 		}
 
-		if len(args) > 0 {
-			domain = args[0]
-		}
+		domain = args[0]
 
 		if domain == "" {
 			fmt.Println("请指定目标域名 (直接传递目标参数或使用 --domain 标志)")

@@ -530,6 +530,7 @@ type ScanConfig struct {
 	ServiceDetection bool
 	TimingTemplate   int  // 扫描速度模板 (0-5, 完全模仿nmap -T参数)
 	TTLDetection     bool // TTL检测，用于估算目标距离
+	TTLValue         int  // 设置发送数据包的TTL值 (等同于nmap --ttl参数)
 	AggressiveScan   bool // 全面扫描模式 (等同于nmap -A参数)
 	FragmentedScan   bool // 碎片化扫描模式 (等同于nmap -f参数)
 	TCPScan          bool // TCP扫描模式 (等同于nmap -sT参数)
@@ -581,6 +582,17 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 		fmt.Printf("[GYscan-Nmap] 主机存活探测模式 (-sn): 目标=%s, 线程=%d, 速度级别=%d\n",
 			config.Target, config.Threads, config.TimingTemplate)
 		return hostDiscoveryScan(ctx, config)
+	}
+
+	// Pn模式：跳过主机发现，直接扫描端口（模仿nmap -Pn行为）
+	if config.Pn {
+		fmt.Printf("[GYscan-Nmap] 跳过主机发现模式 (-Pn): 所有目标主机将被标记为存活状态\n")
+		fmt.Printf("[警告] 主机发现已禁用。所有地址将被标记为上线，扫描时间可能会变慢。\n")
+	}
+
+	// TTL值设置（模仿nmap --ttl参数）
+	if config.TTLValue > 0 {
+		fmt.Printf("[GYscan-Nmap] TTL值设置: %d (用于发送数据包的IP TTL字段)\n", config.TTLValue)
 	}
 
 	fmt.Printf("[GYscan-Nmap] 开始扫描: 目标=%s, 端口=%s, 线程=%d, 类型=%s, 速度级别=%d\n",

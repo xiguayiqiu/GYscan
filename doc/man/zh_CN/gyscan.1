@@ -15,6 +15,9 @@ GYscan \- Go语言综合渗透测试工具
 \fBcrunch\fR \fI最小长度\fR \fI最大长度\fR \fI字符集\fR [\fI选项\fR]
 .PP
 .B GYscan
+\fBcupp\fR [\fI目标名字\fR] [\fI选项\fR]
+.PP
+.B GYscan
 \fBdatabase\fR \fI目标地址\fR [\fI选项\fR]
 .PP
 .B GYscan
@@ -331,6 +334,95 @@ SSH服务安全配置检查，包括协议版本、认证方式、root登录权�
 .RE
 .RS 4
 生成6-10位复杂字符密码字典，使用8线程
+.RE
+.SS cupp（通用用户密码分析器）
+.PP
+\fBGYscan cupp\fR [\fI目标名字\fR] [\fI选项\fR]
+.PP
+CUPP (Common User Passwords Profiler) - 通用用户密码分析器，根据目标用户信息生成定制化的密码字典。适用于密码安全测试和社会工程学场景。
+.PP
+\fB命令模式\fR：
+.PP
+\fB快速生成\fR
+.RS 4
+直接基于名字生成密码变体
+.RE
+.PP
+\fB交互式模式\fR
+.RS 4
+通过命令行交互输入目标详细信息
+.RE
+.PP
+\fB改进字典\fR
+.RS 4
+对现有字典文件进行增强和扩展
+.RE
+.PP
+\fB选项\fR：
+.PP
+\fB-i\fR, \fB--interactive\fR
+.RS 4
+启用交互式模式，引导用户输入目标详细信息
+.RE
+.PP
+\fB-w\fR, \fB--improve\fR \fI文件路径\fR
+.RS 4
+改进现有字典文件，添加变体和组合
+.RE
+.PP
+\fB-c\fR, \fB--concat\fR
+.RS 4
+改进字典时连接词汇（仅与-w配合使用）
+.RE
+.PP
+\fB-l\fR, \fB--leet\fR
+.RS 4
+启用Leet模式，将字母替换为数字符号（如e→3, a→4, o→0）
+.RE
+.PP
+\fB-n\fR, \fB--numbers\fR
+.RS 4
+在密码末尾添加随机数字
+.RE
+.PP
+\fB-s\fR, \fB--special\fR
+.RS 4
+在密码末尾添加特殊字符
+.RE
+.PP
+\fB-o\fR, \fB--output\fR \fI文件路径\fR
+.RS 4
+指定输出文件路径
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan cupp john
+.RE
+.RS 4
+基于名字"john"生成密码字典
+.RE
+.PP
+.RS 4
+.B GYscan cupp john --leet -n -s
+.RE
+.RS 4
+生成密码并启用Leet模式、数字和特殊字符
+.RE
+.PP
+.RS 4
+.B GYscan cupp -i
+.RE
+.RS 4
+启动交互式输入模式
+.RE
+.PP
+.RS 4
+.B GYscan cupp -w wordlist.txt --concat --leet
+.RE
+.RS 4
+改进现有字典，连接词汇并应用Leet模式
 .RE
 .SS database（数据库密码破解工具）
 .PP

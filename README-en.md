@@ -2,7 +2,7 @@
 
 # GYscan - Comprehensive Penetration Testing Tool
 
-[![Version](https://img.shields.io/badge/Version-v2.8.1-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.2-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -90,7 +90,7 @@ The tool integrates rich penetration testing function modules, covering port sca
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
-| **Latest Version** | v2.8.1 |
+| **Latest Version** | v2.8.2 |
 | **Author** | BiliBili-弈秋啊 |
 
 ---
@@ -280,6 +280,7 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 | `ftp` | Password | FTP password cracking |
 | `database` | Password | Database password cracking |
 | `crunch` | Password | Password dictionary generation |
+| `cupp` | Password | Common User Passwords Profiler |
 | `smb` | Remote | SMB protocol operations |
 | `rdp` | Remote | RDP remote desktop |
 | `powershell` | Remote | PowerShell execution |
@@ -312,6 +313,41 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 ---
 
 ## Changelog
+
+### v2.8.2
+
+**CUPP Social Engineering Password Generator**
+
+#### New Features
+
+- **cupp command - Common User Passwords Profiler**
+  - Generate customized password dictionaries based on target user information
+  - Quick mode: Generate password variants directly from names
+  - Interactive mode: Command-line guided input for detailed information
+  - Improve dictionary mode: Enhance existing dictionaries
+  - Leet mode support: Letter to number substitution (e→3, a→4, o→0)
+  - Special characters and random number combinations
+  - Password word concatenation and combination
+
+- **Command Interaction Optimization**
+  - Auto-display help when running without arguments
+  - All modules support -h/--help parameters
+  - More user-friendly interaction experience
+
+#### Command Examples
+
+```bash
+# Generate passwords based on name
+./GYscan cupp john
+./GYscan cupp john --leet -n -s
+
+# Interactive input
+./GYscan cupp -i
+
+# Improve existing dictionary
+./GYscan cupp -w wordlist.txt --concat --leet
+./GYscan cupp -w wordlist.txt -n -s
+```
 
 ### v2.8.1
 

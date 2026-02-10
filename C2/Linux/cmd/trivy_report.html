@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux漏洞扫描报告 - localhost:22</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .report-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .header { 
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { 
+            font-size: 2.5em; 
+            margin-bottom: 10px; 
+            font-weight: 300;
+        }
+        .header-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .info-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .section { 
+            padding: 30px; 
+            border-bottom: 1px solid #eee; 
+        }
+        .section:last-child { border-bottom: none; }
+        .section h2 { 
+            color: #2c3e50; 
+            margin-bottom: 20px; 
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        .warning-banner {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border-left: 5px solid #e17055;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+        .stat-card.critical { border-left-color: #e74c3c; }
+        .stat-card.high { border-left-color: #e67e22; }
+        .stat-card.medium { border-left-color: #f39c12; }
+        .stat-card.low { border-left-color: #27ae60; }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+        .vulnerability { 
+            background: #f8f9fa;
+            border: 1px solid #e9ecef; 
+            padding: 25px; 
+            margin: 15px 0; 
+            border-radius: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .vulnerability:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .vulnerability.critical { 
+            border-left: 6px solid #e74c3c;
+            background: linear-gradient(135deg, #fd746c 0%, #ff9068 100%);
+            color: white;
+        }
+        .vulnerability.high { 
+            border-left: 6px solid #e67e22;
+            background: linear-gradient(135deg, #f46b45 0%, #eea849 100%);
+        }
+        .vulnerability.medium { 
+            border-left: 6px solid #f39c12;
+            background: linear-gradient(135deg, #feca57 0%, #d35400 100%);
+        }
+        .vulnerability.low { 
+            border-left: 6px solid #27ae60;
+            background: linear-gradient(135deg, #a8e6cf 0%, #3d9970 100%);
+        }
+        .vuln-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .vuln-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            flex: 1;
+        }
+        .severity-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .critical .severity-badge { background: rgba(255,255,255,0.2); }
+        .vuln-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .detail-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .detail-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        th, td { 
+            padding: 15px; 
+            text-align: left; 
+            border-bottom: 1px solid #eee;
+        }
+        th { 
+            background: #3498db; 
+            color: white; 
+            font-weight: 600;
+        }
+        tr:hover { background: #f8f9fa; }
+        @media (max-width: 768px) {
+            .header-info { grid-template-columns: 1fr; }
+            .vuln-details { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="report-card">
+            <div class="header">
+                <h1>🔒 Linux漏洞扫描报告</h1>
+                <p>专业安全评估报告</p>
+                <div class="header-info">
+                    <div class="info-item">
+                        <strong>扫描目标:</strong><br>localhost:22
+                    </div>
+                    <div class="info-item">
+                        <strong>操作系统:</strong><br>Linux Kernel 6.18.7-arch1-1 - NAME="Arch Linux"
+PRETTY_NAME="Arch Linux"
+ID=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;23;147;209"
+HOME_URL="https://archlinux.org/"
+DOCUMENTATION_URL="https://wiki.archlinux.org/"
+SUPPORT_URL="https://bbs.archlinux.org/"
+BUG_REPORT_URL="https://gitlab.archlinux.org/groups/archlinux/-/issues"
+PRIVACY_POLICY_URL="https://terms.archlinux.org/docs/privacy-policy/"
+LOGO=archlinux-logo
+
+                    </div>
+                    <div class="info-item">
+                        <strong>发行版:</strong><br>Arch Linux
+                    </div>
+                    <div class="info-item">
+                        <strong>扫描时间:</strong><br>2026-02-09 11:16:46
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 重要提示 -->
+            <div class="section">
+                <div class="warning-banner">
+                    <h2>⚠️ 重要提示</h2>
+                    <p>本报告基于系统服务、配置等信息进行自动化分析，结果仅供参考。建议对发现的潜在漏洞进行手动验证，确保安全评估的准确性。</p>
+                </div>
+            </div>
+            <div class="section">
+                <h2>📊 漏洞统计概览</h2>
+                <div class="stats-grid">
+                    <div class="stat-card critical">
+                        <span class="stat-number">4</span>
+                        <div>严重漏洞</div>
+                    </div>
+                    <div class="stat-card high">
+                        <span class="stat-number">2</span>
+                        <div>高危漏洞</div>
+                    </div>
+                    <div class="stat-card medium">
+                        <span class="stat-number">4</span>
+                        <div>中危漏洞</div>
+                    </div>
+                    <div class="stat-card low">
+                        <span class="stat-number">0</span>
+                        <div>低危漏洞</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <h3>总计发现 <span style="color: #e74c3c; font-size: 1.5em;">10</span> 个潜在漏洞</h3>
+                </div>
+            </div>
+            <div class="section">
+                <h2>🔍 漏洞详情分析</h2>
+                <div class="vulnerability critical">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Redis未授权访问</div>
+                        <div class="severity-badge">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>REDIS-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2015-4335</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>所有Redis版本</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Redis存在未授权访问漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">配置Redis认证和网络访问控制</div>
+                    </div>
+                </div>
+                <div class="vulnerability critical">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Linux命令执行漏洞</div>
+                        <div class="severity-badge">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>LINUX-CMD-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>Linux系统</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Linux系统存在命令执行漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新系统到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability critical">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Linux权限提升漏洞</div>
+                        <div class="severity-badge">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>LINUX-PRIV-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>Linux系统</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Linux系统存在权限提升漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新系统到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability critical">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Linux SQL注入漏洞</div>
+                        <div class="severity-badge">Critical</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>LINUX-SQL-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>Linux系统</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Linux系统存在SQL注入漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新系统到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability high">
+                    <div class="vuln-header">
+                        <div class="vuln-title">SSH服务漏洞</div>
+                        <div class="severity-badge">High</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>SSH-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>sshd</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>SSH服务存在安全漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新SSH到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability high">
+                    <div class="vuln-header">
+                        <div class="vuln-title">PostgreSQL权限提升</div>
+                        <div class="severity-badge">High</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>POSTGRES-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-3677</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>PostgreSQL 9.6-13.2</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>PostgreSQL存在权限提升漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新PostgreSQL到13.3、12.7、11.12、10.17或9.6.22及以上版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability medium">
+                    <div class="vuln-header">
+                        <div class="vuln-title">cURL安全漏洞</div>
+                        <div class="severity-badge">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>CURL-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>curl</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>cURL存在安全漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新cURL到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability medium">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Python安全漏洞</div>
+                        <div class="severity-badge">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>PYTHON-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>python3</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Python存在安全漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新Python到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability medium">
+                    <div class="vuln-header">
+                        <div class="vuln-title">Python安全漏洞</div>
+                        <div class="severity-badge">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>PYTHON-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-XXXXX</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>python</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>Python存在安全漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新Python到最新版本</div>
+                    </div>
+                </div>
+                <div class="vulnerability medium">
+                    <div class="vuln-header">
+                        <div class="vuln-title">PostgreSQL内存泄露</div>
+                        <div class="severity-badge">Medium</div>
+                    </div>
+                    <div class="vuln-details">
+                        <div class="detail-item">
+                            <div class="detail-label">漏洞ID</div>
+                            <div>POSTGRES-002</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">CVE编号</div>
+                            <div>CVE-2021-23214</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">影响范围</div>
+                            <div>PostgreSQL 13.0-13.3</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">漏洞描述</div>
+                        <div>PostgreSQL存在内存泄露漏洞</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <div class="detail-label">解决方案</div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px;">更新PostgreSQL到14.0及以上版本</div>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <h2>📋 系统信息概览</h2>
+                <h3>🖥️ 发现的服务</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>服务名称</th>
+                            <th>端口</th>
+                            <th>协议</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>asusd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>bluetooth</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>chronyd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>clash-verge-service</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>dbus-broker</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>libvirtd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>ly@tty1</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>NetworkManager</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>nvidia-powerd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>pamac-daemon</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>polkit</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>power-profiles-daemon</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>rtkit-daemon</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>sshd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>supergfxd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>systemd-journald</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>systemd-logind</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>systemd-machined</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>systemd-udevd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>systemd-userdbd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>udisks2</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>upower</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>user@1000</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>virtlogd</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>wpa_supplicant</td>
+                            <td>0</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h3 style="margin-top: 30px;">📦 发现的程序</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>程序名称</th>
+                            <th>版本</th>
+                            <th>安装路径</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>curl</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>wget</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>python3</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>python</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>perl</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>ruby</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>node</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>npm</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>java</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>gcc</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>g++</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>make</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>git</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>svn</td>
+                            <td>unknown</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="section" style="text-align: center; background: #f8f9fa;">
+                <p>🔒 报告生成时间: 2026-02-09 11:16:46</p>
+                <p>⏱️ 扫描耗时: 26.166593ms</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

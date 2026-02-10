@@ -67,6 +67,11 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 
 	results = deduplicateResults(results)
 
+	// 显示扫描模式信息
+	if config.Pn {
+		utils.WarningPrint("注意: 主机发现已跳过 (-Pn)\n")
+	}
+
 	activeHosts := 0
 	for _, result := range results {
 		if result.Status == "up" {

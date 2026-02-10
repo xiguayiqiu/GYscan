@@ -57,6 +57,7 @@ func init() {
 		osDetection      bool
 		serviceDetection bool
 		ttlDetection     bool
+		ttlValue         int
 		aggressiveScan   bool
 		fragmentedScan   bool
 		tcpScan          bool
@@ -74,16 +75,14 @@ func init() {
 	)
 	// 配置命令运行函数
 	ScanCmd.Run = func(cmd *cobra.Command, args []string) {
-		// 检查是否请求帮助
-		if len(args) > 0 && args[0] == "help" {
+		// 检查是否请求帮助或无参数
+		if len(args) == 0 || args[0] == "help" {
 			cmd.Help()
 			return
 		}
 
 		// 优先使用命令行参数中的目标，如果没有则使用--target标志
-		if len(args) > 0 {
-			target = args[0]
-		}
+		target = args[0]
 
 		if target == "" {
 			fmt.Println("请指定扫描目标 (直接传递目标参数或使用 --target 标志)")
@@ -131,6 +130,7 @@ func init() {
 			ServiceDetection: serviceDetection,
 			TimingTemplate:   timingTemplate,
 			TTLDetection:     ttlDetection,
+			TTLValue:         ttlValue,
 			AggressiveScan:   aggressiveScan,
 			FragmentedScan:   fragmentedScan,
 			TCPScan:          tcpScan,
@@ -150,6 +150,16 @@ func init() {
 				config.TimingTemplate = 4 // Aggressive模式
 			}
 			fmt.Printf("[GYscan-Nmap] 全面扫描模式已启用 (-A参数)\n")
+		}
+
+		// 处理Pn和HostDiscovery的互斥关系（模仿nmap行为）
+		if pn && hostDiscovery {
+			fmt.Printf("[警告] -Pn 和 -sn 参数互斥，-sn 优先执行主机发现\n")
+		}
+
+		// 如果启用了Pn，跳过主机发现，所有主机直接标记为上线
+		if pn && !hostDiscovery {
+			fmt.Printf("[GYscan-Nmap] 跳过主机发现模式 (-Pn): 所有主机将被标记为存活\n")
 		}
 
 		// 执行扫描
@@ -207,6 +217,7 @@ func init() {
 
 	// 其他功能参数
 	ScanCmd.Flags().BoolVarP(&ttlDetection, "ttl", "", false, "启用TTL检测，估算目标距离")
+	ScanCmd.Flags().IntVarP(&ttlValue, "ttl-value", "", 0, "设置发送数据包的TTL值 (等同于nmap --ttl参数)")
 
 	// 跳过主机发现，直接扫描端口 (nmap -Pn参数)
 	ScanCmd.Flags().BoolVarP(&pn, "Pn", "", false, "跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)")
@@ -259,6 +270,10 @@ func init() {
   仅进行主机存活探测，跳过端口扫描
   采用多协议组合探测（ICMP Ping + TCP SYN/ACK + UDP），提高准确性
   适用于快速发现网络中的在线主机，效率远高于全端口扫描
+
+TTL参数说明:
+  --ttl: 启用TTL检测，通过分析响应TTL值估算目标网络距离
+  --ttl-value: 设置发送数据包的TTL值 (等同于nmap --ttl参数)
 
 端口状态说明:
   open: 端口开放，有服务监听

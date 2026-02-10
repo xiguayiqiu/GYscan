@@ -42,25 +42,10 @@ var ftpCmd = &cobra.Command{
   
   # 调整超时时间
   GYscan.exe ftp 192.168.1.1 -u admin -p pass.txt --timeout 5`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		// 检查是否请求帮助
-		if len(args) > 0 && args[0] == "help" {
-			return nil
-		}
-
-		// 检查是否使用了-L参数
-		targetsFile, _ := cmd.Flags().GetString("targets-file")
-		if targetsFile != "" {
-			// 使用了-L参数，不要求必须有命令行参数
-			return cobra.MaximumNArgs(1)(cmd, args)
-		}
-
-		// 没有使用-L参数，必须有1个命令行参数
-		return cobra.ExactArgs(1)(cmd, args)
-	},
+	Args: cobra.ArbitraryArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		// 检查是否请求帮助
-		if len(args) > 0 && args[0] == "help" {
+		// 检查是否请求帮助或无参数
+		if len(args) == 0 || args[0] == "help" {
 			cmd.Help()
 			return
 		}

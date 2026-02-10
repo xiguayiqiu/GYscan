@@ -74,6 +74,7 @@ func BuildRegistry() *CommandRegistry {
 
 	r.Register(aboutCmd, GroupGeneral)
 	r.Register(crunchCmd, GroupPassword)
+	r.Register(cuppCmd, GroupPassword)
 	r.Register(databaseCmd, GroupPassword)
 	r.Register(ftpCmd, GroupPassword)
 	r.Register(sshCmd, GroupPassword)

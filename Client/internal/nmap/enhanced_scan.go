@@ -165,6 +165,10 @@ func EnhancedNmapScan(ctx context.Context, config ScanConfig) []OptimizedScanRes
 	fmt.Printf("[GYscan-Enhanced] 开始扫描: 目标=%s, 端口=%d, 线程=%d, 速度级别=%d\n",
 		config.Target, len(portList), config.Threads, config.TimingTemplate)
 
+	if config.Pn {
+		fmt.Printf("[GYscan-Enhanced] Pn模式: 跳过主机发现，所有主机直接标记为存活\n")
+	}
+
 	for _, host := range hosts {
 		select {
 		case <-ctx.Done():

@@ -2,7 +2,7 @@
 
 # GYscan - 综合渗透测试工具
 
-[![Version](https://img.shields.io/badge/Version-v2.8.1-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.2-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -90,7 +90,7 @@ GYscan 是一款用 Go 语言开发的专业综合渗透测试工具。基于 Go
 | **开发语言** | Go 1.24+ |
 | **支持平台** | Windows 7+/Linux/macOS |
 | **许可证** | Apache 2.0 |
-| **最新版本** | v2.8.1 |
+| **最新版本** | v2.8.2 |
 | **作者** | BiliBili-弈秋啊 |
 
 ---
@@ -280,6 +280,7 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 | `ftp` | 密码攻击 | FTP密码破解 |
 | `database` | 密码攻击 | 数据库密码破解 |
 | `crunch` | 密码攻击 | 密码字典生成 |
+| `cupp` | 密码攻击 | 通用用户密码分析 |
 | `smb` | 远程管理 | SMB协议操作 |
 | `rdp` | 远程管理 | RDP远程桌面 |
 | `powershell` | 远程管理 | PowerShell执行 |
@@ -312,6 +313,41 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 ---
 
 ## 更新日志
+
+### v2.8.2
+
+**CUPP社会工程学密码生成工具**
+
+#### 新增功能
+
+- **cupp命令 - 通用用户密码分析器**
+  - 基于目标用户信息生成定制化密码字典
+  - 快速模式：直接基于名字生成密码变体
+  - 交互式模式：通过命令行引导输入详细信息
+  - 改进字典模式：对现有字典进行增强和扩展
+  - Leet模式支持：字母转数字符号（e→3, a→4, o→0）
+  - 特殊字符和随机数字组合
+  - 支持密码词汇连接和组合
+
+- **命令交互优化**
+  - 无参数运行时自动显示帮助信息
+  - 所有模块支持-h/--help参数
+  - 更友好的用户交互体验
+
+#### 命令示例
+
+```bash
+# 基于名字生成密码
+./GYscan cupp john
+./GYscan cupp john --leet -n -s
+
+# 交互式输入
+./GYscan cupp -i
+
+# 改进现有字典
+./GYscan cupp -w wordlist.txt --concat --leet
+./GYscan cupp -w wordlist.txt -n -s
+```
 
 ### v2.8.1
 
