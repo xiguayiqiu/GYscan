@@ -22,7 +22,10 @@
 **我们已对所有修改版本进行技术溯源，偷梁换柱者必将被追究法律责任！**
 
 ---
+## 主分支GYscan链接
 
+- [gitee点击跳转](https://gitee.com/bzhanyiqiua/gyscan-arm)
+- [github点击跳转](https://github.com/xiguayiqiu/GYscan-arm)
 ## 🔒 防盗版声明
 
 本项目仅通过以下官方渠道发布，任何其他来源均为盗版：

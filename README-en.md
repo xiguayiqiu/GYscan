@@ -22,6 +22,10 @@ Unauthorized use of this tool for unauthorized testing, modifying source code, o
 **We have implemented technical traceability for all modified versions - plagiarizers will be prosecuted!**
 
 ---
+## Main branch GYscan link
+
+- [gitee Click to navigate](https://gitee.com/bzhanyiqiua/gyscan-arm)
+- [github Click to navigate](https://github.com/xiguayiqiu/GYscan-arm)
 
 ## 🔒 Anti-Piracy Statement
 
