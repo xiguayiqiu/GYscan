@@ -27,6 +27,9 @@ GYscan \- Go语言综合渗透测试工具
 \fBdcom\fR \fI子命令\fR [\fI选项\fR]
 .PP
 .B GYscan
+\fBdos\fR \fI目标\fR [\fI选项\fR]
+.PP
+.B GYscan
 \fBftp\fR \fI目标\fR [\fI选项\fR]
 .PP
 .B GYscan
@@ -603,6 +606,459 @@ DCOM对象名称，默认MMC20.Application
 .RS 4
 执行远程命令
 .RE
+.SS dos（DoS压力测试工具）
+.PP
+\fBGYscan dos\fR \fI目标\fR [\fI选项\fR]
+.PP
+\fBGYscan dos\fR \fI子命令\fR [\fI选项\fR]
+.PP
+DoS（Denial of Service）压力测试工具，支持多种协议的数据包注入，可用于网络设备和防火墙的压力测试。支持TCP、UDP、ICMP、IGMP协议以及CC攻击模式。
+.PP
+\fB子命令\fR：
+.PP
+\fBflood\fR
+.RS 4
+Flood模式压力测试，持续发送数据包直到用户手动中断 (Ctrl+C)
+.RE
+.PP
+\fBtcp\fR
+.RS 4
+TCP协议压力测试，支持多种TCP标志位组合
+.RE
+.PP
+\fBudp\fR
+.RS 4
+UDP协议压力测试
+.RE
+.PP
+\fBicmp\fR
+.RS 4
+ICMP协议压力测试（Ping Flood）
+.RE
+.PP
+\fBigmp\fR
+.RS 4
+IGMP协议压力测试
+.RE
+.PP
+\fBcc\fR
+.RS 4
+CC攻击（Challenge Collapsar），HTTP Flood攻击，模拟大量正常用户访问目标网站
+.RE
+.PP
+\fB基本选项\fR：
+.PP
+\fI目标\fR
+.RS 4
+目标IP地址或CIDR网段（必需参数）
+.RE
+.PP
+\fB-p\fR, \fB--protocol\fR \fI协议\fR
+.RS 4
+协议类型：TCP、UDP、ICMP、IGMP（默认TCP）
+.RE
+.PP
+\fB-n\fR, \fB--threshold\fR \fI数量\fR
+.RS 4
+发送数据包数量（默认1000）
+.RE
+.PP
+\fB-f\fR, \fB--flood\fR
+.RS 4
+Flood模式，持续发送直到手动中断
+.RE
+.PP
+\fB--turbo\fR
+.RS 4
+Turbo模式，提高性能，使用多CPU核心
+.RE
+.PP
+\fB-s\fR, \fB--sport\fR \fI端口\fR
+.RS 4
+源端口
+.RE
+.PP
+\fB-d\fR, \fB--dport\fR \fI端口\fR
+.RS 4
+目标端口（默认80）
+.RE
+.PP
+\fB--saddr\fR \fI地址\fR
+.RS 4
+源IP地址
+.RE
+.PP
+\fB--ttl\fR \fI数值\fR
+.RS 4
+TTL值（默认64）
+.RE
+.PP
+\fB--tos\fR \fI数值\fR
+.RS 4
+Type of Service值
+.RE
+.PP
+\fB--payload\fR \fI大小\fR
+.RS 4
+载荷大小（字节）
+.RE
+.PP
+\fB-B\fR, \fB--bogus-csum\fR
+.RS 4
+使用错误校验和
+.RE
+.PP
+\fB-q\fR, \fB--quiet\fR
+.RS 4
+静默模式
+.RE
+.PP
+\fB--workers\fR \fI线程数\fR
+.RS 4
+并发工作线程数
+.RE
+.PP
+\fB--batch\fR \fI数量\fR
+.RS 4
+批量发送大小（每次发送包数量）
+.RE
+.PP
+\fBTCP标志位选项\fR：
+.PP
+\fB-S\fR, \fB--syn\fR
+.RS 4
+TCP SYN标志
+.RE
+.PP
+\fB-A\fR, \fB--ack\fR
+.RS 4
+TCP ACK标志
+.RE
+.PP
+\fB-F\fR, \fB--fin\fR
+.RS 4
+TCP FIN标志
+.RE
+.PP
+\fB-R\fR, \fB--rst\fR
+.RS 4
+TCP RST标志
+.RE
+.PP
+\fB-P\fR, \fB--psh\fR
+.RS 4
+TCP PSH标志
+.RE
+.PP
+\fB-U\fR, \fB--urg\fR
+.RS 4
+TCP URG标志
+.RE
+.PP
+\fB-E\fR, \fB--ece\fR
+.RS 4
+TCP ECE标志
+.RE
+.PP
+\fB-C\fR, \fB--cwr\fR
+.RS 4
+TCP CWR标志
+.RE
+.PP
+\fB--flags\fR \fI标志位\fR
+.RS 4
+TCP标志位组合，如：SYN、ACK/SYN/RST（默认SYN）
+.RE
+.PP
+\fB--window\fR \fI大小\fR
+.RS 4
+TCP窗口大小（默认4096）
+.RE
+.PP
+\fBICMP选项\fR：
+.PP
+\fB--icmp-type\fR \fI类型\fR
+.RS 4
+ICMP类型（默认8，即Echo Request）
+.RE
+.PP
+\fB--icmp-code\fR \fI代码\fR
+.RS 4
+ICMP代码（默认0）
+.RE
+.PP
+\fB--icmp-id\fR \fI标识\fR
+.RS 4
+ICMP标识
+.RE
+.PP
+\fB--icmp-sequence\fR \fI序列号\fR
+.RS 4
+ICMP序列号
+.RE
+.PP
+\fBCC攻击选项\fR（仅cc子命令）：
+.PP
+\fB--method\fR \fI方法\fR
+.RS 4
+HTTP方法：GET、POST、HEAD、OPTIONS、PUT、DELETE（默认GET）
+.RE
+.PP
+\fB--path\fR \fI路径\fR
+.RS 4
+HTTP请求路径
+.RE
+.PP
+\fB--data\fR \fI数据\fR
+.RS 4
+POST数据（如 username=admin&password=123）
+.RE
+.PP
+\fB--content-type\fR \fI类型\fR
+.RS 4
+Content-Type（默认application/x-www-form-urlencoded）
+.RE
+.PP
+\fB--header\fR \fI头信息\fR
+.RS 4
+自定义HTTP头（可多次使用）
+.RE
+.PP
+\fB--user-agent\fR \fI字符串\fR
+.RS 4
+User-Agent（默认Chrome浏览器）
+.RE
+.PP
+\fB--referer\fR \fIURL\fR
+.RS 4
+Referer头
+.RE
+.PP
+\fB--cookie\fR \fI字符串\fR
+.RS 4
+Cookie头
+.RE
+.PP
+\fB--random-ua\fR
+.RS 4
+随机User-Agent
+.RE
+.PP
+\fB--random-path\fR
+.RS 4
+随机请求路径
+.RE
+.PP
+\fB--random-data\fR
+.RS 4
+随机数据填充
+.RE
+.PP
+\fB--data-size\fR \fI大小\fR
+.RS 4
+随机数据大小（字节）
+.RE
+.PP
+\fB--keep-alive\fR
+.RS 4
+Keep-Alive连接（默认启用）
+.RE
+.PP
+\fB--accept\fR \fI字符串\fR
+.RS 4
+Accept头
+.RE
+.PP
+\fB--accept-language\fR \fI字符串\fR
+.RS 4
+Accept-Language头
+.RE
+.PP
+\fB--accept-encoding\fR \fI字符串\fR
+.RS 4
+Accept-Encoding头
+.RE
+.PP
+\fB--connection\fR \fI字符串\fR
+.RS 4
+Connection头
+.RE
+.PP
+\fB--x-forwarded-for\fR \fI地址\fR
+.RS 4
+X-Forwarded-For头（伪造IP）
+.RE
+.PP
+\fB--x-real-ip\fR \fI地址\fR
+.RS 4
+X-Real-IP头（伪造IP）
+.RE
+.PP
+\fB--host\fR \fI主机名\fR
+.RS 4
+Host头
+.RE
+.PP
+\fB--gzip\fR
+.RS 4
+启用Gzip压缩（默认启用）
+.RE
+.PP
+\fB--insecure\fR
+.RS 4
+跳过TLS证书验证（用于自签名证书）
+.RE
+.PP
+\fB--proxy\fR \fI地址\fR
+.RS 4
+HTTP代理地址（如 http://127.0.0.1:8080）
+.RE
+.PP
+\fB--rate-limit\fR \fI数量\fR
+.RS 4
+限速（每秒请求数，0为不限速）
+.RE
+.PP
+\fB--requests-per-conn\fR \fI数量\fR
+.RS 4
+每个连接最大请求数（0=不限）
+.RE
+.PP
+\fB--noconn\fR
+.RS 4
+禁用连接复用（每次请求新建连接）
+.RE
+.PP
+\fB使用示例\fR：
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --flood --syn
+.RE
+.RS 4
+TCP SYN Flood攻击
+.RE
+.PP
+.RS 4
+.B GYscan dos 10.0.0.1 --protocol UDP --dport 53 --flood
+.RE
+.RS 4
+UDP Flood到DNS服务器
+.RE
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --protocol ICMP --flood
+.RE
+.RS 4
+ICMP Ping Flood
+.RE
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --syn --dport 443 -n 10000
+.RE
+.RS 4
+TCP SYN到特定端口
+.RE
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --flood --syn --turbo
+.RE
+.RS 4
+使用Turbo模式提高性能
+.RE
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --flood --syn --bogus-csum
+.RE
+.RS 4
+使用错误校验和
+.RE
+.PP
+.RS 4
+.B GYscan dos 192.168.1.1 --sport 12345 --dport 80 --flood
+.RE
+.RS 4
+指定源端口
+.RE
+.PP
+.RS 4
+.B GYscan dos flood -t 192.168.1.1
+.RE
+.RS 4
+使用flood子命令
+.RE
+.PP
+.RS 4
+.B GYscan dos tcp -t 192.168.1.1 -d 80 --syn
+.RE
+.RS 4
+TCP压力测试
+.RE
+.PP
+.RS 4
+.B GYscan dos udp -t 10.0.0.1 -d 53
+.RE
+.RS 4
+UDP压力测试
+.RE
+.PP
+.RS 4
+.B GYscan dos icmp -t 192.168.1.1
+.RE
+.RS 4
+ICMP压力测试
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://example.com
+.RE
+.RS 4
+基础CC攻击
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://example.com --method POST --data '{"user":"admin"}' --content-type "application/json"
+.RE
+.RS 4
+POST JSON数据攻击
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://example.com --random-ua --keep-alive
+.RE
+.RS 4
+模拟真实浏览器攻击
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://example.com --random-path --workers 200
+.RE
+.RS 4
+随机路径攻击
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://example.com --workers 50 --rate-limit 100
+.RE
+.RS 4
+限速攻击（每秒100请求）
+.RE
+.PP
+.RS 4
+.B GYscan dos cc http://192.168.1.1:80 --workers 1000 --turbo
+.RE
+.RS 4
+高并发CC攻击
+.RE
+.PP
+\fB注意事项\fR：
+.PP
+1. 发送原始数据包需要root权限（Linux/Unix）或管理员权限（Windows）
+.PP
+2. CC攻击模式不需要特殊权限，但需要目标HTTP服务
+.PP
+3. 仅用于授权压力测试，严禁未授权使用！
+.PP
+4. 使用sudo运行：sudo GYscan dos 192.168.1.1 --flood --syn
 .SS dirscan（网站目录扫描工具）
 .PP
 \fBGYscan dirscan\fR \fB-u\fR \fIURL\fR [\fI选项\fR]

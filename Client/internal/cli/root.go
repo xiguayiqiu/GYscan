@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"GYscan/internal/csrf"
+	"GYscan/internal/dos"
 	"GYscan/internal/exp"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
@@ -19,7 +20,7 @@ import (
 
 // 版本号
 const (
-	Version = "v2.8.2"
+	Version = "v2.8.3"
 )
 
 // rootCmd 表示基础命令
@@ -212,8 +213,6 @@ func printCustomHelp() {
 
 	// 显示全局参数
 	fmt.Println("Flags:")
-	fmt.Println("      --key string     流量加密密钥 (AES-256)")
-	fmt.Println("      --proxy string   代理服务器 (支持 HTTP/SOCKS5)")
 	fmt.Println("  -q, --silent         静默模式，仅输出关键结果")
 	fmt.Println("  -V, --version        显示版本信息")
 	fmt.Println("      --no-banner      不显示启动横幅")
@@ -232,8 +231,6 @@ func GetRootCommand() *cobra.Command {
 func RegisterCommands(cmd *cobra.Command) {
 	// 添加全局参数
 	cmd.PersistentFlags().BoolP("silent", "q", false, "静默模式，仅输出关键结果")
-	cmd.PersistentFlags().String("proxy", "", "代理服务器 (支持 HTTP/SOCKS5)")
-	cmd.PersistentFlags().String("key", "", "流量加密密钥 (AES-256)")
 	cmd.PersistentFlags().BoolP("version", "V", false, "显示版本信息")
 	cmd.PersistentFlags().Bool("no-banner", false, "不显示启动横幅")
 	cmd.PersistentFlags().Bool("no-color", false, "禁用颜色输出")
@@ -244,6 +241,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(crunchCmd)        // 密码字典生成工具
 	cmd.AddCommand(databaseCmd)      // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)       // 网站目录扫描工具
+	cmd.AddCommand(dos.DosCmd)       // 网络压力测试工具
 	cmd.AddCommand(ftpCmd)           // FTP密码破解
 	cmd.AddCommand(fuCmd)            // 文件上传漏洞检查工具
 	cmd.AddCommand(linenumCmd)       // Linux本地信息枚举和权限提升工具

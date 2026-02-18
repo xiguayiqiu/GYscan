@@ -2,6 +2,7 @@ package cli
 
 import (
 	"GYscan/internal/csrf"
+	"GYscan/internal/dos"
 	"GYscan/internal/exp"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
@@ -22,6 +23,7 @@ const (
 	GroupInfo     CommandGroup = "信息收集工具"
 	GroupWeb      CommandGroup = "Web安全工具"
 	GroupTesting  CommandGroup = "测试阶段命令"
+	GroupStress   CommandGroup = "压力测试工具"
 )
 
 type CommandRegistry struct {
@@ -62,6 +64,7 @@ func (r *CommandRegistry) GetGroupsInOrder() []CommandGroup {
 		GroupGeneral,
 		GroupPassword,
 		GroupNetwork,
+		GroupStress,
 		GroupRemote,
 		GroupInfo,
 		GroupWeb,
@@ -84,6 +87,8 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(routeCmd, GroupNetwork)
 	r.Register(whoisCmd, GroupNetwork)
 	r.Register(scapy.ScapyCmd, GroupNetwork)
+
+	r.Register(dos.DosCmd, GroupStress)
 
 	r.Register(powershellCmd, GroupRemote)
 	r.Register(rdpCmd, GroupRemote)
