@@ -102,14 +102,9 @@ func printExploits(exploits []Exploit, verbose bool) {
 	utils.LogInfo("漏洞利用 (%d 条)", len(exploits))
 	fmt.Println(strings.Repeat("-", 80))
 
-	if len(exploits) > 50 && !verbose {
-		utils.LogWarning("显示前50条结果 (共 %d 条)", len(exploits))
-		exploits = exploits[:50]
-	}
-
 	for _, exploit := range exploits {
 		cyan.Printf("[%06d] ", exploit.ID)
-		white.Println(truncateString(exploit.Description, 60))
+		white.Println(exploit.Description)
 
 		if verbose {
 			yellow.Printf("    平台: %s | 类型: %s | 作者: %s\n", exploit.Platform, exploit.Type, exploit.Author)
@@ -139,14 +134,9 @@ func printShellcodes(shellcodes []Shellcode, verbose bool) {
 	utils.LogInfo("Shellcode (%d 条)", len(shellcodes))
 	fmt.Println(strings.Repeat("-", 80))
 
-	if len(shellcodes) > 50 && !verbose {
-		utils.LogWarning("显示前50条结果 (共 %d 条)", len(shellcodes))
-		shellcodes = shellcodes[:50]
-	}
-
 	for _, shellcode := range shellcodes {
 		cyan.Printf("[%06d] ", shellcode.ID)
-		white.Println(truncateString(shellcode.Description, 60))
+		white.Println(shellcode.Description)
 
 		if verbose {
 			magenta.Printf("    平台: %s | 大小: %s 字节 | 作者: %s\n",
