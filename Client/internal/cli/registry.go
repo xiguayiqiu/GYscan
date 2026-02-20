@@ -1,9 +1,11 @@
 package cli
 
 import (
+	"GYscan/internal/api"
 	"GYscan/internal/csrf"
 	"GYscan/internal/dos"
 	"GYscan/internal/exp"
+	"GYscan/internal/living"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
 	"GYscan/internal/subdomain"
@@ -83,6 +85,7 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(sshCmd, GroupPassword)
 
 	r.Register(nmap.ScanCmd, GroupNetwork)
+	r.Register(living.LivingCmd, GroupNetwork)
 	r.Register(dirscanCmd, GroupNetwork)
 	r.Register(routeCmd, GroupNetwork)
 	r.Register(whoisCmd, GroupNetwork)
@@ -107,6 +110,7 @@ func BuildRegistry() *CommandRegistry {
 	r.Register(fuCmd, GroupWeb)
 	r.Register(wsCmd, GroupWeb)
 	r.Register(webfp.WebfpCmd, GroupWeb)
+	r.Register(api.ApiCmd, GroupWeb)
 
 	r.Register(linenumCmd, GroupGeneral)
 	r.Register(linuxKernelCmd, GroupGeneral)

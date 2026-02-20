@@ -13,6 +13,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"GYscan/internal/living"
 )
 
 // ConnectionPool TCP连接池
@@ -511,12 +513,19 @@ type NmapResult struct {
 
 // PortInfo 表示端口信息
 type PortInfo struct {
-	Port     int    `json:"port"`
-	Protocol string `json:"protocol"`
-	Service  string `json:"service"`
-	Banner   string `json:"banner,omitempty"`
-	State    string `json:"state"` // open/closed/filtered/unfiltered/open|filtered/closed|filtered
-	Version  string `json:"version,omitempty"`
+	Port          int     `json:"port"`
+	Protocol      string  `json:"protocol"`
+	Service       string  `json:"service"`
+	Banner        string  `json:"banner,omitempty"`
+	State         string  `json:"state"` // open/closed/filtered/unfiltered/open|filtered/closed|filtered
+	Version       string  `json:"version,omitempty"`
+	WAFType       string  `json:"waf_type,omitempty"`       // WAF类型
+	WAFConfidence float64 `json:"waf_confidence,omitempty"` // WAF置信度
+	IsFiltered    bool    `json:"is_filtered,omitempty"`    // 是否被过滤(假死)
+	FilterReason  string  `json:"filter_reason,omitempty"`  // 过滤原因
+	ContentLength int     `json:"content_length,omitempty"` // 响应内容长度
+	ResponseTime  float64 `json:"response_time,omitempty"`  // 响应时间(秒)
+	StatusCode    int     `json:"status_code,omitempty"`    // HTTP状态码
 }
 
 // ScanConfig 表示扫描配置
@@ -538,6 +547,13 @@ type ScanConfig struct {
 	HostDiscovery    bool // 主机存活探测模式 (等同于nmap -sn参数)
 	Pn               bool // 跳过主机发现，直接扫描端口 (等同于nmap -Pn参数)
 	IPv6             bool // IPv6扫描模式 (等同于nmap -6参数)
+	// 智能存活探测增强
+	EnableWAFDetect  bool          // 启用WAF检测，识别云WAF拦截页面
+	EnableSimHash    bool          // 启用SimHash页面相似度检测
+	SimHashThreshold int           // SimHash相似度阈值 (Hamming距离)
+	WAFThreshold     float64       // WAF检测置信度阈值
+	FilterWAF        bool          // 过滤WAF拦截的目标
+	HTTPTimeout      time.Duration // HTTP请求超时
 }
 
 // applyTimingTemplate 应用nmap风格的扫描速度模板
@@ -698,6 +714,11 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 				result.Traceroute = performTraceroute(ip)
 			}
 
+			if (config.EnableWAFDetect || config.EnableSimHash) && len(portResults) > 0 {
+				enhancedPorts := smartLivingDetection(ip, portResults, config)
+				result.Ports = enhancedPorts
+			}
+
 			cache.Set(ip, &result)
 
 			mu.Lock()
@@ -713,6 +734,117 @@ func NmapScan(ctx context.Context, config ScanConfig) []NmapResult {
 	wg.Wait()
 
 	return results
+}
+
+// smartLivingDetection 智能存活探测增强 - WAF检测 + SimHash页面相似度分析
+func smartLivingDetection(ip string, ports map[int]PortInfo, config ScanConfig) map[int]PortInfo {
+	if !config.EnableWAFDetect && !config.EnableSimHash {
+		return ports
+	}
+
+	httpPorts := []int{80, 443, 8080, 8443, 8000, 8888, 888, 800, 3000, 5000, 9000}
+
+	var webPorts []int
+	for port := range ports {
+		for _, httpPort := range httpPorts {
+			if port == httpPort || (port >= 80 && port <= 90) || (port >= 800 && port <= 900) || (port >= 3000 && port <= 9000) {
+				webPorts = append(webPorts, port)
+				break
+			}
+		}
+	}
+
+	if len(webPorts) == 0 {
+		return ports
+	}
+
+	simThreshold := config.SimHashThreshold
+	if simThreshold <= 0 {
+		simThreshold = 10
+	}
+
+	wafThreshold := config.WAFThreshold
+	if wafThreshold <= 0 {
+		wafThreshold = 0.4
+	}
+
+	timeout := config.HTTPTimeout
+	if timeout <= 0 {
+		timeout = 3 * time.Second
+	}
+
+	detector := living.NewLivingDetector(&living.LivingConfig{
+		Timeout:          timeout,
+		Threads:          5,
+		EnableWAFDetect:  config.EnableWAFDetect,
+		EnableSimHash:    config.EnableSimHash,
+		SimHashThreshold: simThreshold,
+		WAFThreshold:     wafThreshold,
+	})
+
+	simHashGroups := make(map[uint64][]int)
+
+	for _, port := range webPorts {
+		url := fmt.Sprintf("http://%s:%d/", ip, port)
+		target := living.Target{
+			IP:   ip,
+			Port: port,
+			URL:  url,
+		}
+
+		result := detector.Detect(target)
+
+		if result != nil {
+			if existing, ok := ports[port]; ok {
+				existing.WAFType = string(result.WAFType)
+				existing.WAFConfidence = result.WAFConfidence
+
+				if result.IsFakeAlive {
+					existing.IsFiltered = true
+					existing.FilterReason = result.Reason
+				}
+
+				if config.EnableSimHash && result.SimHash > 0 {
+					found := false
+					for hash, groupPorts := range simHashGroups {
+						if living.IsSimilar(hash, result.SimHash, simThreshold) {
+							simHashGroups[result.SimHash] = append(groupPorts, port)
+							found = true
+							break
+						}
+					}
+					if !found {
+						simHashGroups[result.SimHash] = []int{port}
+					}
+				}
+
+				ports[port] = existing
+			}
+		}
+	}
+
+	if len(simHashGroups) > 0 && config.EnableSimHash {
+		filteredCount := 0
+		for _, groupPorts := range simHashGroups {
+			if len(groupPorts) >= 2 {
+				for _, port := range groupPorts {
+					if existing, ok := ports[port]; ok {
+						if !existing.IsFiltered {
+							existing.IsFiltered = true
+							existing.FilterReason = fmt.Sprintf("SimHash相似页面 (与%d个页面相似)", len(groupPorts))
+							ports[port] = existing
+							filteredCount++
+						}
+					}
+				}
+			}
+		}
+		if filteredCount > 0 {
+			fmt.Printf("[智能探测] 主机 %s 过滤了 %d 个相似页面\n", ip, filteredCount)
+		}
+	}
+
+	return ports
 }
 
 // hostDiscovery 主机发现（存活检测）

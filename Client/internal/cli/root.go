@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"GYscan/internal/api"
 	"GYscan/internal/csrf"
 	"GYscan/internal/dos"
 	"GYscan/internal/exp"
+	"GYscan/internal/living"
 	"GYscan/internal/nmap"
 	"GYscan/internal/scapy"
 	"GYscan/internal/subdomain"
@@ -238,6 +240,7 @@ func RegisterCommands(cmd *cobra.Command) {
 
 	// ===== 非测试阶段命令 =====
 	cmd.AddCommand(aboutCmd)         // 查看工具信息
+	cmd.AddCommand(api.ApiCmd)       // API端点抓取工具
 	cmd.AddCommand(crunchCmd)        // 密码字典生成工具
 	cmd.AddCommand(databaseCmd)      // 数据库密码破解工具
 	cmd.AddCommand(dirscanCmd)       // 网站目录扫描工具
@@ -251,6 +254,7 @@ func RegisterCommands(cmd *cobra.Command) {
 	cmd.AddCommand(rdpCmd)           // RDP远程桌面工具
 	cmd.AddCommand(routeCmd)         // 路由跳数检测
 	cmd.AddCommand(nmap.ScanCmd)     // 网络扫描工具
+	cmd.AddCommand(living.LivingCmd) // 智能存活探测工具
 	cmd.AddCommand(scapy.ScapyCmd)   // 高级网络包操作工具（类似Scapy）
 	cmd.AddCommand(smbCmd)           // SMB协议操作工具
 	cmd.AddCommand(sshCmd)           // SSH密码爆破工具（Hydra风格）

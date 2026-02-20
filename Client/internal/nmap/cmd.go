@@ -10,7 +10,7 @@ import (
 // ScanCmd 表示nmap扫描命令
 var ScanCmd = &cobra.Command{
 	Use:   "scan [目标] [help]",
-	Short: "网络扫描工具，支持主机发现、端口扫描、服务识别等功能",
+	Short: "网络扫描工具，支持主机发现、端口扫描、服务识别及WAF/假死检测",
 	Args:  cobra.MaximumNArgs(1),
 	Long: `GYscan Nmap模块 - 网络扫描工具
 
@@ -20,10 +20,16 @@ var ScanCmd = &cobra.Command{
 - 服务识别 (协议握手包匹配)
 - 系统识别 (OS指纹识别)
 - 网段扫描 (CIDR/IP范围)
+- 智能存活探测增强 (WAF/假死识别) *
 
 简化命令 (nmap风格):
   -O: 启用系统识别 (等同于 --os-detection)
   -s: 启用服务识别 (等同于 --service-detection)
+
+新增参数:
+  --waf: 启用WAF检测，识别云WAF拦截页面
+  --simhash: 启用SimHash页面相似度检测
+  --filter-waf: 过滤WAF拦截的目标
 
 默认行为:
   默认仅显示端口状态信息 (nmap的六种状态)
@@ -42,7 +48,8 @@ var ScanCmd = &cobra.Command{
   ./GYscan scan 10.0.0.0/8 -O -V
   ./GYscan scan 192.168.1.1 -O -V -p 1-1000
   ./GYscan scan --target 192.168.1.1/24
-  ./GYscan scan --target example.com --ports 1-1000 --threads 100`,
+  ./GYscan scan --target example.com --ports 1-1000 --threads 100
+  ./GYscan scan 1.1.1.1 --waf --simhash --filter-waf`,
 }
 
 // init 初始化nmap命令
@@ -72,6 +79,12 @@ func init() {
 		pn               bool
 		ipv6             bool
 		output           string
+		// 智能存活探测增强
+		enableWAFDetect  bool
+		enableSimHash    bool
+		simHashThreshold int
+		wafThreshold     float64
+		filterWAF        bool
 	)
 	// 配置命令运行函数
 	ScanCmd.Run = func(cmd *cobra.Command, args []string) {
@@ -125,6 +138,7 @@ func init() {
 			Ports:            ports,
 			Threads:          threads,
 			Timeout:          time.Duration(timeout) * time.Second,
+			HTTPTimeout:      time.Duration(timeout) * time.Second,
 			ScanType:         actualScanType,
 			OSDetection:      osDetection,
 			ServiceDetection: serviceDetection,
@@ -138,6 +152,11 @@ func init() {
 			HostDiscovery:    hostDiscovery,
 			Pn:               pn,
 			IPv6:             ipv6,
+			EnableWAFDetect:  enableWAFDetect,
+			EnableSimHash:    enableSimHash,
+			SimHashThreshold: simHashThreshold,
+			WAFThreshold:     wafThreshold,
+			FilterWAF:        filterWAF,
 		}
 
 		// 如果启用了全面扫描模式 (-A)，自动启用相关功能
@@ -227,6 +246,13 @@ func init() {
 
 	ScanCmd.Flags().StringVarP(&output, "output", "o", "", "结果输出文件")
 
+	// 智能存活探测增强参数
+	ScanCmd.Flags().BoolVarP(&enableWAFDetect, "waf", "", false, "启用WAF检测，识别云WAF拦截页面")
+	ScanCmd.Flags().BoolVarP(&enableSimHash, "simhash", "", false, "启用SimHash页面相似度检测，过滤相同拦截页面")
+	ScanCmd.Flags().IntVarP(&simHashThreshold, "sim-threshold", "", 10, "SimHash相似度阈值 (Hamming距离)")
+	ScanCmd.Flags().Float64VarP(&wafThreshold, "waf-threshold", "", 0.4, "WAF检测置信度阈值")
+	ScanCmd.Flags().BoolVarP(&filterWAF, "filter-waf", "", false, "过滤WAF拦截的目标，仅输出有效资产")
+
 	// 启用短参数支持（nmap风格）
 	ScanCmd.Flags().SetInterspersed(true)
 
@@ -274,6 +300,13 @@ func init() {
 TTL参数说明:
   --ttl: 启用TTL检测，通过分析响应TTL值估算目标网络距离
   --ttl-value: 设置发送数据包的TTL值 (等同于nmap --ttl参数)
+
+智能存活探测增强 (WAF/假死过滤):
+  --waf: 启用WAF检测，识别阿里云、腾讯云、Cloudflare等常见WAF拦截页面
+  --simhash: 启用SimHash页面相似度检测，自动过滤相同拦截页面
+  --sim-threshold: SimHash相似度阈值，Hamming距离小于此值视为相似页面 (默认10)
+  --waf-threshold: WAF检测置信度阈值，高于此值才认为是WAF拦截 (默认0.4)
+  --filter-waf: 过滤WAF拦截的目标，仅输出有效资产
 
 端口状态说明:
   open: 端口开放，有服务监听

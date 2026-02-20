@@ -172,6 +172,17 @@ func PrintNmapResult(results []NmapResult, config ScanConfig) {
 							color.New(color.FgHiBlack).Printf("(%s)", banner)
 						}
 					}
+
+					if config.EnableWAFDetect || config.EnableSimHash {
+						if portInfo.WAFType != "" && portInfo.WAFType != "none" {
+							fmt.Printf(" ")
+							color.New(color.FgYellow).Printf("[WAF: %s, %.0f%%]", portInfo.WAFType, portInfo.WAFConfidence*100)
+						}
+						if portInfo.IsFiltered {
+							fmt.Printf(" ")
+							color.New(color.FgRed).Printf("[过滤: %s]", portInfo.FilterReason)
+						}
+					}
 					fmt.Println()
 				}
 			}
