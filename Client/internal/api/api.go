@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"github.com/go-resty/resty/v2"
 )
@@ -35,6 +37,7 @@ type ApiConfig struct {
 	BrowserPath   string
 	NoSandbox     bool
 	VerifyAPI     bool
+	Proxy         string
 }
 
 type ApiResult struct {
@@ -113,8 +116,8 @@ var methodPatterns = map[string]*regexp.Regexp{
 	"PATCH":  regexp.MustCompile(`(?i)(?:method|type|requestType)\s*[:=]\s*['"]?(?:PATCH|patch)['"]?`),
 }
 
-func RunApiScan(config ApiConfig) ApiResults {
-	results := ApiResults{
+func RunApiScan(config ApiConfig) *ApiResults {
+	results := &ApiResults{
 		Results: make([]ApiResult, 0),
 		Summary: ApiSummary{},
 	}
@@ -143,7 +146,16 @@ func RunApiScan(config ApiConfig) ApiResults {
 	domain := parsedURL.Host
 
 	if config.Verbose {
-		fmt.Printf("[GYscan-API] 开始扫描目标: %s\n", baseURL)
+		fmt.Printf("[GYscan-API] ========================================\n")
+		fmt.Printf("[GYscan-API] 开始API扫描\n")
+		fmt.Printf("[GYscan-API] ========================================\n")
+		fmt.Printf("[GYscan-API] 目标: %s\n", baseURL)
+		fmt.Printf("[GYscan-API] 域名: %s\n", domain)
+		fmt.Printf("[GYscan-API] 线程数: %d\n", config.Threads)
+		fmt.Printf("[GYscan-API] 超时: %v\n", config.Timeout)
+		fmt.Printf("[GYscan-API] 爬取模式: %v\n", config.Crawl)
+		fmt.Printf("[GYscan-API] 最大页面数: %v\n", config.MaxPages)
+		fmt.Printf("[GYscan-API] ========================================\n")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -170,7 +182,7 @@ func RunApiScan(config ApiConfig) ApiResults {
 					}
 					if !visited[pageURL] {
 						visited[pageURL] = true
-						extractApisFromPage(pageURL, baseURL, client, &results, config)
+						extractApisFromPage(pageURL, baseURL, client, results, config)
 
 						countMu.Lock()
 						pagesScanned++
@@ -1192,6 +1204,42 @@ func cleanPath(path string) string {
 	return path
 }
 
+var staticResourceSuffixes = []string{
+	".html", ".htm",
+	".css", ".scss", ".less", ".sass",
+	".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs",
+	".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp", ".bmp", ".tiff",
+	".woff", ".woff2", ".ttf", ".eot", ".otf",
+	".mp4", ".mp3", ".webm", ".ogg", ".wav",
+	".wasm", ".manifest", ".lock", ".map",
+	".ashx", ".aspx", ".jsp", ".do", ".action",
+}
+
+var staticResourcePaths = []string{
+	"/static/", "/assets/", "/resources/", "/public/",
+	"/dist/", "/build/", "/vendor/", "/node_modules/",
+	"/css/", "/js/", "/images/", "/img/", "/fonts/", "/icons/", "/i/",
+	"/widget/", "/sprite/", "/skin/", "/theme/",
+}
+
+func isStaticResourcePath(path string) bool {
+	lowerPath := strings.ToLower(path)
+
+	for _, suffix := range staticResourceSuffixes {
+		if strings.HasSuffix(lowerPath, suffix) {
+			return true
+		}
+	}
+
+	for _, prefix := range staticResourcePaths {
+		if strings.Contains(lowerPath, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func categorizeAPI(path string) string {
 	lowerPath := strings.ToLower(path)
 
@@ -1237,6 +1285,14 @@ func deduplicateResults(results []ApiResult) []ApiResult {
 }
 
 func verifyApiEndpoint(api ApiResult, config ApiConfig) ApiResult {
+	if isStaticResourcePath(api.Path) {
+		result := api
+		result.Valid = false
+		result.Status = "静态资源"
+		result.Response = "已过滤（静态资源）"
+		return result
+	}
+
 	client := resty.New()
 	client.SetTimeout(config.Timeout)
 	client.SetRedirectPolicy(resty.FlexibleRedirectPolicy(3))
@@ -1285,14 +1341,57 @@ func verifyApiEndpoint(api ApiResult, config ApiConfig) ApiResult {
 			statusCode := resp.StatusCode()
 			result.Status = fmt.Sprintf("%d", statusCode)
 
-			if statusCode >= 200 && statusCode < 400 {
+			contentType := resp.Header().Get("Content-Type")
+			lowerCT := strings.ToLower(contentType)
+
+			isHTML := strings.Contains(lowerCT, "text/html")
+			isJSON := strings.Contains(lowerCT, "application/json") ||
+				strings.Contains(lowerCT, "text/xml") ||
+				strings.Contains(lowerCT, "application/xml") ||
+				strings.Contains(lowerCT, "application/graphql")
+			isJS := strings.Contains(lowerCT, "javascript") || strings.Contains(lowerCT, "application/x-javascript")
+			isCSS := strings.Contains(lowerCT, "text/css")
+			isImage := strings.Contains(lowerCT, "image/")
+			isFont := strings.Contains(lowerCT, "font/")
+			isVideoAudio := strings.Contains(lowerCT, "video/") || strings.Contains(lowerCT, "audio/")
+
+			if isHTML || isJS || isCSS || isImage || isFont || isVideoAudio {
+				result.Valid = false
+				result.Response = "已过滤（非API类型）"
+				return result
+			}
+
+			bodyStr := string(resp.Body())
+			if strings.Contains(bodyStr, "<!DOCTYPE") ||
+				strings.Contains(bodyStr, "<html") ||
+				strings.Contains(bodyStr, "<head") ||
+				strings.Contains(bodyStr, "<body") ||
+				strings.Contains(bodyStr, "<script") {
+				result.Valid = false
+				result.Response = "已过滤（响应体包含HTML）"
+				return result
+			}
+
+			if statusCode >= 200 && statusCode < 300 && isJSON {
+				result.Valid = true
+				result.Response = fmt.Sprintf("OK (%d)", statusCode)
+				result.Method = method
+				return result
+			} else if statusCode == 401 || statusCode == 403 || statusCode == 444 {
+				result.Valid = true
+				result.Response = fmt.Sprintf("需认证 (%d)", statusCode)
+				result.Method = method
+				return result
+			} else if statusCode >= 200 && statusCode < 400 {
 				result.Valid = true
 				result.Response = fmt.Sprintf("OK (%d)", statusCode)
 				result.Method = method
 				return result
 			} else if statusCode >= 400 && statusCode < 500 {
+				result.Valid = true
 				result.Response = fmt.Sprintf("客户端错误 (%d)", statusCode)
 			} else if statusCode >= 500 {
+				result.Valid = true
 				result.Response = fmt.Sprintf("服务器错误 (%d)", statusCode)
 			}
 		}
@@ -1302,7 +1401,20 @@ func verifyApiEndpoint(api ApiResult, config ApiConfig) ApiResult {
 }
 
 func VerifyApiEndpoints(results *ApiResults, config ApiConfig) {
-	fmt.Printf("\n[GYscan-API] 开始验证 %d 个API端点...\n", len(results.Results))
+	cyan := "\033[36m"
+	yellow := "\033[33m"
+	green := "\033[32m"
+	red := "\033[31m"
+	blue := "\033[34m"
+	reset := "\033[0m"
+
+	fmt.Printf("\n%s[GYscan-API] ========================================%s\n", cyan, reset)
+	fmt.Printf("%s[GYscan-API] 开始验证API端点%s\n", cyan, reset)
+	fmt.Printf("%s[GYscan-API] ========================================%s\n", cyan, reset)
+	fmt.Printf("%s[GYscan-API]%s 待验证API数量: %s%d%s\n", cyan, reset, yellow, len(results.Results), reset)
+	fmt.Printf("%s[GYscan-API]%s 验证线程数: %s%d%s\n", cyan, reset, yellow, config.Threads, reset)
+	fmt.Printf("%s[GYscan-API]%s 验证超时: %s%v%s\n", cyan, reset, yellow, config.Timeout, reset)
+	fmt.Printf("%s[GYscan-API] ========================================%s\n", cyan, reset)
 
 	client := resty.New()
 	client.SetTimeout(config.Timeout)
@@ -1322,6 +1434,11 @@ func VerifyApiEndpoints(results *ApiResults, config ApiConfig) {
 			defer func() { <-semaphore }()
 
 			api := results.Results[idx]
+
+			if config.Verbose {
+				fmt.Printf("%s[GYscan-API] → 验证API: %s%s %s%s\n", blue, yellow, api.Method, reset, api.Path)
+			}
+
 			verified := verifyApiEndpoint(api, config)
 
 			results.mu.Lock()
@@ -1331,67 +1448,101 @@ func VerifyApiEndpoints(results *ApiResults, config ApiConfig) {
 			verifiedCount++
 			if verified.Valid {
 				validCount++
-				fmt.Printf("[GYscan-API] ✓ 有效API: %s %s [%s]\n", verified.Method, verified.Path, verified.Status)
+				fmt.Printf("%s[GYscan-API] ✓ 有效API: %s %s [%s] (响应: %d bytes)%s\n", green, verified.Method, verified.Path, verified.Status, len(verified.Response), reset)
 			} else if config.Verbose && verified.Status != "未验证" {
-				fmt.Printf("[GYscan-API] ✗ 无效API: %s %s [%s]\n", api.Method, api.Path, verified.Status)
+				fmt.Printf("%s[GYscan-API] ✗ 无效API: %s %s [%s]%s\n", red, api.Method, api.Path, verified.Status, reset)
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	fmt.Printf("[GYscan-API] 验证完成: %d/%d 个API可用\n", validCount, verifiedCount)
+	fmt.Printf("%s[GYscan-API] 验证完成: %d/%d 个API可用%s\n", green, validCount, verifiedCount, reset)
 }
 
-func PrintApiResults(results ApiResults) {
-	fmt.Println("\n[GYscan-API] ==============================")
-	fmt.Printf("[GYscan-API] API扫描结果\n")
-	fmt.Println("[GYscan-API] ==============================")
+func PrintApiResults(results *ApiResults) {
+	red := "\033[31m"
+	green := "\033[32m"
+	yellow := "\033[33m"
+	blue := "\033[34m"
+	purple := "\033[35m"
+	cyan := "\033[36m"
+	reset := "\033[0m"
+
+	fmt.Println()
+	fmt.Printf("%s[GYscan-API] ========================================%s\n", cyan, reset)
+	fmt.Printf("%s[GYscan-API] API扫描结果%s\n", cyan, reset)
+	fmt.Printf("%s[GYscan-API] ========================================%s\n", cyan, reset)
 
 	validCount := 0
+	filteredCount := 0
 	for _, r := range results.Results {
 		if r.Valid {
 			validCount++
+		} else if r.Status != "" && r.Status != "未验证" {
+			filteredCount++
 		}
 	}
 
-	fmt.Printf("[GYscan-API] 总计发现API端点: %d\n", results.Summary.TotalAPIs)
-	if validCount > 0 {
-		fmt.Printf("[GYscan-API] 有效API端点: %d\n", validCount)
+	fmt.Printf("%s[GYscan-API]%s 总计发现API端点: %s%d%s\n", cyan, reset, yellow, results.Summary.TotalAPIs, reset)
+	fmt.Printf("%s[GYscan-API]%s 有效API端点: %s%d%s\n", cyan, reset, green, validCount, reset)
+	if filteredCount > 0 {
+		fmt.Printf("%s[GYscan-API]%s 已过滤非API: %s%d%s\n", cyan, reset, red, filteredCount, reset)
 	}
-	fmt.Printf("[GYscan-API] GET: %d | POST: %d | PUT: %d | DELETE: %d | PATCH: %d | 其他: %d\n",
-		results.Summary.GETCount, results.Summary.POSTCount, results.Summary.PUTCount,
-		results.Summary.DELETECount, results.Summary.PATCHCount, results.Summary.OtherCount)
+	fmt.Printf("%s[GYscan-API]%s GET: %s%d%s | POST: %s%d%s | PUT: %s%d%s | DELETE: %s%d%s | PATCH: %s%d%s | 其他: %s%d%s\n",
+		cyan, reset, blue, results.Summary.GETCount, reset,
+		green, results.Summary.POSTCount, reset,
+		yellow, results.Summary.PUTCount, reset,
+		red, results.Summary.DELETECount, reset,
+		purple, results.Summary.PATCHCount, reset,
+		cyan, results.Summary.OtherCount, reset)
 	if results.Summary.PagesScanned > 0 {
-		fmt.Printf("[GYscan-API] 扫描页面数: %d\n", results.Summary.PagesScanned)
+		fmt.Printf("%s[GYscan-API]%s 扫描页面数: %s%d%s\n", cyan, reset, yellow, results.Summary.PagesScanned, reset)
 	}
-	fmt.Printf("[GYscan-API] 扫描耗时: %.2f秒\n", results.Summary.ScanTime.Seconds())
-	fmt.Println("[GYscan-API] ==============================")
+	fmt.Printf("%s[GYscan-API]%s 扫描耗时: %s%.2f秒%s\n", cyan, reset, yellow, results.Summary.ScanTime.Seconds(), reset)
+	fmt.Printf("%s[GYscan-API] ========================================%s\n", cyan, reset)
 	fmt.Println()
 
 	if len(results.Results) > 0 {
 		hasVerification := results.Results[0].Status != ""
 
-		fmt.Println("发现的API端点:")
+		fmt.Printf("%s发现的API端点:%s\n", green, reset)
 		if hasVerification {
-			fmt.Printf("%-8s %-12s %-10s %s\n", "Method", "Category", "Status", "URL")
+			fmt.Printf("%s%-8s %-12s %-10s %s%s\n", blue, "Method", "Category", "Status", "URL", reset)
 		} else {
-			fmt.Printf("%-8s %-12s %s\n", "Method", "Category", "URL")
+			fmt.Printf("%s%-8s %-12s %s%s\n", blue, "Method", "Category", "URL", reset)
 		}
 
+		filteredCount := 0
 		for _, result := range results.Results {
+			if hasVerification && !result.Valid {
+				filteredCount++
+				continue
+			}
+
 			url := result.Path
 			if hasVerification {
 				status := result.Status
+				statusColor := yellow
 				if result.Valid {
 					status = "✓ OK"
-				} else if result.Status != "" && result.Status != "未验证" {
-					status = "✗ " + result.Status
+					statusColor = green
 				}
-				fmt.Printf("%-8s %-12s %-10s %s\n", result.Method, result.Category, status, url)
+				fmt.Printf("%s%-8s%s %s%-12s%s %s%-10s%s %s%s\n",
+					blue, result.Method, reset,
+					purple, result.Category, reset,
+					statusColor, status, reset,
+					reset, url)
 			} else {
-				fmt.Printf("%-8s %-12s %s\n", result.Method, result.Category, url)
+				fmt.Printf("%s%-8s%s %s%-12s%s %s%s\n",
+					blue, result.Method, reset,
+					purple, result.Category, reset,
+					reset, url)
 			}
+		}
+
+		if filteredCount > 0 && hasVerification {
+			fmt.Printf("\n%s[注: 已过滤 %d 个非API资源]%s\n", yellow, filteredCount, reset)
 		}
 	}
 
@@ -1569,13 +1720,13 @@ func detectLinuxDistro() string {
 	return ""
 }
 
-func RunBrowserApiScan(config ApiConfig) ApiResults {
+func RunBrowserApiScan(config ApiConfig) *ApiResults {
 	if err := CheckAndInstallChromium(config.Verbose); err != nil {
 		fmt.Printf("[GYscan-API] 错误: %v\n", err)
-		return ApiResults{}
+		return &ApiResults{}
 	}
 
-	results := ApiResults{
+	results := &ApiResults{
 		Results: make([]ApiResult, 0),
 		Summary: ApiSummary{},
 	}
@@ -1613,8 +1764,8 @@ func RunBrowserApiScan(config ApiConfig) ApiResults {
 	return runVisualCrawl(config, baseURL, domain)
 }
 
-func runVisualCrawl(config ApiConfig, baseURL, domain string) ApiResults {
-	results := ApiResults{
+func runVisualCrawl(config ApiConfig, baseURL, domain string) *ApiResults {
+	results := &ApiResults{
 		Results: make([]ApiResult, 0),
 		Summary: ApiSummary{},
 	}
@@ -1718,10 +1869,10 @@ func runVisualCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 		fmt.Printf("[GYscan-API] 首页内容长度: %d 字节\n", len(mainHtmlContent))
 	}
 
-	extractApisFromJS([]byte(mainHtmlContent), baseURL, baseURL, &results, config)
-	extractApisFromHTML(mainHtmlContent, baseURL, baseURL, &results)
+	extractApisFromJS([]byte(mainHtmlContent), baseURL, baseURL, results, config)
+	extractApisFromHTML(mainHtmlContent, baseURL, baseURL, results)
 
-	extractJsFilesFromHTML(mainHtmlContent, baseURL, &results, config)
+	extractJsFilesFromHTML(mainHtmlContent, baseURL, results, config)
 
 	if config.Verbose {
 		fmt.Printf("[GYscan-API] 首页提取到 %d 个API\n", len(results.Results))
@@ -1854,8 +2005,8 @@ func runVisualCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 			continue
 		}
 
-		extractApisFromJS([]byte(htmlContent), baseURL, link, &results, config)
-		extractApisFromHTML(htmlContent, baseURL, link, &results)
+		extractApisFromJS([]byte(htmlContent), baseURL, link, results, config)
+		extractApisFromHTML(htmlContent, baseURL, link, results)
 
 		for _, newLink := range links {
 			parsed, _ := url.Parse(newLink)
@@ -1906,8 +2057,8 @@ func runVisualCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 	return results
 }
 
-func runBrowserCrawl(config ApiConfig, baseURL, domain string) ApiResults {
-	results := ApiResults{
+func runBrowserCrawl(config ApiConfig, baseURL, domain string) *ApiResults {
+	results := &ApiResults{
 		Results: make([]ApiResult, 0),
 		Summary: ApiSummary{},
 	}
@@ -1950,16 +2101,21 @@ func runBrowserCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 
 	fmt.Printf("[GYscan-API] 浏览器打开首页...\n")
 
-	extractApisWithBrowser(browserCtx, baseURL, baseURL, domain, &results, config)
+	extractApisWithBrowser(browserCtx, baseURL, baseURL, domain, results, config)
 	pagesScanned++
 	pagesVisited[baseURL] = true
 
 	if config.Verbose {
-		fmt.Printf("[GYscan-API] 首页扫描完成，发现 %d 个API\n", len(results.Results))
+		fmt.Printf("[GYscan-API] ✓ 首页扫描完成，发现 %d 个API\n", len(results.Results))
+		fmt.Printf("[GYscan-API] → 开始提取页面链接...\n")
 	}
 
 	queue := []string{baseURL}
 	extractLinksWithBrowserSlice(browserCtx, baseURL, baseURL, domain, &queue, pagesVisited, &visitedMu, config)
+
+	if config.Verbose {
+		fmt.Printf("[GYscan-API] → 链接提取完成，待爬取页面数: %d\n", len(queue)-1)
+	}
 
 	queueIndex := 0
 	for queueIndex < len(queue) {
@@ -1981,11 +2137,18 @@ func runBrowserCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 		pagesScanned++
 
 		if config.Verbose {
-			fmt.Printf("[%d/%d] 访问页面: %s\n", queueIndex, len(queue), link)
+			fmt.Printf("[GYscan-API] ========================================\n")
+			fmt.Printf("[GYscan-API] → 爬取进度: [%d/%d] 页面\n", pagesScanned, len(queue))
+			fmt.Printf("[GYscan-API] → 正在访问: %s\n", link)
 		}
 
-		extractApisWithBrowser(browserCtx, link, baseURL, domain, &results, config)
+		extractApisWithBrowser(browserCtx, link, baseURL, domain, results, config)
 		extractLinksWithBrowserSlice(browserCtx, link, baseURL, domain, &queue, pagesVisited, &visitedMu, config)
+
+		if config.Verbose {
+			currentAPICount := len(results.Results)
+			fmt.Printf("[GYscan-API] → 本页扫描完成，累计发现 %d 个API\n", currentAPICount)
+		}
 
 		if config.MaxPages > 0 && pagesScanned >= config.MaxPages {
 			fmt.Printf("[GYscan-API] 已达到最大页面数: %d\n", config.MaxPages)
@@ -2021,33 +2184,244 @@ func runBrowserCrawl(config ApiConfig, baseURL, domain string) ApiResults {
 
 func extractApisWithBrowser(browserCtx context.Context, pageURL, baseURL, domain string, results *ApiResults, config ApiConfig) {
 	var htmlContent string
+	var jsIntercepted []map[string]interface{}
 
-	pageCtx, cancel := context.WithTimeout(browserCtx, 30*time.Second)
+	if config.Verbose {
+		fmt.Printf("[GYscan-API] → 正在分析页面: %s\n", pageURL)
+	}
+
+	jsInterceptor := `
+		(function() {
+			if (window.__apiMonitorInitialized) return;
+			window.__apiMonitorInitialized = true;
+			window.__interceptedAPIs = [];
+
+			const originalFetch = window.fetch;
+			window.fetch = function(...args) {
+				const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+				const method = args[1]?.method || 'GET';
+				if (url && typeof url === 'string' && (url.startsWith('/') || url.startsWith('http'))) {
+					window.__interceptedAPIs.push({url: url, method: method, type: 'fetch'});
+				}
+				return originalFetch.apply(this, args);
+			};
+
+			const originalXHROpen = XMLHttpRequest.prototype.open;
+			XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+				this.__url = url;
+				this.__method = method;
+				return originalXHROpen.apply(this, [method, url, ...rest]);
+			};
+
+			const originalXHRSend = XMLHttpRequest.prototype.send;
+			XMLHttpRequest.prototype.send = function(...args) {
+				if (this.__url && (this.__url.startsWith('/') || this.__url.startsWith('http'))) {
+					window.__interceptedAPIs.push({url: this.__url, method: this.__method || 'GET', type: 'xhr'});
+				}
+				return originalXHRSend.apply(this, args);
+			};
+
+			if (typeof axios !== 'undefined') {
+				const originalAxiosGet = axios.get;
+				axios.get = function(url, config) {
+					if (url && typeof url === 'string') {
+						window.__interceptedAPIs.push({url: url, method: 'GET', type: 'axios'});
+					}
+					return originalAxiosGet.apply(this, arguments);
+				};
+
+				const originalAxiosPost = axios.post;
+				axios.post = function(url, data, config) {
+					if (url && typeof url === 'string') {
+						window.__interceptedAPIs.push({url: url, method: 'POST', type: 'axios'});
+					}
+					return originalAxiosPost.apply(this, arguments);
+				};
+			}
+		})();
+	`
+
+	pageBrowserCtx, cancelPageBrowser := chromedp.NewContext(browserCtx)
+	pageCtx, cancel := context.WithTimeout(pageBrowserCtx, 30*time.Second)
 	defer cancel()
+	defer cancelPageBrowser()
+
+	cdpAPIs := make(map[string]string)
+	var cdpMu sync.Mutex
+
+	listenCtx, cancelListen := context.WithCancel(pageBrowserCtx)
+	defer cancelListen()
+
+	chromedp.ListenTarget(listenCtx, func(ev interface{}) {
+		switch e := ev.(type) {
+		case *network.EventRequestWillBeSent:
+			req := e.Request
+			if req.URL == "" {
+				return
+			}
+
+			reqURL, err := url.Parse(req.URL)
+			if err != nil {
+				return
+			}
+
+			method := req.Method
+			if method == "" {
+				method = "GET"
+			}
+
+			isTargetDomain := reqURL.Host == "" || strings.HasSuffix(reqURL.Host, domain)
+
+			cdpMu.Lock()
+			key := method + ":" + reqURL.Path + ":" + fmt.Sprintf("%t", isTargetDomain)
+			if _, exists := cdpAPIs[key]; !exists {
+				cdpAPIs[key] = req.URL
+			}
+			cdpMu.Unlock()
+		}
+	})
+
+	injectInterceptor := func(ctx context.Context) error {
+		_, err := page.AddScriptToEvaluateOnNewDocument(jsInterceptor).Do(ctx)
+		return err
+	}
 
 	err := chromedp.Run(pageCtx,
+		chromedp.ActionFunc(injectInterceptor),
 		chromedp.Navigate(pageURL),
-		chromedp.Sleep(2*time.Second),
+		chromedp.Sleep(3*time.Second),
 		chromedp.WaitReady("body", chromedp.ByQuery),
 		chromedp.Sleep(config.WaitTime),
+		chromedp.EvaluateAsDevTools(`window.__interceptedAPIs || []`, &jsIntercepted),
 		chromedp.EvaluateAsDevTools(`document.documentElement.outerHTML`, &htmlContent),
 	)
 
 	if err != nil {
 		if config.Verbose {
-			fmt.Printf("[GYscan-API] 浏览器访问失败: %s - %v\n", pageURL, err)
+			fmt.Printf("[GYscan-API] ✗ 页面加载失败: %s - %v\n", pageURL, err)
 		}
 		return
 	}
 
 	if config.Verbose {
-		fmt.Printf("[GYscan-API] 浏览器成功访问: %s\n", pageURL)
+		cdpCount := 0
+		for k := range cdpAPIs {
+			if strings.HasSuffix(k, ":true") {
+				cdpCount++
+			}
+		}
+		fmt.Printf("[GYscan-API] → 页面分析完成: %s\n", pageURL)
+		fmt.Printf("[GYscan-API]    ├─ CDP网络请求: %d 个\n", cdpCount)
+		fmt.Printf("[GYscan-API]    ├─ JS拦截器: %d 个\n", len(jsIntercepted))
+		fmt.Printf("[GYscan-API]    └─ HTML解析: %d bytes\n", len(htmlContent))
 	}
 
 	if htmlContent != "" {
+		if config.Verbose {
+			fmt.Printf("[GYscan-API] → 正在解析HTML和JavaScript...\n")
+		}
 		extractApisFromJS([]byte(htmlContent), baseURL, pageURL, results, config)
 		extractApisFromHTML(htmlContent, baseURL, pageURL, results)
+		if config.Verbose {
+			fmt.Printf("[GYscan-API] ✓ HTML/JS解析完成\n")
+		}
 	}
+
+	results.mu.Lock()
+	for key, apiURL := range cdpAPIs {
+		parts := strings.SplitN(key, ":", 3)
+		if len(parts) < 3 {
+			continue
+		}
+		method := parts[0]
+		path := parts[1]
+		isTargetStr := parts[2]
+
+		if isTargetStr != "true" {
+			continue
+		}
+
+		if isStaticResourcePath(path) {
+			continue
+		}
+
+		seen := false
+		for _, r := range results.Results {
+			if r.Path == path && r.Method == method {
+				seen = true
+				break
+			}
+		}
+
+		if !seen {
+			result := ApiResult{
+				Method:   method,
+				Path:     path,
+				FullURL:  apiURL,
+				Source:   pageURL,
+				Category: categorizeAPI(path),
+			}
+			results.Results = append(results.Results, result)
+			if config.Verbose {
+				fmt.Printf("[GYscan-API] [CDP] 发现API: %s %s (来源: %s)\n", method, path, pageURL)
+			}
+		}
+	}
+
+	for _, api := range jsIntercepted {
+		apiURL, ok := api["url"].(string)
+		if !ok || apiURL == "" {
+			continue
+		}
+
+		method, _ := api["method"].(string)
+		if method == "" {
+			method = "GET"
+		}
+
+		parsed, err := url.Parse(apiURL)
+		if err != nil {
+			continue
+		}
+
+		if parsed.Host != "" && !strings.HasSuffix(parsed.Host, domain) {
+			continue
+		}
+
+		path := parsed.Path
+
+		if isStaticResourcePath(path) {
+			continue
+		}
+
+		seen := false
+		for _, r := range results.Results {
+			if r.Path == path && r.Method == method {
+				seen = true
+				break
+			}
+		}
+
+		if !seen {
+			fullURL := resolveURL(apiURL, baseURL)
+			result := ApiResult{
+				Method:   method,
+				Path:     path,
+				FullURL:  fullURL,
+				Source:   pageURL,
+				Category: categorizeAPI(path),
+			}
+			results.Results = append(results.Results, result)
+			if config.Verbose {
+				apiType := "JS"
+				if t, ok := api["type"].(string); ok {
+					apiType = t
+				}
+				fmt.Printf("[GYscan-API] [JS-%s] 发现API: %s %s (来源: %s)\n", strings.ToUpper(apiType), method, path, pageURL)
+			}
+		}
+	}
+	results.mu.Unlock()
 }
 
 func extractLinksWithBrowserSlice(browserCtx context.Context, pageURL, baseURL, domain string, queue *[]string, visited map[string]bool, visitedMu *sync.Mutex, config ApiConfig) {
@@ -2057,19 +2431,23 @@ func extractLinksWithBrowserSlice(browserCtx context.Context, pageURL, baseURL, 
 
 	var links []string
 
-	linkCtx, cancel := context.WithTimeout(browserCtx, 15*time.Second)
+	linkBrowserCtx, cancelLinkBrowser := chromedp.NewContext(browserCtx)
+	linkCtx, cancel := context.WithTimeout(linkBrowserCtx, 15*time.Second)
 	defer cancel()
+	defer cancelLinkBrowser()
 
 	err := chromedp.Run(linkCtx,
+		chromedp.Navigate(pageURL),
+		chromedp.Sleep(2*time.Second),
+		chromedp.WaitReady("body", chromedp.ByQuery),
 		chromedp.EvaluateAsDevTools(`
-			Array.from(document.querySelectorAll('a[href], button[data-url], button[data-href], button[data-link], form[action], [data-api], [data-endpoint]')).map(el => {
-				if (el.tagName === 'A') return el.href;
-				if (el.tagName === 'BUTTON' || el.dataset.url || el.dataset.href || el.dataset.link) return el.dataset.url || el.dataset.href || el.dataset.link || '';
-				if (el.tagName === 'FORM') return el.action || '';
-				return el.dataset.api || el.dataset.endpoint || '';
-			}).filter(h => h && h.startsWith('http') || (h && h.startsWith('/')))
+			Array.from(document.querySelectorAll('a[href]')).map(el => el.href).filter(h => h && (h.startsWith('http') || h.startsWith('/')))
 		`, &links),
 	)
+
+	if config.Verbose {
+		fmt.Printf("[GYscan-API] → 页面链接提取完成: %s (发现 %d 个链接)\n", pageURL, len(links))
+	}
 
 	if err != nil {
 		if config.Verbose {
@@ -2092,7 +2470,7 @@ func extractLinksWithBrowserSlice(browserCtx context.Context, pageURL, baseURL, 
 			continue
 		}
 
-		if parsed.Host != "" && parsed.Host != domain {
+		if parsed.Host != "" && !strings.HasSuffix(parsed.Host, domain) {
 			continue
 		}
 

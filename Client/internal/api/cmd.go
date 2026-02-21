@@ -54,6 +54,7 @@ func init() {
 		browserPath string
 		noSandbox   bool
 		verifyAPI   bool
+		proxy       string
 	)
 
 	ApiCmd.Run = func(cmd *cobra.Command, args []string) {
@@ -101,6 +102,7 @@ func init() {
 			BrowserPath:   browserPath,
 			NoSandbox:     noSandbox,
 			VerifyAPI:     verifyAPI,
+			Proxy:         proxy,
 		}
 
 		fmt.Printf("[GYscan-API] 开始扫描目标: %s\n", targetURL)
@@ -124,7 +126,8 @@ func init() {
 			fmt.Printf("[GYscan-API] 启用网站爬取: 是 (最大页面数: %d)\n", maxPages)
 		}
 
-		var results ApiResults
+		var results *ApiResults
+
 		if autoLook {
 			results = RunBrowserApiScan(config)
 		} else {
@@ -132,7 +135,7 @@ func init() {
 		}
 
 		if verifyAPI && len(results.Results) > 0 {
-			VerifyApiEndpoints(&results, config)
+			VerifyApiEndpoints(results, config)
 		}
 
 		PrintApiResults(results)
@@ -161,6 +164,7 @@ func init() {
 	ApiCmd.Flags().StringVarP(&browserPath, "browser-path", "p", "", "指定浏览器可执行文件路径")
 	ApiCmd.Flags().BoolVarP(&noSandbox, "no-sandbox", "s", false, "禁用沙箱模式(用于root用户)")
 	ApiCmd.Flags().BoolVarP(&verifyAPI, "verify", "e", false, "验证发现的API端点是否可用")
+	ApiCmd.Flags().StringVar(&proxy, "proxy", "", "代理服务器地址 (如: socks5://127.0.0.1:1080)")
 
 	ApiCmd.AddCommand(&cobra.Command{
 		Use:   "help",
@@ -219,7 +223,7 @@ GYscan API模块使用说明
 	fmt.Println(helpText)
 }
 
-func saveResults(results ApiResults, output string) error {
+func saveResults(results *ApiResults, output string) error {
 	var sb strings.Builder
 
 	sb.WriteString("GYscan API扫描结果\n")
