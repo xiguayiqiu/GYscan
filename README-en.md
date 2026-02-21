@@ -2,7 +2,7 @@
 
 # GYscan - Comprehensive Penetration Testing Tool
 
-[![Version](https://img.shields.io/badge/Version-v2.8.2-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.3-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -66,7 +66,17 @@ The GYscan official website (gyscan.space) has resumed normal service.
 
 ---
 
+## 🚀 Why Choose GYscan?
+
+Imagine: you only need **one tool** to complete the entire penetration testing process from **information gathering** to **vulnerability exploitation**. No more juggling between multiple tools—GYscan lets you focus on finding vulnerabilities rather than managing command-line parameters.
+
+> 🔥 **One-click startup, full-process coverage** — That's the charm of GYscan
+
+---
+
 ## 📋 Table of Contents
+
+> Quick navigation to what you need
 
 - [Project Overview](#project-overview)
 - [Core Features](#core-features)
@@ -80,13 +90,23 @@ The GYscan official website (gyscan.space) has resumed normal service.
 
 ---
 
-## Project Overview
+## 🎯 Project Overview
 
-GYscan is a professional comprehensive penetration testing tool developed using Go language. Based on Go's high-performance characteristics, GYscan offers excellent concurrent processing capabilities and cross-platform compatibility, efficiently assisting security researchers and penetration testers in completing security assessments.
+GYscan is a professional comprehensive penetration testing tool developed using **Go language**. Based on Go's high-performance characteristics, GYscan offers excellent concurrent processing capabilities and cross-platform compatibility, efficiently assisting security researchers and penetration testers in completing security assessments.
 
 The tool integrates rich penetration testing function modules, covering port scanning, service identification, vulnerability detection, remote command execution, weak password brute-forcing, configuration auditing, and other core capabilities, providing users with a one-stop security assessment solution.
 
-### Basic Information
+### ⭐ Core Advantages
+
+| Advantage | Description |
+|-----------|-------------|
+| 🚀 **High Performance** | Go language native high concurrency support, significantly improved scanning efficiency |
+| 🎨 **Ready to Use** | No complex configuration needed, download and run |
+| 🔄 **Cross-Platform** | Full support for Windows / Linux / macOS |
+| 📦 **Feature-Rich** | 30+ penetration testing modules, one-stop solution |
+| 🛠️ **Continuously Updated** | Regular new features, keeping up with security trends |
+
+### 📊 Basic Information
 
 | Attribute | Value |
 |-----------|-------|
@@ -94,92 +114,99 @@ The tool integrates rich penetration testing function modules, covering port sca
 | **Development Language** | Go 1.24+ |
 | **Supported Platforms** | Windows 7+/Linux/macOS |
 | **License** | Apache 2.0 |
-| **Latest Version** | v2.8.2 |
+| **Latest Version** | v2.8.3 |
 | **Author** | BiliBili-弈秋啊 |
 
 ---
 
-## Core Features
+## ⚡ Core Features
+
+> 🎯 30+ penetration testing modules, meeting all your security testing needs
 
 ### 🔍 Network Discovery & Scanning
 
-| Feature | Description |
-|---------|-------------|
-| **Port Scanning** | Multiple scanning techniques: TCP SYN/Connect/ACK/FIN/XMAS/NULL |
-| **Service Identification** | Fingerprint-based service version detection, 1999+ web fingerprints |
-| **Host Discovery** | ICMP/ARP/TCP/UDP multi-protocol discovery, IPv4/IPv6 support |
-| **OS Detection** | Remote operating system fingerprinting |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Port Scanning** | 🔥 TCP SYN/Connect/ACK/FIN/XMAS/NULL full type scanning | ✅ Stable |
+| **Service Identification** | 📡 1999+ Web fingerprint precise detection | ✅ Stable |
+| **Host Discovery** | 🏠 ICMP/ARP/TCP/UDP multi-protocol discovery | ✅ Stable |
+| **OS Detection** | 💻 Remote OS fingerprint precise identification | ✅ Stable |
 
 ### 🔐 Password Attacks & Credential Harvesting
 
-| Feature | Description |
-|---------|-------------|
-| **SSH Brute-Force** | Hydra-style multi-threaded SSH password cracking |
-| **SMB Attacks** | SMB connection testing, share enumeration, remote command execution |
-| **FTP Brute-Force** | FTP server password cracking |
-| **Database Brute-Force** | MySQL, PostgreSQL, Oracle, MSSQL weak password detection |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **SSH Brute-Force** | 🔑 Hydra-style multi-threaded brute-forcing | ✅ Stable |
+| **SMB Attacks** | 💾 Connection testing/share enumeration/remote execution | ✅ Stable |
+| **FTP Brute-Force** | 📂 FTP server password cracking | ✅ Stable |
+| **Database Brute-Force** | 🗄️ MySQL/PostgreSQL/Oracle/MSSQL | ✅ Stable |
 
 ### 🌐 Web Application Security
 
-| Feature | Description |
-|---------|-------------|
-| **Web Fingerprinting** | Website technology stack detection with 105+ fingerprints |
-| **XSS Detection** | Reflected, Stored, DOM XSS vulnerability detection |
-| **CSRF Detection** | Cross-Site Request Forgery vulnerability detection |
-| **WAF Identification** | Detect if target is behind WAF and identify WAF type |
-| **Directory Scanning** | Web path enumeration with custom dictionaries and extensions |
-| **File Upload Testing** | File upload vulnerability detection with bypass techniques |
-| **WebSocket Testing** | WebSocket connection testing and protocol analysis |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Web Fingerprinting** | 🔎 105+ technology stack fingerprint detection | ✅ Stable |
+| **XSS Detection** | ❌ Reflected/Stored/DOM vulnerability detection | ✅ Stable |
+| **CSRF Detection** | 🎣 Cross-Site Request Forgery detection | 🧪 Beta |
+| **WAF Identification** | 🛡️ Target WAF type identification | ✅ Stable |
+| **Directory Scanning** | 📁 Custom dictionary+extension enumeration | ✅ Stable |
+| **File Upload Testing** | 📤 Multiple bypass technique detection | ✅ Stable |
+| **WebSocket Testing** | 🔌 WSS connection testing and analysis | ✅ Stable |
+| **API Endpoint Scanning** | 🔗 Extract hidden API endpoints from web pages | 🧪 Beta |
 
 ### 🏢 Active Directory Security
 
-| Feature | Description |
-|---------|-------------|
-| **AD CS Vulnerability** | ESC1-ESC8 certificate template vulnerability detection |
-| **LDAP Enumeration** | Domain users, groups, computers, organizational units enumeration |
-| **Kerberoasting** | SPN account discovery for ticket attacks |
-| **AS-REP Roasting** | Pre-authentication bypass account detection |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **AD CS Vulnerability** | 📜 ESC1-ESC8 certificate template vulnerabilities | 🧪 Beta |
+| **LDAP Enumeration** | 👥 Users/Groups/Computers/OU enumeration | 🧪 Beta |
+| **Kerberoasting** | 🎫 SPN account discovery | 🧪 Beta |
+| **AS-REP Roasting** | 🔓 Pre-authentication bypass account detection | 🧪 Beta |
 
 ### 📡 Remote Management
 
-| Feature | Description |
-|---------|-------------|
-| **PowerShell** | PowerShell remote command execution |
-| **WMI** | WMI remote management tool |
-| **RDP** | RDP remote desktop related functions |
-| **DCOM** | DCOM remote execution |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **PowerShell** | ⚡ PowerShell remote execution | ✅ Stable |
+| **WMI** | 📊 WMI remote management | ✅ Stable |
+| **RDP** | 🖥️ RDP remote desktop | ✅ Stable |
+| **DCOM** | 🔧 DCOM remote execution | 🧪 Beta |
 
 ### 🔎 Security Assessment
 
-| Feature | Description |
-|---------|-------------|
-| **Configuration Auditing** | CIS Benchmark-based 58 configuration checks |
-| **Honeypot Detection** | Identify if target is a honeypot system |
-| **Patch Detection** | Remote system patch status detection |
-| **Exploit-DB** | Integrated 46,928 exploit entries |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Configuration Auditing** | 📋 CIS Benchmark 58 configuration checks | ✅ Stable |
+| **Honeypot Detection** | 🍯 Identify if target is a honeypot | 🧪 Beta |
+| **Patch Detection** | 🩹 Remote system patch status detection | ✅ Stable |
+| **Exploit-DB** | 💣 46,928 exploit entries | ✅ Stable |
 
 ### 💻 System Information Gathering
 
-| Feature | Description |
-|---------|-------------|
-| **Subdomain Discovery** | DNS-based subdomain enumeration with dictionary brute-force |
-| **Process Info** | Remote system process and service enumeration |
-| **User Enumeration** | Local user and group information gathering |
-| **Windows Logs** | Windows event log viewing |
-| **Linux Enumeration** | Linux local information and privilege escalation detection |
-| **WiFi Password** | Windows system WiFi password retrieval |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Subdomain Discovery** | 🌐 DNS enumeration+dictionary brute-force | ✅ Stable |
+| **Process Info** | ⚙️ Remote process/service enumeration | ✅ Stable |
+| **User Enumeration** | 👤 Local user/group information gathering | ✅ Stable |
+| **Windows Logs** | 📝 Windows event log viewing | ✅ Stable |
+| **Linux Enumeration** | 🐧 Local information+privilege escalation detection | ✅ Stable |
+| **WiFi Password** | 📶 Windows WiFi password retrieval | ✅ Stable |
 
 ---
 
-## Installation
+## 🛠️ Installation
 
-### Requirements
+### ⚙️ Requirements
 
-- **Operating System**: Windows 10+/Linux/macOS
-- **Go Version**: Go 1.24 or higher
-- **Dependencies**: Nmap (required for some features)
+| Requirement | Minimum Version |
+|-------------|-----------------|
+| **Operating System** | Windows 10+ / Linux / macOS |
+| **Go Version** | Go 1.24+ |
+| **Dependencies** | Nmap (required for some features) |
 
-### Linux Installation
+> 💡 **Tip**: Most features don't require any dependencies - download and run!
+
+### 🐧 Linux Installation
 
 ```bash
 # Clone the project
@@ -194,17 +221,26 @@ go build -o GYscan .
 
 # Copy to system path (optional)
 sudo cp GYscan /usr/local/bin/
+
+# Verify installation
+./GYscan --version
 ```
 
-### Windows Installation
+### 🪟 Windows Installation
 
 ```powershell
-# Build using PowerShell
+# PowerShell one-click build
 cd GYscan
 .\build.ps1
+
+# Or manual build
+cd Client
+go build -o GYscan.exe .
 ```
 
-### Dependency Installation (Linux)
+### 📦 Linux Dependency Installation (Optional)
+
+> Only needed for browser automation features
 
 ```bash
 # Debian/Ubuntu/Kali
@@ -220,9 +256,9 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-### Basic Usage
+### 🎮 Basic Usage
 
 ```bash
 # Display help information
@@ -238,39 +274,41 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 ./GYscan --proxy socks5://127.0.0.1:1080
 ```
 
-### Common Command Examples
+### 🚀 Common Command Examples
+
+> 💡 From simple scanning to advanced penetration - one command is enough!
 
 ```bash
-# Port scanning
+# 🔍 Port scanning
 ./GYscan scan -t 192.168.1.1 -p 1-1000
 
-# SSH password brute-forcing
+# 🔑 SSH password brute-forcing
 ./GYscan ssh -t 192.168.1.1 -u root -P /path/to/passwords.txt
 
-# Web directory scanning
+# 📁 Web directory scanning
 ./GYscan dirscan -u http://example.com -w dirmap/dicc.txt
 
-# XSS vulnerability detection
+# ❌ XSS vulnerability detection
 ./GYscan xss -u "http://example.com/?id=1"
 
-# WAF identification
+# 🛡️ WAF identification
 ./GYscan waf -u http://example.com
 
-# Honeypot detection
+# 🍯 Honeypot detection
 ./GYscan mg -t 192.168.1.1
 
-# AD CS vulnerability detection
+# 📜 AD CS vulnerability detection
 ./GYscan adcs -t dc.example.com
 
-# Configuration auditing
+# 📋 Configuration auditing
 ./GYscan ca -t 192.168.1.1
 ```
 
 ---
 
-## Command List
+## 📖 Command List
 
-### Stable Commands
+### ✅ Stable Commands
 
 | Command | Group | Description |
 |---------|-------|-------------|
@@ -316,7 +354,54 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 
 ---
 
-## Changelog
+## 📖 Changelog
+
+### v2.8.3
+
+**API Endpoint Scanner - Discover Hidden API Endpoints**
+
+#### New Features
+
+- **api command - API Endpoint Scanner**
+  - Extract hidden API endpoints from web pages
+  - JavaScript code analysis (fetch, axios, XHR patterns)
+  - HTML form and link extraction
+  - Browser automation scanning (chromedp)
+  - Supports crawl mode for comprehensive scanning
+  - Supports multiple HTTP methods identification
+  - API classification (Authentication, User, Admin, Data, etc.)
+  - API endpoint verification
+  - Proxy support
+
+#### Technical Improvements
+
+- Enhanced JavaScript parsing with multiple API patterns
+- Added RESTful, GraphQL, Swagger pattern detection
+- Concurrent scanning with thread control
+- Results deduplication and classification
+- Cross-platform browser support (Windows/Linux)
+
+#### Command Examples
+
+```bash
+# Basic API scanning
+./GYscan api https://example.com
+
+# Crawl mode with thread control
+./GYscan api https://example.com -c -n 10
+
+# Verbose output
+./GYscan api https://example.com -v
+
+# Verify discovered APIs
+./GYscan api https://example.com -e
+
+# Browser automation scanning
+./GYscan api https://example.com -a
+
+# Use proxy
+./GYscan api https://example.com --proxy socks5://127.0.0.1:1080
+```
 
 ### v2.8.2
 

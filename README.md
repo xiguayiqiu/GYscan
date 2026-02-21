@@ -2,7 +2,7 @@
 
 # GYscan - 综合渗透测试工具
 
-[![Version](https://img.shields.io/badge/Version-v2.8.2-blue)](https://gyscan.space)
+[![Version](https://img.shields.io/badge/Version-v2.8.3-blue)](https://gyscan.space)
 [![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellowgreen)](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -65,7 +65,17 @@ GYscan官方网站（gyscan.space）已恢复正常服务。
 
 ---
 
-## 📋 目录
+## � 为什么选择 GYscan？
+
+想象一下：你只需要一个工具，就能完成从**信息收集**到**漏洞利用**的完整渗透测试流程。无需在多个工具间来回切换，GYscan 让你专注于发现漏洞，而不是 juggling 各种命令行参数。
+
+> 🔥 **一键启动，全流程覆盖** —— 这就是 GYscan 的魅力所在
+
+---
+
+## � 目录
+
+> 快速跳转你想了解的内容
 
 - [项目简介](#项目简介)
 - [核心功能](#核心功能)
@@ -79,13 +89,23 @@ GYscan官方网站（gyscan.space）已恢复正常服务。
 
 ---
 
-## 项目简介
+## 🎯 项目简介
 
-GYscan 是一款用 Go 语言开发的专业综合渗透测试工具。基于 Go 语言的高性能特性，GYscan 具备出色的并发处理能力和跨平台兼容性，能够高效地协助安全研究人员和渗透测试人员完成安全评估工作。
+GYscan 是一款用 **Go 语言**开发的专业综合渗透测试工具。基于 Go 语言的高性能特性，GYscan 具备出色的并发处理能力和跨平台兼容性，能够高效地协助安全研究人员和渗透测试人员完成安全评估工作。
 
 该工具集成了丰富的渗透测试功能模块，涵盖端口扫描、服务识别、漏洞检测、远程命令执行、弱口令爆破、配置审计等核心能力，为用户提供了一站式的安全评估解决方案。
 
-### 基本信息
+### ⭐ 核心优势
+
+| 优势 | 说明 |
+|------|------|
+| 🚀 **性能卓越** | Go 语言原生支持高并发，扫描效率大幅提升 |
+| 🎨 **开箱即用** | 无需复杂配置，下载即用 |
+| 🔄 **跨平台** | Windows / Linux / macOS 全面支持 |
+| 📦 **功能丰富** | 30+ 渗透测试模块，一站式解决方案 |
+| 🛠️ **持续更新** | 定期发布新功能，紧跟安全趋势 |
+
+### 📊 基本信息
 
 | 属性 | 值 |
 |------|-----|
@@ -98,112 +118,98 @@ GYscan 是一款用 Go 语言开发的专业综合渗透测试工具。基于 Go
 
 ---
 
-## 核心功能
+## ⚡ 核心功能
+
+> 🎯 30+ 渗透测试模块，满足你所有的安全测试需求
 
 ### 🔍 网络探测与扫描
 
-| 功能 | 描述 |
-|------|------|
-| **端口扫描** | 支持多种扫描技术，包括TCP SYN/Connect/ACK/FIN/XMAS/NULL扫描 |
-| **服务识别** | 基于指纹识别的服务版本检测，支持1999+ Web指纹 |
-| **主机发现** | ICMP/ARP/TCP/UDP多协议主机发现，支持IPv4/IPv6 |
-| **操作系统识别** | 远程操作系统指纹识别 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **端口扫描** | 🔥 TCP SYN/Connect/ACK/FIN/XMAS/NULL 全类型扫描 | ✅ 稳定 |
+| **服务识别** | 📡 1999+ Web 指纹精准识别 | ✅ 稳定 |
+| **主机发现** | 🏠 ICMP/ARP/TCP/UDP 多协议发现 | ✅ 稳定 |
+| **操作系统识别** | 💻 远程 OS 指纹精准识别 | ✅ 稳定 |
 
 ### 🔐 密码攻击与凭证获取
 
-| 功能 | 描述 |
-|------|------|
-| **SSH爆破** | 支持Hydra风格的多线程SSH密码爆破 |
-| **SMB攻击** | SMB连接测试、共享枚举、远程命令执行 |
-| **FTP爆破** | FTP服务器密码破解 |
-| **数据库爆破** | MySQL、PostgreSQL、Oracle、MSSQL数据库弱口令检测 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **SSH爆破** | 🔑 Hydra 风格多线程暴力破解 | ✅ 稳定 |
+| **SMB攻击** | 💾 连接测试/共享枚举/远程执行 | ✅ 稳定 |
+| **FTP爆破** | 📂 FTP 服务器密码破解 | ✅ 稳定 |
+| **数据库爆破** | 🗄️ MySQL/PostgreSQL/Oracle/MSSQL | ✅ 稳定 |
 
-### 🌐 Web应用安全
+### 🌐 Web 应用安全
 
-| 功能 | 描述 |
-|------|------|
-| **Web指纹识别** | 网站技术栈识别，支持105+技术指纹检测 |
-| **XSS检测** | 反射型、存储型、DOM型XSS漏洞检测 |
-| **CSRF检测** | 跨站请求伪造漏洞检测 |
-| **WAF识别** | 检测目标是否部署WAF及其类型 |
-| **目录扫描** | Web路径枚举，支持自定义字典和扩展名 |
-| **文件上传检测** | 文件上传漏洞检测，支持多种绕过技术 |
-| **WebSocket测试** | WebSocket连接测试和协议分析 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **Web指纹识别** | 🔎 105+ 技术栈指纹检测 | ✅ 稳定 |
+| **XSS检测** | ❌ 反射/存储/DOM 型漏洞检测 | ✅ 稳定 |
+| **CSRF检测** | 🎣 跨站请求伪造漏洞检测 | 🧪 测试 |
+| **WAF识别** | 🛡️ 目标 WAF 类型识别 | ✅ 稳定 |
+| **目录扫描** | 📁 自定义字典+扩展名枚举 | ✅ 稳定 |
+| **文件上传检测** | 📤 多种绕过技术检测 | ✅ 稳定 |
+| **WebSocket测试** | 🔌 WSS 连接测试与分析 | ✅ 稳定 |
+| **API端点扫描** | 🔗 从网页提取隐藏 API 节点 | 🧪 测试 |
 
 ### 🏢 域环境安全
 
-| 功能 | 描述 |
-|------|------|
-| **AD CS漏洞检测** | ESC1-ESC8证书模板漏洞检测 |
-| **LDAP枚举** | 域用户、组、计算机、组织单位枚举 |
-| **Kerberoasting** | SPN账户发现，用于票据攻击 |
-| **AS-REP Roasting** | 预认证绕过账户检测 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **AD CS漏洞检测** | 📜 ESC1-ESC8 证书模板漏洞 | 🧪 测试 |
+| **LDAP枚举** | 👥 用户/组/计算机/OU 枚举 | 🧪 测试 |
+| **Kerberoasting** | 🎫 SPN 账户发现 | 🧪 测试 |
+| **AS-REP Roasting** | 🔓 预认证绕过账户检测 | 🧪 测试 |
 
 ### 📡 远程管理
 
-| 功能 | 描述 |
-|------|------|
-| **PowerShell** | PowerShell远程命令执行 |
-| **WMI** | WMI远程管理工具 |
-| **RDP** | RDP远程桌面相关功能 |
-| **DCOM** | DCOM远程执行 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **PowerShell** | ⚡ PowerShell 远程执行 | ✅ 稳定 |
+| **WMI** | 📊 WMI 探测 | ✅ 稳定 |
+| **RDP** | 🖥️ RDP 远程桌面 | ✅ 稳定 |
+| **DCOM** | 🔧 DCOM 远程执行 | 🧪 测试 |
 
 ### 🔎 安全评估
 
-| 功能 | 描述 |
-|------|------|
-| **配置审计** | 基于CIS Benchmark的58项配置检查 |
-| **蜜罐检测** | 识别目标是否为蜜罐系统 |
-| **补丁检测** | 远程系统补丁状态探测 |
-| **Exploit-DB** | 集成46,928条漏洞利用数据 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **配置审计** | 📋 CIS Benchmark 58 项检查 | ✅ 稳定 |
+| **蜜罐检测** | 🍯 识别目标是否为蜜罐 | 🧪 测试 |
+| **补丁检测** | 🩹 远程系统补丁状态探测 | ✅ 稳定 |
+| **Exploit-DB** | 💣 46,928 条漏洞利用数据 | ✅ 稳定 |
 
 ### 💻 系统信息收集
 
-| 功能 | 描述 |
-|------|------|
-| **子域名挖掘** | 基于DNS查询的子域名枚举，支持字典爆破和通配符检测 |
-| **进程信息** | 远程系统进程和服务枚举 |
-| **用户枚举** | 本地用户和组信息收集 |
-| **Windows日志** | Windows事件日志查看 |
-| **Linux枚举** | Linux本地信息枚举和权限提升检测 |
-| **WiFi密码** | Windows系统WiFi密码获取 |
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| **子域名挖掘** | 🌐 DNS 枚举+字典爆破 | ✅ 稳定 |
+| **进程信息** | ⚙️ 远程进程/服务枚举 | ✅ 稳定 |
+| **用户枚举** | 👤 本地用户/组信息收集 | ✅ 稳定 |
+| **Windows日志** | 📝 Windows 事件日志查看 | ✅ 稳定 |
+| **Linux枚举** | 🐧 本地信息收集+提权检测 | ✅ 稳定 |
+| **WiFi密码** | 📶 Windows WiFi 密码获取 | ✅ 稳定 |
 
 ---
 
-## 安装指南
+## 🛠️ 安装指南
 
 ### 环境要求
 
-- **操作系统**：Windows 10+/Linux/macOS
-- **Go版本**：Go 1.24 或更高版本
-- **依赖**：Nmap（部分功能需要）
+| 要求 | 最低版本 |
+|------|----------|
+| **操作系统** | Windows 10+ / Linux / macOS |
+| **Go 版本** | Go 1.24+ |
+| **依赖** | Nmap（部分功能需要） |
 
-### Linux 安装
+> 💡 **Tip**: 大部分功能无需安装任何依赖，下载即用！
 
-```bash
-# 克隆项目
-git clone https://github.com/gyscan/GYscan.git
-cd GYscan/Client
 
-# 安装依赖
-go mod download
 
-# 构建项目
-go build -o GYscan .
+### 📦 Linux 依赖安装（可选）
 
-# 复制到系统路径（可选）
-sudo cp GYscan /usr/local/bin/
-```
-
-### Windows 安装
-
-```powershell
-# 使用PowerShell构建
-cd GYscan
-.\build.ps1
-```
-
-### 依赖安装（Linux）
+> 只有使用浏览器自动化功能时才需要安装
 
 ```bash
 # Debian/Ubuntu/Kali
@@ -219,9 +225,9 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 
 ---
 
-## 快速开始
+## ⚡ 快速开始
 
-### 基本用法
+### 🎮 基本用法
 
 ```bash
 # 显示帮助信息
@@ -232,86 +238,86 @@ sudo yum install -y libX11-devel libXcursor-devel libXrandr-devel libXinerama-de
 
 # 禁用颜色输出
 ./GYscan --no-color
-
-# 使用代理
-./GYscan --proxy socks5://127.0.0.1:1080
 ```
 
-### 常用命令示例
+### 🚀 常用命令示例
+
+> 💡 从简单扫描到高级渗透，一个命令就够！
 
 ```bash
-# 端口扫描
+# 🔍 端口扫描
 ./GYscan scan -t 192.168.1.1 -p 1-1000
 
-# SSH密码爆破
+# 🔑 SSH密码爆破
 ./GYscan ssh -t 192.168.1.1 -u root -P /path/to/passwords.txt
 
-# Web目录扫描
+# 📁 Web目录扫描
 ./GYscan dirscan -u http://example.com -w dirmap/dicc.txt
 
-# XSS漏洞检测
+# ❌ XSS漏洞检测
 ./GYscan xss -u "http://example.com/?id=1"
 
-# WAF识别
+# 🛡️ WAF识别
 ./GYscan waf -u http://example.com
 
-# 蜜罐检测
+# 🍯 蜜罐检测
 ./GYscan mg -t 192.168.1.1
 
-# AD CS漏洞检测
+# 📜 AD CS漏洞检测
 ./GYscan adcs -t dc.example.com
 
-# 配置审计
+# 📋 配置审计
 ./GYscan ca -t 192.168.1.1
 ```
 
 ---
 
-## 命令列表
+## 📖 命令列表
 
-### 稳定命令
+### ✅ 稳定命令
 
-| 命令 | 分组 | 描述 |
+| 命令 | 分组 | 描述 | 快捷参考 |
+|------|------|------|----------|
+| `scan` | 🔍 网络扫描 | 综合端口扫描工具 | `scan -t 目标 -p 端口` |
+| `nmap` | 🔍 网络扫描 | Nmap 扫描结果解析 | `nmap 文件` |
+| `dirscan` | 🔍 网络扫描 | Web 目录枚举 | `dirscan -u URL` |
+| `route` | 🔍 网络扫描 | 路由跳数检测 | `route -t 目标` |
+| `whois` | 🔍 网络扫描 | Whois 域名查询 | `whois 域名` |
+| `scapy` | 🔍 网络扫描 | 高级网络包操作 | `scapy` |
+| `ssh` | 🔐 密码攻击 | SSH 密码爆破 | `ssh -t 目标 -u 用户` |
+| `ftp` | 🔐 密码攻击 | FTP 密码破解 | `ftp -t 目标` |
+| `database` | 🔐 密码攻击 | 数据库密码破解 | `database -t 目标` |
+| `crunch` | 🔐 密码攻击 | 密码字典生成 | `crunch 最小 最大` |
+| `cupp` | 🔐 密码攻击 | 通用用户密码分析 | `cupp -i` |
+| `smb` | 📡 远程管理 | SMB 协议操作 | `smb -t 目标` |
+| `rdp` | 📡 远程管理 | RDP 远程桌面 | `rdp -t 目标` |
+| `powershell` | 📡 远程管理 | PowerShell 执行 | `powershell -t 目标` |
+| `wmi` | 📡 远程管理 | WMI 远程管理 | `wmi -t 目标` |
+| `webshell` | 🌐 Web安全 | WebShell 生成 | `webshell` |
+| `waf` | 🌐 Web安全 | WAF 检测 | `waf -u URL` |
+| `xss` | 🌐 Web安全 | XSS 漏洞检测 | `xss -u URL` |
+| `fu` | 🌐 Web安全 | 文件上传检测 | `fu -u URL` |
+| `ws` | 🌐 Web安全 | WebSocket 测试 | `ws -u URL` |
+| `exp` | 🌐 Web安全 | Exploit-DB 搜索 | `exp search 关键词` |
+| `process` | 💻 信息收集 | 进程信息枚举 | `process -t 目标` |
+| `userinfo` | 💻 信息收集 | 用户信息收集 | `userinfo -t 目标` |
+| `winlog` | 💻 信息收集 | Windows 日志查看 | `winlog` |
+| `pc` | 💻 信息收集 | 补丁探测 | `pc -t 目标` |
+| `linenum` | 🛠️ 综合工具 | Linux 信息枚举 | `linenum` |
+| `linux-kernel` | 🛠️ 综合工具 | Linux 内核漏洞 | `linux-kernel` |
+| `wwifi` | 🛠️ 综合工具 | WiFi 密码获取 | `wwifi` |
+| `about` | 🛠️ 综合工具 | 工具信息 | `about` |
+
+### 🧪 测试阶段命令
+
+| 命令 | 描述 | 建议 |
 |------|------|------|
-| `scan` | 网络扫描 | 综合端口扫描工具 |
-| `nmap` | 网络扫描 | Nmap扫描结果解析 |
-| `dirscan` | 网络扫描 | Web目录枚举 |
-| `route` | 网络扫描 | 路由跳数检测 |
-| `whois` | 网络扫描 | Whois域名查询 |
-| `scapy` | 网络扫描 | 高级网络包操作 |
-| `ssh` | 密码攻击 | SSH密码爆破 |
-| `ftp` | 密码攻击 | FTP密码破解 |
-| `database` | 密码攻击 | 数据库密码破解 |
-| `crunch` | 密码攻击 | 密码字典生成 |
-| `cupp` | 密码攻击 | 通用用户密码分析 |
-| `smb` | 远程管理 | SMB协议操作 |
-| `rdp` | 远程管理 | RDP远程桌面 |
-| `powershell` | 远程管理 | PowerShell执行 |
-| `wmi` | 远程管理 | WMI远程管理 |
-| `webshell` | Web安全 | WebShell生成 |
-| `waf` | Web安全 | WAF检测 |
-| `xss` | Web安全 | XSS漏洞检测 |
-| `fu` | Web安全 | 文件上传检测 |
-| `ws` | Web安全 | WebSocket测试 |
-| `exp` | Web安全 | Exploit-DB搜索 |
-| `process` | 信息收集 | 进程信息枚举 |
-| `userinfo` | 信息收集 | 用户信息收集 |
-| `winlog` | 信息收集 | Windows日志查看 |
-| `pc` | 信息收集 | 补丁探测 |
-| `linenum` | 综合工具 | Linux信息枚举 |
-| `linux-kernel` | 综合工具 | Linux内核漏洞 |
-| `wwifi` | 综合工具 | WiFi密码获取 |
-| `about` | 综合工具 | 工具信息 |
-
-### 测试阶段命令
-
-| 命令 | 描述 |
-|------|------|
-| `csrf` | CSRF漏洞检测 |
-| `dcom` | DCOM远程执行 |
-| `ldap` | LDAP枚举 |
-| `mg` | 蜜罐识别 |
-| `adcs` | AD CS漏洞检测 |
+| `csrf` | CSRF 漏洞检测 | 欢迎测试反馈 |
+| `dcom` | DCOM 远程执行 | 欢迎测试反馈 |
+| `ldap` | LDAP 枚举 | 欢迎测试反馈 |
+| `mg` | 蜜罐识别 | 欢迎测试反馈 |
+| `adcs` | AD CS 漏洞检测 | 欢迎测试反馈 |
+| `api` | API 端点扫描 | 欢迎测试反馈 |
 
 ---
 
