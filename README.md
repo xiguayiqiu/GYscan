@@ -4,6 +4,8 @@
 
 GYscan是使用Go语言编写的轻量化综合渗透测试工具，适合授权测试和学习研究！
 
+GYscan在之前版本有很多未授权的攻击个例，所以本作者决定将在2.9.0版本之后添加卡密和审核机制！
+
 ## 官网公告
 
 GYscan官网：gyscan.space
@@ -48,18 +50,10 @@ GYscan官网：gyscan.space
 
 ### 安装步骤
 
-```bash
-# 克隆项目
-git clone <repository-url>
-
-# 进入项目目录
-cd GYscan/Client
-
-# 编译项目
-go build -o GYscan.exe
-```
+在发布页下载对应二进制，解压zip,linux需要安装运行`GYscan-install.sh`进行安装
 
 ### 快速开始
+- 其中gyscan-wt是windows的提升工具
 
 ```bash
 # 查看帮助信息
