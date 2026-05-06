@@ -1,8 +1,8 @@
 # 🔍 GYscan - 全能安全审计与渗透测试工具集
 
-!\[Version]\(<https://img.shields.io/badge/version-3.0.0-blue.svg> null)
-!\[Platform]\(<https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green.svg> null)
-!\[License]\(<https://img.shields.io/badge/license-Apache2.0-red.svg> null)
+![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green.svg)
+![License](https://img.shields.io/badge/license-Apache2.0-red.svg)
 
 **一个为白帽黑客和安全爱好者打造的一站式安全测试工具箱！无需安装多个工具，GYscan帮你搞定一切。**
 
