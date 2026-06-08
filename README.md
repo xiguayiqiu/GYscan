@@ -1,480 +1,371 @@
-# 🔍 GYscan - 全能安全审计与渗透测试工具集
+# GYscan · 综合渗透测试工具集
 
-![Version](https://img.shields.io/badge/version-3.1.1-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-green.svg)
-![License](https://img.shields.io/badge/license-Apache2.0-red.svg)
+<div align="center">
+  <img src="app.png" alt="GYscan" width="160" />
+</div>
 
-**一个为白帽黑客和安全爱好者打造的一站式安全测试工具箱！无需安装多个工具，GYscan帮你搞定一切。**
+<p align="center"><strong>面向红蓝对抗 / 授权渗透 / 安全研究的 Go 原生一体化平台</strong></p>
 
-***
+<p align="center">
+  <img src="https://img.shields.io/badge/version-v3.3-blue.svg?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Go-1.25%2B-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go">
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20Windows%20%7C%20macOS-lightgrey?style=flat-square" alt="Platforms">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/CVE%20Library-30%2B-red.svg?style=flat-square" alt="CVE">
+  <img src="https://img.shields.io/badge/modules-30%2B%20subcommands-brightgreen.svg?style=flat-square" alt="Modules">
+  <img src="https://img.shields.io/badge/maintained-yes-success.svg?style=flat-square" alt="Maintained">
+</p>
 
-## 🎯 为什么选择GYscan？
+<p align="center">
+  <a href="README_EN.md">English</a> ·
+  <a href="README.md">简体中文</a> ·
+  <a href="https://github.com/xiguayiqiu/GYscan/wiki">文档 Wiki</a> ·
+  <a href="#-更新日志">更新日志</a> ·
+  <a href="#-faq">FAQ</a>
+</p>
 
-### 🔥 六大核心优势
+---
 
-| 特性            | 说明                                  |
-| ------------- | ----------------------------------- |
-| **🔧 全能集成**   | XSS/CSRF检测、密码破解、网络扫描、漏洞利用...一个工具全搞定 |
-| **🐍 Go语言开发** | 跨平台、高性能、单文件部署、无需依赖地狱                |
-| **👶 小白友好**   | 清晰的命令行界面、详细的帮助文档、示例丰富               |
-| **⚡ 高速并发**    | 支持多线程、协程并发，效率翻倍                     |
-| **🛡️ 安全第一**  | 内置防沙箱、反分析，保护你的测试环境                  |
-| **📊 专业报告**   | HTML/JSON/文本多格式输出，方便存档和分析           |
+> ⚠️ **法律声明**
+> GYscan 是**攻击性安全工具**，内置漏洞利用、密码爆破、远程命令执行等高危功能，**仅允许在已获书面授权的目标上使用**。任何未授权测试产生的一切后果由使用者自行承担。
 
-***
+---
 
-## GYscan官方网站公告
+## ✨ GYscan 是什么？
 
-**GYscan以在2.9.0版本之后会添加卡密审核机制，打击破解和非法未授权攻击！**
+GYscan 是一套面向授权渗透测试场景的 **Go 原生一体化安全平台**，将信息收集、资产探测、漏洞检测、密码爆破、Web 安全、远程执行、C2 主机巡检、Web 管理后台等多种能力整合到同一工具集中。
 
-点击链接加入腾讯频道进行审核授权【弈秋忘忧白帽】：yiqiuasec0
+| 维度      | 能力                                              |
+| ------- | ----------------------------------------------- |
+| **场景**  | 渗透测试 · 红蓝对抗 · 安全运维 · 应急响应 · CTF                 |
+| **部署**  | 跨平台 CLI + 系统托盘 + Vue 3 Web GUI + C2 Agent       |
+| **覆盖**  | 30+ 子命令、30+ CVE 漏洞库、1999+ Web 指纹、Exploit-DB 离线库 |
 
-> [GYscan官网](https://gyscan.space)
->
-> [GYscan-arm子项目链接](https://github.com/xiguayiqiu/GYscan-arm)
+---
 
-## ✨ 功能模块总览
+## 🚀 核心特性
 
-### 🕵️ Web漏洞检测
+### 🧠 POC 检测 + 攻击验证一体化（v3.3 全新升级）
 
-- **XSS扫描** - 反射型、存储型、DOM型全支持，内置xss-labs级别Payload库
-- **CSRF检测** - 7种攻击场景全面测试，Cookie SameSite检查
-- **WAF识别** - 规则匹配+SimHash相似度分析，准确识别云WAF
-- **Web指纹** - 自动识别服务器、框架、技术栈
-- **目录扫描** - 并发暴力破解，按状态码分类结果
+- **统一攻击入口**：`poc --exp <分类> [CVE] [目标]`，本地/远程一条命令搞定
+- **三阶段工作流**：检测 → 攻击验证 → 审计日志
+- **三大攻击模式**：`detection`（安全）/ `verify`（非破坏性验证）/ `exploit`（完整攻击链）
+- **30+ 内置 CVE**：覆盖 Linux 内核、NGINX、Fortinet、Inspektor Gadget 等
+- **安全约束**：默认 SafeMode、强制超时、远程探测单请求上限、完整审计日志
+- **基础设施**：Netlink 套接字、命名空间隔离、堆喷、攻击载荷/结果构建器
 
-### 🔐 密码破解套件
+### 🔍 信息收集
 
-- **数据库破解** - MySQL/PostgreSQL/Oracle/MSSQL/MariaDB全覆盖
-- **FTP破解** - 完整FTP协议实现，安全机制感知
-- **SSH破解** - Hydra风格输出，服务器限制智能应对
-- **字典生成** - 基于个人信息的智能字典（CUPP）
+- 端口扫描 / 服务指纹 / 操作系统识别（封装 Nmap）
+- 子域名枚举、Whois、DNS 解析与监听、CDN 识别
+- Web 指纹（1999+）、WAF 识别、SSL/TLS 检测
+- 目录扫描、社工字典生成（CUPP）
 
-### 🌐 网络工具集
+### 💥 漏洞利用
 
-- **Nmap集成** - 多种扫描类型、OS识别、服务识别
-- **子域名枚举** - 字典爆破、通配符检测
-- **实时主机检测** - 端口检查→HTTP探测→WAF过滤→SimHash去重
-- **端口扫描** - 自定义端口范围、超时控制
-- **蜜罐检测** - 协议分析+行为模式识别
+- 离线 Exploit-DB 检索（search / info / show）
+- 远程补丁探测（PC：WhatWeb 引擎）
+- Web 漏洞：XSS / CSRF / XXE
+- 协议漏洞：SSH / FTP / 数据库爆破
+- DoS 测试
 
-### 💣 漏洞利用与PoC
+### 🛡️ 主机巡检（C2 模块）
 
-- **Exploit-DB集成** - 本地数据库搜索（关键词/CVE/平台/类型）
-- **PoC生成** - Python模板、Nmap NSE脚本自动生成
-- **Shellcode管理** - 完整的Shellcode库
+- **Linux**：trivy 容器扫描、lynis 系统审计、SSH 弱口令、userinfo、内核提权检测
+- **Windows**：nuclei 模板扫描、goss 基线检查、SQL 注入/提权 Recon、注册表/事件日志/账号审计
 
-### 📡 协议栈与DoS
+### 🌐 Web 管理后台
 
-- **网络协议栈** - 完整的Ethernet/IP/TCP/UDP实现
-- **自定义数据包** - 原始套接字编程，任意数据包构造
-- **DoS测试** - TCP/UDP/ICMP/IGMP洪水攻击，Turbo模式
+- Vue 3 + Vite 构建
+- 通过 `go:embed` 嵌入到二进制，单文件部署
+- Dashboard · 任务管理 · AI Chat · 系统配置
 
-### 🔒 安全审计
+### 🤖 AI Chat（实验性）
 
-- **Windows审计** - goss、nuclei集成
-- **Linux审计** - lynis、ssh-audit、trivy集成
-- **系统信息** - 完整的系统信息收集
-- **进程分析** - 跨平台进程/服务分析
+- 内置 AI Provider 抽象层，支持多家 LLM
+- Web 端 AI 对话与配置管理
 
-***
+### 🛠️ 工程化能力
 
-## 🚀 快速开始（3分钟上手）
+- 跨平台编译（Linux / Windows / macOS）
+- 系统托盘集成（systray）
+- 进程守护 / 后台服务
+- 多协议 IPC（WebSocket、HTTP API）
+- 一键 `update` 在线升级
 
-### 1️⃣ 下载与安装
+---
 
-#### Windows用户
+## 📦 快速开始
 
-```powershell
-# 下载GYscan
-wget https://github.com/xiguayiqiu/GYscan/releases/download/v2.9.0/GYscan-Windows.zip
+### 下载预编译版本
 
-# 运行！
-.\GYscan.exe --help
-```
+前往 [Releases](https://github.com/xiguayiqiu/GYscan/releases) 下载对应平台的二进制：
 
-#### Linux用户
-
-```bash
-# 下载GYscan
-wget https://github.com/xiguayiqiu/GYscan/releases/download/v2.9.0/GYscan-linux-amd64.zip
-
-# 运行！
-./GYscan-install.sh
-```
-
-> \[!NOTE]
->
-> GYscan有GYscan-wt程序（Windows的SYSTEM提权工具）不会被GYscan-install.sh脚本安装！因为这个程序是给您的一个合法权限提升的工具
->
-> 原理和psexec类似！并不能从普通账户提升至SYSTEM权限！只能使用管理员权限提升至SYSTEM权限！这一点请注意！！！
-
-### 2️⃣ 第一个扫描 - XSS检测
-
-让我们扫描一个目标网站是否存在XSS漏洞：
+| 平台              | 文件                         | 大小     |
+| --------------- | -------------------------- | ------ |
+| Linux x86_64    | `GYscan-linux-amd64`       | ~30 MB |
+| Linux ARM64     | `GYscan-linux-arm64`       | ~30 MB |
+| Windows x64     | `GYscan-windows-amd64.exe` | ~32 MB |
+| Windows ARM64   | `GYscan-windows-arm64.exe` | ~30 MB |
 
 ```bash
-# 扫描反射型XSS
-GYscan xss --url "http://example.com/search?q=test" --type reflected
+# 1. 下载并赋权
+chmod +x GYscan-linux-amd64
+sudo mv GYscan-linux-amd64 /usr/local/bin/gyscan
 
-# 扫描所有类型的XSS
-GYscan xss --url "http://example.com" --type all --verbose
+# 2. 验证安装
+gyscan --version
+
+# 3. 查看帮助
+gyscan --help
+
+# 4. 体验 POC 攻击验证（v3.3 重磅）
+gyscan poc -l                          # 列出所有 PoC
+gyscan poc -l linux-kernel             # 列出 Linux 内核 PoC
+gyscan poc -l CVE-2026-31431           # 查看某个 CVE 详情
+gyscan poc --cve CVE-2026-31431 -v     # 检测单个漏洞
+gyscan poc --exp linux-kernel          # 攻击验证整分类
 ```
 
-### 3️⃣ 密码破解 - SSH爆破
+### 在线更新
 
 ```bash
-# 使用用户名和密码列表爆破SSH
-GYscan ssh --target 192.168.1.100 --port 22 \
-  --username root --password-file pass.txt \
-  --threads 5 --stop-on-first
+sudo gyscan update      # 自动检查并升级到最新版本
 ```
 
-### 4️⃣ 网络扫描
+---
+
+## 📚 功能模块
+
+### 主程序（30+ 子命令）
+
+| 模块类别 | 子命令 |
+|---|---|
+| **POC / 漏洞** | `poc` · `exp` · `pc` · `kernel_vulns` · `linux-kernel` |
+| **信息收集** | `scan` · `sub` · `dns` · `whois` · `cdn` · `waf` · `ssl` |
+| **Web 安全** | `web` · `fu` · `dirscan` · `xss` · `csrf` · `xxe` · `webshell` |
+| **密码 / 凭据** | `ssh` · `ftp` · `database` · `crunch` · `cupp` · `crack` |
+| **主机信息** | `userinfo` · `process` · `registry` · `route` · `linenum` |
+| **配置审计** | `configaudit` |
+| **横向 / DoS** | `dcom` · `dos` |
+| **通信** | `ws` · `agent` · `server` · `daemon` |
+| **系统** | `update` · `chat` · `wwifi` · `about` |
+
+### C2 模块
+
+- **Linux C2**：`userinfo` / `trivy` / `ssh` / `lynis` / `getroot` / `show`
+- **Windows C2**：`trivy` / `nuclei` / `goss` + `vulnscan` + `audit`
+
+### WebGUI
+
+Vue 3 + Vite 构建，嵌入到主程序二进制：
 
 ```bash
-# 扫描子网存活主机
-GYscan living --cidr 192.168.1.0/24
-
-# Nmap端口扫描
-GYscan nmap --target 192.168.1.100 --ports 1-1000 --scan-type syn
+cd WebGUI
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # 产物自动嵌入到 Client/internal/web/static/
 ```
 
-***
+---
 
-## 📖 详细使用指南
+## 🎯 v3.3 重点：POC 攻击检测框架
 
-### 🕵️ 信息收集模块
+v3.3 引入了**「检测 + 攻击验证」一体化框架**，从「只做指纹探测」进化为「检测 → 攻击验证 → 审计日志」三阶段工作流。
 
-#### 被动信息收集（不直接接触目标）
+### 统一攻击入口
 
 ```bash
-# WHOIS信息查询
-GYscan whois --domain example.com
+# 1) 本地攻击验证整个 linux-kernel 分类
+gyscan poc --exp linux-kernel
 
-# 子域名枚举
-GYscan subdomain --domain example.com --wordlist subdomains.txt
+# 2) 仅攻击验证某一个 CVE
+gyscan poc --exp linux-kernel CVE-2023-32233
+
+# 3) 远程攻击验证 nginx 漏洞
+gyscan poc --exp nginx CVE-2026-27944 192.168.1.10:9000
+gyscan poc --exp nginx CVE-2026-42945 target.com
+
+# 4) 配合审计日志
+gyscan poc --exp linux-kernel --attack-log ./audit.log -v
 ```
 
-#### 主动信息收集（直接接触目标）
+### 内置 CVE 库（v3.3）
 
-```bash
-# 端口扫描
-GYscan nmap --target 192.168.1.100 --ports 1-1000
+#### 🐧 Linux 内核（25 个 CVE）
 
-# Web指纹识别
-GYscan webfp --url "http://example.com"
+- **Netfilter**：CVE-2023-32233、CVE-2026-23111、CVE-2026-23231
+- **调度器**：CVE-2026-22976（QFQ NULL Deref）
+- **SMB/CIFS**：CVE-2026-23220、CVE-2026-23228、CVE-2026-23230、CVE-2026-46243
+- **文件系统**：CVE-2026-23238、CVE-2026-31431（Copy Fail，本地提权）
+- **安全模块**：CVE-2026-23268、CVE-2026-23269、CVE-2026-46333
+- **网络子系统**：CVE-2025-21756（VSock UAF）、CVE-2026-43284、CVE-2026-43494、CVE-2026-46300（**Fragnesia**）
+- **设备驱动**：CVE-2026-23026 ~ CVE-2026-23037（6 个）
+- **加密/其他**：CVE-2026-23222、CVE-2026-23236
 
-# CDN识别
-GYscan cdn --domain example.com
+#### 🌐 Nginx 远程漏洞（3 个）
 
-# 目录扫描
-GYscan dirscan --url "http://example.com" --threads 20
-```
+- CVE-2026-27944（nginx-ui Backup API 泄露）
+- CVE-2026-33032（nginx-ui MCP 未授权）
+- CVE-2026-42945（**NGINX Rewrite 堆缓冲区溢出，CVSS 9.8**）
 
-> **信息收集的作用：**
->
-> - 绘制攻击面：了解目标网络拓扑结构，识别所有可访问的入口点
-> - 识别薄弱环节：发现未修复的老旧系统、配置错误的服务、暴露的敏感接口
-> - 为漏洞利用做准备：收集有效的凭证信息，了解目标架构选择利用方法
-> - 提高成功率：有针对性的攻击而非盲目尝试，减少被发现的风险
+#### 🔧 通用漏洞（2 个）
 
-### 🔍 漏洞检测模块
+- CVE-2024-23113（Fortinet Format String，CVSS 9.8）
+- CVE-2026-31890（Inspektor Gadget Ring Buffer DoS）
 
-#### XSS扫描
+### 安全约束
 
-```bash
-# 基本用法
-GYscan xss --url &lt;目标URL&gt;
+- ✅ **SafeMode 默认开启**：所有攻击默认为非破坏性
+- ✅ **超时保护**：所有操作受 `--attack-timeout` 约束
+- ✅ **审计日志**：通过 `--attack-log` 输出完整操作流水
+- ✅ **远程探测硬性约束**：每个目标仅 1 次请求，3 次重定向上限
+- ✅ **敏感操作显式开启**：`exploit` 模式需明确指定
 
-# 完整参数
-GYscan xss --url "http://example.com/page?id=1" \
-  --type all                    # 扫描类型: reflected/stored/dom/all
-  --payload-level high          # Payload级别: basic/medium/high/waf
-  --verbose                     # 详细输出
-  --test-mode                   # 运行测试用例
-```
+> ⚠️ 完整 CVE 列表与检测原理属于内部实现细节，请通过 `./gyscan poc -l` 在本地查看。
 
-#### CSRF检测
+---
 
-```bash
-GYscan csrf --url "http://example.com/change-password" \
-  --method POST \
-  --data "newpass=123456" \
-  --login-url "http://example.com/login" \
-  --login-username admin \
-  --login-password admin123
-```
-
-#### WAF检测
-
-```bash
-GYscan waf --url "http://example.com" --verbose
-```
-
-### 🔐 密码破解模块
-
-#### 数据库破解
-
-```bash
-# MySQL破解
-GYscan database --type mysql --host 192.168.1.100 --port 3306 \
-  --username root --password-file pass.txt --threads 10
-
-# Oracle破解
-GYscan database --type oracle --host 192.168.1.100 --port 1521 \
-  --username-file users.txt --password-file pass.txt
-```
-
-#### FTP破解
-
-```bash
-GYscan ftp --host 192.168.1.100 --port 21 \
-  --username anonymous --password any@example.com \
-  --threads 5
-```
-
-#### SSH破解
-
-```bash
-# 单个目标
-GYscan ssh --target 192.168.1.100 --port 22 \
-  --username-file users.txt --password-file pass.txt \
-  --threads 3 --attempt-delay 1000
-
-# 多目标（从文件）
-GYscan ssh --target-file targets.txt \
-  --username root --password kali --stop-on-first
-```
-
-### 🌐 网络工具模块
-
-#### 目录扫描
-
-```bash
-GYscan dirscan --url "http://example.com" \
-  --wordlist dirmap/medium.txt \
-  --threads 20 --timeout 5
-```
-
-#### 子域名枚举
-
-```bash
-GYscan subdomain --domain example.com \
-  --wordlist subdomains.txt --threads 10
-```
-
-#### 实时主机检测
-
-```bash
-GYscan living --cidr 192.168.1.0/24 --ports 80,443,8080
-```
-
-### 💣 Exploit-DB模块
-
-#### 搜索漏洞
-
-```bash
-# 关键词搜索
-GYscan exp search "apache struts"
-
-# CVE搜索
-GYscan exp search --cve CVE-2021-44228
-
-# 平台搜索
-GYscan exp search --platform windows --type local
-
-# 保存结果
-GYscan exp search "mysql" -o results.json --format json
-```
-
-#### 查看和生成PoC
-
-```bash
-# 查看漏洞详情
-GYscan exp info 40564
-
-# 显示PoC代码
-GYscan exp show 40564
-
-# 生成PoC（带自定义目标）
-GYscan exp generate 40564 -t 192.168.1.100 -p 8080
-
-# 生成Nmap NSE脚本
-GYscan exp nmap 40564 -o vuln-40564.nse
-```
-
-***
-
-## 🎬 实际使用示例
-
-### 场景1：Web应用安全评估
-
-```bash
-# 1. 信息收集
-GYscan webfp --url "http://target.com"
-GYscan whois --domain target.com
-GYscan subdomain --domain target.com
-
-# 2. 漏洞扫描
-GYscan xss --url "http://target.com/search?q=test" --type all
-GYscan csrf --url "http://target.com/comment" --method POST
-GYscan waf --url "http://target.com"
-
-# 3. 目录扫描
-GYscan dirscan --url "http://target.com" --wordlist dirmap/medium.txt
-
-# 4. 生成报告
-# 所有命令都支持 &gt; report.html 输出到文件
-```
-
-### 场景2：内网渗透测试
-
-```bash
-# 1. 主机发现
-GYscan living --cidr 192.168.0.0/16
-
-# 2. 端口扫描
-GYscan nmap --target 192.168.1.100 --ports 1-65535
-
-# 3. 服务爆破
-GYscan ssh --target 192.168.1.100 --username-file users.txt --password-file pass.txt
-GYscan ftp --host 192.168.1.101 --username anonymous --password test@test.com
-GYscan database --type mysql --host 192.168.1.102 --username root --password-file pass.txt
-
-# 4. 漏洞利用
-GYscan exp search "linux kernel"
-```
-
-***
-
-## 📋 完整命令列表
-
-| 模块        | 命令             | 功能           |
-| --------- | -------------- | ------------ |
-| **信息收集**  | `subdomain`    | 子域名枚举        |
-| <br />    | `cdn`          | CDN和云服务识别    |
-| <br />    | `living`       | 实时主机检测       |
-| <br />    | `webfp`        | Web指纹识别      |
-| <br />    | `nmap`         | 端口扫描和服务识别    |
-| <br />    | `whois`        | Whois查询      |
-| <br />    | `process`      | 进程分析         |
-| <br />    | `userinfo`     | 用户信息收集       |
-| **Web漏洞** | `xss`          | XSS漏洞检测      |
-| <br />    | `csrf`         | CSRF漏洞检测     |
-| <br />    | `waf`          | WAF识别        |
-| <br />    | `dirscan`      | 目录扫描         |
-| <br />    | `webshell`     | WebShell生成   |
-| <br />    | `api`          | API端点抓取      |
-| **密码破解**  | `database`     | 数据库密码破解      |
-| <br />    | `ftp`          | FTP密码破解      |
-| <br />    | `ssh`          | SSH密码破解      |
-| <br />    | `cupp`         | 密码字典生成       |
-| **漏洞利用**  | `exp`          | Exploit-DB集成 |
-| <br />    | `dos`          | DoS测试        |
-| **安全审计**  | `ca`           | 配置安全审计       |
-| <br />    | `linenum`      | Linux本地信息枚举  |
-| <br />    | `linux-kernel` | Linux内核漏洞检测  |
-| **其他**    | `about`        | 关于GYscan     |
-| <br />    | `help`         | 帮助信息         |
-
-***
-
-## 🔧 配置与定制
-
-### 自定义字典
-
-GYscan使用标准的文本字典文件，每行一个条目：
+## 🏗️ 架构总览
 
 ```
-# pass.txt 示例
-password
-123456
-admin
-root
-qwerty
+┌─────────────────────────────────────────────────────────────┐
+│                         GYscan Platform                     │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐    │
+│  │  CLI 客户端   │  │   Web GUI    │  │   C2 Agent       │    │
+│  │  (Cobra)     │  │  (Vue 3)     │  │  Linux / Windows │    │
+│  └──────┬───────┘  └──────┬───────┘  └────────┬─────────┘    │
+│         │                 │                   │              │
+│  ┌──────┴─────────────────┴───────────────────┴──────────┐   │
+│  │              核心能力引擎 (Core Engine)                 │   │
+│  │  · POC 检测 / 攻击验证框架     · 信息收集引擎          │   │
+│  │  · 漏洞利用框架 (Exploit-DB)   · 主机巡检引擎         │   │
+│  │  · 攻击基础设施 (Netlink/NS)   · 协议处理引擎         │   │
+│  └──────┬────────────────────────────────────────────────┘   │
+│         │                                                     │
+│  ┌──────┴───────┐  ┌──────────────┐  ┌──────────────────┐    │
+│  │ 离线漏洞库     │  │  指纹库       │  │  字典库           │    │
+│  │ Exploit-DB   │  │ WhatWeb 1999+│  │ CUPP / Crunch    │    │
+│  └──────────────┘  └──────────────┘  └──────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Payload级别
+---
 
-- `basic` - 基础Payload，快速扫描
-- `medium` - 中级Payload，包含编码绕过
-- `high` - 高级Payload，完整的xss-labs级别
-- `waf` - WAF绕过专用Payload
+## ❓ FAQ
 
-***
+<details>
+<summary><b>Q: GYscan 的开源许可证是什么？</b></summary>
 
-## ⚠️ 免责声明
+GYscan 采用 **Apache License 2.0** 开源协议：
+- ✅ 核心代码均以 Apache 2.0 协议开放
+- ✅ 允许商业和非商业用途的自由使用、修改和分发
+- ✅ WebGUI 前端、Exploit-DB 索引等全部开源
 
-\> **重要提示：**
-\>
-\> 1. GYscan仅用于**授权的安全测试**和**学习研究**目的
-\> 2. 使用本工具进行的任何操作必须符合当地法律法规
-\> 3. 未经授权访问他人系统是违法行为
-\> 4. 使用者需自行承担使用本工具的一切责任和后果
-\> 5. 作者不对任何滥用或违法行为负责
+用户可自由查看、修改、再分发所有组件，只需保留版权声明和许可证文本。
+</details>
 
-***
+<details>
+<summary><b>Q: 编译时为什么找不到某些包？</b></summary>
 
-- v3.2.0更新：
-- api功能新增cookie信息认证
-- 更新about功能
-- 新增update子命令更新功能，不用反复前往gitee和github下载了！
+Client 子模块的部分包通过 `replace` 指令指向私有 module。如需完整构建，请前往 [Releases](https://github.com/xiguayiqiu/GYscan/releases) 下载预编译版本。
+</details>
 
-## 🤝 贡献与反馈
+<details>
+<summary><b>Q: v3.3 攻击模式安全吗？会不会破坏目标？</b></summary>
 
-欢迎提交Issue和Pull Request！
+默认 `detection` 模式**完全安全**，仅做条件检测不执行攻击。`verify` 模式为非破坏性验证。`exploit` 模式才会执行完整攻击链，且需显式指定 `--attack-mode exploit`。
+</details>
 
-### 如何贡献
+<details>
+<summary><b>Q: 如何贡献 CVE PoC？</b></summary>
 
-1. Fork本项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启Pull Request
+1. Fork 本仓库
+2. 在 `Client/internal/poc/<分类>/` 下添加新的 `cve_xxx_xxxxx.go`
+3. 实现 `Detector` 接口（建议同时实现 `AttackDetector`）
+4. 提交 PR 并附 PoC 验证截图
+</details>
 
-***
+<details>
+<summary><b>Q: 是否支持自定义 POC？</b></summary>
+
+支持。GYscan 使用插件化 Registry 模式，只需实现 `Detector` 接口并在 `init()` 中注册即可被自动加载。
+</details>
+
+---
+
+## 🤝 贡献指南
+
+我们欢迎社区贡献，但出于**安全与质量**考虑，仅接受以下形式的贡献：
+
+| 接受 | 说明 |
+|---|---|
+| 🐛 Bug 报告 | 通过 [Issues](https://github.com/xiguayiqiu/GYscan/issues) 提交 |
+| 📖 文档改进 | 修正错别字、补充示例、翻译 |
+| 🎨 WebGUI 优化 | Vue 3 前端改进 |
+| 💡 功能建议 | 通过 Discussions 发起 |
+| 🔌 周边工具 | `GYscan-tools/` 下的工具脚本 |
+
+| 暂不接受 | 原因 |
+|---|---|
+| 核心引擎 PR | 二进制闭源发布 |
+| 新增攻击 PoC | 由官方安全团队审核后纳入 |
+
+### 行为准则
+
+- ✅ 仅在授权目标上测试
+- ✅ 尊重隐私与数据安全
+- ✅ 提交 Issue 时附详细复现步骤
+- ❌ 禁止讨论绕过 WAF / 杀软的方法
+- ❌ 禁止分享未脱敏的漏洞利用代码
+
+---
+
+## 🌟 Star History
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=xiguayiqiu/GYscan&type=Date)](https://star-history.com/#xiguayiqiu/GYscan&Date)
+
+</div>
+
+---
 
 ## 📞 联系方式
 
-- 项目地址Gitee：[GYscan: GYscan是一个十分强大的综合渗透的工具（sam分析、ssh破解、用户本地分析、SQL数据库破解等等功能）](https://gitee.com/bzhanyiqiua/GYscan)
-- 问题反馈Gitee：[Issues · BiliBili-Yiqiu/GYscan - Gitee.com](https://gitee.com/bzhanyiqiua/GYscan/issues)
-- 项目地址Github：[xiguayiqiu/GYscan: GYscan是一款基于Go语言开发的现代化综合渗透测试工具，专为安全研究人员、渗透测试工程师和红队成员设计。项目采用模块化架构，包含C2服务器端和客户端组件，支持Windows和Linux平台，提供系统安全分析和漏洞扫描功能。](https://github.com/xiguayiqiu/GYscan)
-- 问题反馈Github：[Issues · xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan/issues)
+| 渠道 | 链接 |
+|---|---|
+| B 站 | [弈秋啊](https://space.bilibili.com/) |
+| 腾讯频道 | 弈秋忘忧白帽：`yiqiuasec0` |
+| GitHub | [xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan) |
+| Gitee | [bzhanyiqiua/GYscan](https://gitee.com/bzhanyiqiua/GYscan) |
+| 文档 Wiki | https://github.com/xiguayiqiu/GYscan/wiki |
 
-***
+---
 
-## 🙏 致谢
+## 📄 许可与版权
 
-感谢以下开源项目（模仿原理没有他们的源码）：
+© 2024-2026 BiliBili-弈秋啊 · All Rights Reserved
 
-- Exploit-DB
-- Nmap
-- Lynis
-- Trivy
-- 以及所有安全社区的贡献者！
+本项目采用 [Apache License 2.0](LICENSE) 许可协议。
 
-***
+**使用许可**：
+- ✅ 允许下载、学习、修改、用于合法授权测试
+- ✅ 可用于商业或非商业用途
+- ⚠️ 必须保留版权声明和许可证文本
 
-## 📜 许可证
+**免责声明**：
+本项目作者不对任何因未授权使用造成的法律责任负责。
 
-本项目采用GPL许可证 - 详见 [LICENSE](LICENSE) 文件
+> ⚠️ **重要提醒**：GYscan 是攻击性安全工具，仅允许在已获书面授权的目标上使用。任何未授权测试产生的一切后果由使用者自行承担。
 
-***
+---
 
-## ⭐ 如果觉得有用，请给个Star！
+<div align="center">
 
-你的支持是我们持续改进的动力！🌟
+**如果 GYscan 对你有帮助，欢迎 ⭐ Star 支持！**
 
-***
+Made with ❤️ by [BiliBili-弈秋啊](https://space.bilibili.com/)
 
-**开始你的安全之旅吧！** 🚀
-
-```bash
-# 查看所有可用命令
-GYscan --help
-
-# 开始你的第一次扫描！
-GYscan about
-```
-
+</div>
