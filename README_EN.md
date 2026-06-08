@@ -35,6 +35,8 @@
 
 GYscan is a **Go-native integrated security platform** designed for authorized penetration testing scenarios. It integrates information gathering, asset discovery, vulnerability detection, password cracking, web security, remote execution, C2 host inspection, and web management dashboard into a single toolkit.
 
+🚀 **Open Source Commitment**: We are committed to building a fully open-source security research platform. Some core features are currently being refined and optimized; full source code will be released when ready. In the meantime, we will continue updating prebuilt binaries and open up mature modules. Community oversight and participation are welcome!
+
 | Category | Capabilities |
 | -------- | ------------ |
 | **Scenarios** | Penetration Testing · Red/Blue Team Ops · Security Ops · Incident Response · CTF |
@@ -259,11 +261,14 @@ gyscan poc --exp linux-kernel --attack-log ./audit.log -v
 <summary><b>Q: What is GYscan's open source license?</b></summary>
 
 GYscan uses the **Apache License 2.0**:
-- ✅ Core code fully open source under Apache 2.0
+- ✅ We are committed to fully open-sourcing the project; code is being released in phases
+- ✅ WebGUI frontend, Exploit-DB index, and other modules are fully open
+- ✅ Core detection engine and other modules are being refined and will be fully open when mature
 - ✅ Free use, modification, and distribution for commercial and non-commercial purposes
-- ✅ WebGUI frontend, Exploit-DB index, all fully open source
 
-Users can freely view, modify, and redistribute all components, just keep copyright notice and license text.
+In the meantime, feel free to use our prebuilt binaries and participate in community discussions via Issues and Discussions. Together we'll witness the project's growth!
+
+(Note: Full source code release timeline will be announced separately, stay tuned 🌟)
 </details>
 
 <details>
@@ -297,7 +302,7 @@ Yes. GYscan uses a plugin-based Registry pattern. Just implement the `Detector` 
 
 ## 🤝 Contributing
 
-We welcome community contributions, but for **security and quality**, only accept the following:
+We welcome and value community contributions! While some core code is being refined, you can participate in the following ways:
 
 | Accepted | Description |
 | -------- | ----------- |
@@ -309,7 +314,7 @@ We welcome community contributions, but for **security and quality**, only accep
 
 | Not Accepted | Reason |
 | ------------ | ------ |
-| Core Engine PRs | Binary releases |
+| Core Engine PRs | Currently under internal refactoring, will open when complete |
 | New Attack PoCs | Reviewed and integrated by official security team |
 
 ### Code of Conduct
@@ -319,6 +324,8 @@ We welcome community contributions, but for **security and quality**, only accep
 - ✅ Include detailed reproduction steps with Issues
 - ❌ No discussion of WAF/AV bypass methods
 - ❌ No sharing unredacted exploit code
+
+💪 **Participate in Open Source**: Our goal is to build a high-quality open-source security tool. If you have any ideas or suggestions for the project, welcome to connect with us via Discussions and help make GYscan an even better open-source project!
 
 ---
 
