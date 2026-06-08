@@ -35,7 +35,11 @@
 
 GYscan is a **Go-native integrated security platform** designed for authorized penetration testing scenarios. It integrates information gathering, asset discovery, vulnerability detection, password cracking, web security, remote execution, C2 host inspection, and web management dashboard into a single toolkit.
 
-🚀 **Open Source Commitment**: We are committed to building a fully open-source security research platform. Some core features are currently being refined and optimized; full source code will be released when ready. In the meantime, we will continue updating prebuilt binaries and open up mature modules. Community oversight and participation are welcome!
+🚀 **Open Source Commitment**: I am committed to building a fully open-source security research platform. Some core features are currently being refined and optimized; full source code will be released when ready. In the meantime, I will continue updating prebuilt binaries and open up mature modules. Community oversight and participation are welcome!
+
+> Why not open source now? There are malicious attackers, so to protect users' safety and privacy, I'm not releasing the full source code yet. Once I confirm the platform is stable and secure, I will publish the complete source code.
+> 
+> Official Website: https://gyscan.space
 
 | Category | Capabilities |
 | -------- | ------------ |
@@ -261,12 +265,12 @@ gyscan poc --exp linux-kernel --attack-log ./audit.log -v
 <summary><b>Q: What is GYscan's open source license?</b></summary>
 
 GYscan uses the **Apache License 2.0**:
-- ✅ We are committed to fully open-sourcing the project; code is being released in phases
+- ✅ I am committed to fully open-sourcing the project; code is being released in phases
 - ✅ WebGUI frontend, Exploit-DB index, and other modules are fully open
 - ✅ Core detection engine and other modules are being refined and will be fully open when mature
 - ✅ Free use, modification, and distribution for commercial and non-commercial purposes
 
-In the meantime, feel free to use our prebuilt binaries and participate in community discussions via Issues and Discussions. Together we'll witness the project's growth!
+In the meantime, feel free to use my prebuilt binaries and participate in community discussions via Issues and Discussions. Together we'll witness the project's growth!
 
 (Note: Full source code release timeline will be announced separately, stay tuned 🌟)
 </details>
@@ -302,7 +306,7 @@ Yes. GYscan uses a plugin-based Registry pattern. Just implement the `Detector` 
 
 ## 🤝 Contributing
 
-We welcome and value community contributions! While some core code is being refined, you can participate in the following ways:
+I welcome and value community contributions! While some core code is being refined, you can participate in the following ways:
 
 | Accepted | Description |
 | -------- | ----------- |
@@ -315,7 +319,7 @@ We welcome and value community contributions! While some core code is being refi
 | Not Accepted | Reason |
 | ------------ | ------ |
 | Core Engine PRs | Currently under internal refactoring, will open when complete |
-| New Attack PoCs | Reviewed and integrated by official security team |
+| New Attack PoCs | Reviewed and integrated by me |
 
 ### Code of Conduct
 
@@ -325,7 +329,7 @@ We welcome and value community contributions! While some core code is being refi
 - ❌ No discussion of WAF/AV bypass methods
 - ❌ No sharing unredacted exploit code
 
-💪 **Participate in Open Source**: Our goal is to build a high-quality open-source security tool. If you have any ideas or suggestions for the project, welcome to connect with us via Discussions and help make GYscan an even better open-source project!
+💪 **Participate in Open Source**: My goal is to build a high-quality open-source security tool. If you have any ideas or suggestions for the project, welcome to connect with me via Discussions and help make GYscan an even better open-source project!
 
 ---
 
@@ -343,6 +347,7 @@ We welcome and value community contributions! While some core code is being refi
 
 | Channel | Link |
 | ------- | ---- |
+| Official Website | https://gyscan.space |
 | Bilibili | [弈秋啊](https://space.bilibili.com/) |
 | Tencent Channel | 弈秋忘忧白帽: `yiqiuasec0` |
 | GitHub | [xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan) |
