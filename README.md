@@ -19,8 +19,7 @@
 <p align="center">
   <a href="README_EN.md">English</a> ·
   <a href="README.md">简体中文</a> ·
-  <a href="https://github.com/xiguayiqiu/GYscan/wiki">文档 Wiki</a> ·
-  <a href="#-更新日志">更新日志</a> ·
+  <a href="https://gyscan.space/docs">文档</a> ·
   <a href="#-faq">FAQ</a>
 </p>
 
@@ -346,11 +345,11 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 | 渠道 | 链接 |
 | --- | --- |
 | 官网 | https://gyscan.space |
+| 文档 | https://gyscan.space/docs |
 | B 站 | [弈秋啊](https://space.bilibili.com/) |
 | 腾讯频道 | 弈秋忘忧白帽：`yiqiuasec0` |
 | GitHub | [xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan) |
 | Gitee | [bzhanyiqiua/GYscan](https://gitee.com/bzhanyiqiua/GYscan) |
-| 文档 Wiki | https://github.com/xiguayiqiu/GYscan/wiki |
 
 ---
 

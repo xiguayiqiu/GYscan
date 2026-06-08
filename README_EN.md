@@ -19,8 +19,7 @@
 <p align="center">
   <a href="./README_EN.md">English</a> ·
   <a href="./README.md">简体中文</a> ·
-  <a href="https://github.com/xiguayiqiu/GYscan/wiki">Documentation Wiki</a> ·
-  <a href="#-changelog">Changelog</a> ·
+  <a href="https://gyscan.space/docs">Documentation</a> ·
   <a href="#-faq">FAQ</a>
 </p>
 
@@ -348,11 +347,11 @@ I welcome and value community contributions! While some core code is being refin
 | Channel | Link |
 | ------- | ---- |
 | Official Website | https://gyscan.space |
+| Documentation | https://gyscan.space/docs |
 | Bilibili | [弈秋啊](https://space.bilibili.com/) |
 | Tencent Channel | 弈秋忘忧白帽: `yiqiuasec0` |
 | GitHub | [xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan) |
 | Gitee | [bzhanyiqiua/GYscan](https://gitee.com/bzhanyiqiua/GYscan) |
-| Documentation Wiki | https://github.com/xiguayiqiu/GYscan/wiki |
 
 ---
 
