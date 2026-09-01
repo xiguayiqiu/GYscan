@@ -25,6 +25,8 @@
 
 ---
 
+# 由于服务器提供商问题目前3.x版本将无法使用！后续短时间内将无法使用GYscan,所以本作者将在几天后推出密码验证版本的GYscan，部分功能依旧可以正常使用
+>
 > ⚠️ **法律声明**
 > GYscan 是**攻击性安全工具**，内置漏洞利用、密码爆破、远程命令执行等高危功能，**仅允许在已获书面授权的目标上使用**。任何未授权测试产生的一切后果由使用者自行承担。
 
@@ -36,7 +38,7 @@ GYscan 是一套面向授权渗透测试场景的 **Go 原生一体化安全平�
 
 🚀 **开源承诺**：我致力于打造一个完全开源的安全研究平台。目前部分核心功能正在持续打磨和优化中，完整源码将在适当时机全部开放。在此期间，我会持续更新预编译版本，并开放已成熟的模块，欢迎社区监督和参与！
 >现在不公开源码的原因是：存在恶意攻击者，为了保护用户的安全和隐私，我先不公开完整源码。等我确认平台的稳定性和安全性后，我会公开发布完整源码。
-> 官网：https://gyscan.space
+> 官网：<https://gyscan.space>
 
 | 维度      | 能力                                              |
 | ------- | ----------------------------------------------- |
@@ -146,7 +148,7 @@ sudo gyscan update      # 自动检查并升级到最新版本
 |---|---|
 | **POC / 漏洞** | `poc` · `exp` · `pc` · `kernel_vulns` · `linux-kernel` |
 | **信息收集** | `scan` · `sub` · `dns` · `whois` · `cdn` · `waf` · `ssl` |
-| **Web 安全** | `web` · `fu` · `dirscan` · `xss` · `csrf` · `xxe` · `webshell` |
+| **Web 安全** | `fu` · `dirscan` · `xss` · `csrf` · `xxe` · `webshell` |
 | **密码 / 凭据** | `ssh` · `ftp` · `database` · `crunch` · `cupp` · `crack` |
 | **主机信息** | `userinfo` · `process` · `registry` · `route` · `linenum` |
 | **配置审计** | `configaudit` |
@@ -158,17 +160,6 @@ sudo gyscan update      # 自动检查并升级到最新版本
 
 - **Linux C2**：`userinfo` / `trivy` / `ssh` / `lynis` / `getroot` / `show`
 - **Windows C2**：`trivy` / `nuclei` / `goss` + `vulnscan` + `audit`
-
-### WebGUI
-
-Vue 3 + Vite 构建，嵌入到主程序二进制：
-
-```bash
-cd WebGUI
-npm install
-npm run dev        # http://localhost:5173
-npm run build      # 产物自动嵌入到 Client/internal/web/static/
-```
 
 ---
 
@@ -262,8 +253,9 @@ gyscan poc --exp linux-kernel --attack-log ./audit.log -v
 <summary><b>Q: GYscan 的开源许可证是什么？</b></summary>
 
 GYscan 采用 **Apache License 2.0** 开源协议：
+
 - ✅ 我承诺将项目完全开源，目前正在分阶段开放代码
-- ✅ WebGUI 前端、Exploit-DB 索引等模块已完全开放
+- ✅ Exploit-DB 索引等模块已完全开放
 - ✅ 核心检测引擎等模块正在持续打磨优化中，将在成熟后全面开放
 - ✅ 允许商业和非商业用途的自由使用、修改和分发
 
@@ -291,6 +283,7 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 2. 在 `Client/internal/poc/<分类>/` 下添加新的 `cve_xxx_xxxxx.go`
 3. 实现 `Detector` 接口（建议同时实现 `AttackDetector`）
 4. 提交 PR 并附 PoC 验证截图
+
 </details>
 
 <details>
@@ -309,7 +302,6 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 | --- | --- |
 | 🐛 Bug 报告 | 通过 [Issues](https://github.com/xiguayiqiu/GYscan/issues) 提交 |
 | 📖 文档改进 | 修正错别字、补充示例、翻译 |
-| 🎨 WebGUI 优化 | Vue 3 前端改进 |
 | 💡 功能建议 | 通过 Discussions 发起 |
 | 🔌 周边工具 | `GYscan-tools/` 下的工具脚本 |
 
@@ -344,8 +336,8 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 
 | 渠道 | 链接 |
 | --- | --- |
-| 官网 | https://gyscan.space |
-| 文档 | https://gyscan.space/docs |
+| 官网 | <https://gyscan.space> |
+| 文档 | <https://gyscan.space/docs> |
 | B 站 | [弈秋啊](https://space.bilibili.com/) |
 | 腾讯频道 | 弈秋忘忧白帽：`yiqiuasec0` |
 | GitHub | [xiguayiqiu/GYscan](https://github.com/xiguayiqiu/GYscan) |
@@ -360,6 +352,7 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 本项目采用 [Apache License 2.0](LICENSE) 许可协议。
 
 **使用许可**：
+
 - ✅ 允许下载、学习、修改、用于合法授权测试
 - ✅ 可用于商业或非商业用途
 - ⚠️ 必须保留版权声明和许可证文本
@@ -367,7 +360,7 @@ Client 子模块的部分包通过 `replace` 指令指向私有 module。如需�
 **免责声明**：
 本项目作者不对任何因未授权使用造成的法律责任负责。
 
-> ⚠️ **重要提醒**：GYscan 是攻击性安全工具，仅允许在已获书面授权的目标上使用。任何未授权测试产生的一切后果由使用者自行承担。
+> **重要提醒**：GYscan 是攻击性安全工具，仅允许在已获书面授权的目标上使用。任何未授权测试产生的一切后果由使用者自行承担。
 
 ---
 
