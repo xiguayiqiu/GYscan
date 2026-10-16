@@ -25,6 +25,8 @@
 
 ---
 
+# GYscan has resumed normal operation, which is greatly thanks to my supervisor's support.
+
 > ⚠️ **Legal Notice**
 > GYscan is an **offensive security tool** with built-in high-risk features such as vulnerability exploitation, password cracking, and remote command execution. **Only use on targets with written authorization**. All consequences of unauthorized testing are solely the responsibility of the user.
 
