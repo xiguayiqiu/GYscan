@@ -25,10 +25,61 @@
 
 ---
 
-# GYscan以恢复正常运行，这是需要十分感谢我导师的支持
+# ✅ 服务器已恢复：GYscan 3.x 版本现已恢复正常，可正常使用。感谢您的耐心等待。
 >
 > ⚠️ **法律声明**
 > GYscan 是**攻击性安全工具**，内置漏洞利用、密码爆破、远程命令执行等高危功能，**仅允许在已获书面授权的目标上使用**。任何未授权测试产生的一切后果由使用者自行承担。
+
+---
+
+## 🌍 国际化（i18n）
+
+`Client/` 内置**中 / 英双语切换**。默认中文，可通过以下方式指定：
+
+### 优先级（从高到低）
+
+1. **命令行参数 `--lang`**（最高优先级）
+   ```bash
+   ./gyscan --lang en help
+   ./gyscan-free --lang en help
+   ```
+2. **环境变量 `GYSCAN_LANG`**
+   ```bash
+   export GYSCAN_LANG=en
+   ./gyscan help
+   ```
+3. **系统环境变量 `LC_ALL` / `LANG` / `LANGUAGE`**
+   - Linux / macOS：原生支持
+     ```bash
+     LANG=en_US.UTF-8 ./gyscan help
+     LANG=zh_CN.UTF-8 ./gyscan-free help
+     ```
+   - Windows：CMD 推荐
+     ```bat
+     set LANG=zh_CN.UTF-8 && gyscan.exe help
+     ```
+     PowerShell 推荐
+     ```powershell
+     $env:LANG = "en-US"; gyscan.exe help
+     ```
+4. **Windows 平台自动检测**：当上述环境变量均未设置时，Windows 构建会调用 `kernel32.GetUserDefaultLocaleName` 与 `GetUserDefaultUILanguage` API 读取用户 UI 语言，自动切换。
+5. **默认中文**
+
+### 效果
+
+- 命令分组标题（如 `综合工具 / Web安全工具`）会随语言切换为 `General / Web Security`
+- 命令的 Short 描述会翻译为对应语言
+- 帮助文本（`Usage:` / `Available Commands:` / `Flags:` 等）双语渲染
+
+### 支持的语言环境
+
+| 环境变量值 | 解析结果 |
+| --- | --- |
+| `zh`、`zh_CN`、`zh_CN.UTF-8`、`zh-CN` | 中文 |
+| `en`、`en_US`、`en_US.UTF-8`、`en-US` | 英文 |
+| `ja`、`ja_JP`、`ja-JP` | 英文（fallback，未来扩展） |
+| `ko`、`ko_KR`、`ko-KR` | 英文（fallback，未来扩展） |
+| 其他 | 回退到默认语言（中文） |
 
 ---
 
@@ -71,6 +122,7 @@ GYscan 是一套面向授权渗透测试场景的 **Go 原生一体化安全平�
 - 离线 Exploit-DB 检索（search / info / show）
 - 远程补丁探测（PC：WhatWeb 引擎）
 - Web 漏洞：XSS / CSRF / XXE
+- PHP php2shell 漏洞检测（CVE-2026-109618/CVE-2026-109619）：检测 session.upload_progress 配置、PHPSESSID 会话固定、会话文件注入（Chain A）等
 - 协议漏洞：SSH / FTP / 数据库爆破
 - DoS 测试
 
@@ -148,7 +200,7 @@ sudo gyscan update      # 自动检查并升级到最新版本
 |---|---|
 | **POC / 漏洞** | `poc` · `exp` · `pc` · `kernel_vulns` · `linux-kernel` |
 | **信息收集** | `scan` · `sub` · `dns` · `whois` · `cdn` · `waf` · `ssl` |
-| **Web 安全** | `fu` · `dirscan` · `xss` · `csrf` · `xxe` · `webshell` |
+| **Web 安全** | `fu` · `dirscan` · `xss` · `csrf` · `xxe` · `webshell` · `php` |
 | **密码 / 凭据** | `ssh` · `ftp` · `database` · `crunch` · `cupp` · `crack` |
 | **主机信息** | `userinfo` · `process` · `registry` · `route` · `linenum` |
 | **配置审计** | `configaudit` |
