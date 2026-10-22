@@ -32,57 +32,6 @@
 
 ---
 
-## 🌍 国际化（i18n）
-
-`Client/` 内置**中 / 英双语切换**。默认中文，可通过以下方式指定：
-
-### 优先级（从高到低）
-
-1. **命令行参数 `--lang`**（最高优先级）
-   ```bash
-   ./gyscan --lang en help
-   ./gyscan-free --lang en help
-   ```
-2. **环境变量 `GYSCAN_LANG`**
-   ```bash
-   export GYSCAN_LANG=en
-   ./gyscan help
-   ```
-3. **系统环境变量 `LC_ALL` / `LANG` / `LANGUAGE`**
-   - Linux / macOS：原生支持
-     ```bash
-     LANG=en_US.UTF-8 ./gyscan help
-     LANG=zh_CN.UTF-8 ./gyscan-free help
-     ```
-   - Windows：CMD 推荐
-     ```bat
-     set LANG=zh_CN.UTF-8 && gyscan.exe help
-     ```
-     PowerShell 推荐
-     ```powershell
-     $env:LANG = "en-US"; gyscan.exe help
-     ```
-4. **Windows 平台自动检测**：当上述环境变量均未设置时，Windows 构建会调用 `kernel32.GetUserDefaultLocaleName` 与 `GetUserDefaultUILanguage` API 读取用户 UI 语言，自动切换。
-5. **默认中文**
-
-### 效果
-
-- 命令分组标题（如 `综合工具 / Web安全工具`）会随语言切换为 `General / Web Security`
-- 命令的 Short 描述会翻译为对应语言
-- 帮助文本（`Usage:` / `Available Commands:` / `Flags:` 等）双语渲染
-
-### 支持的语言环境
-
-| 环境变量值 | 解析结果 |
-| --- | --- |
-| `zh`、`zh_CN`、`zh_CN.UTF-8`、`zh-CN` | 中文 |
-| `en`、`en_US`、`en_US.UTF-8`、`en-US` | 英文 |
-| `ja`、`ja_JP`、`ja-JP` | 英文（fallback，未来扩展） |
-| `ko`、`ko_KR`、`ko-KR` | 英文（fallback，未来扩展） |
-| 其他 | 回退到默认语言（中文） |
-
----
-
 ## ✨ GYscan 是什么？
 
 GYscan 是一套面向授权渗透测试场景的 **Go 原生一体化安全平台**，将信息收集、资产探测、漏洞检测、密码爆破、Web 安全、远程执行、C2 主机巡检、Web 管理后台等多种能力整合到同一工具集中。
